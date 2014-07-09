@@ -1,0 +1,28 @@
+{
+  "name": "football-mobile",
+  "version": "0.0.0",
+  "authors": [
+    "Alan Chandler <alan@chandlerfamily.org.uk>"
+  ],
+  "description": "Mobile version of MBBall",
+  "keywords": [
+    "Polymer",
+    "MBBall",
+    "Football"
+  ],
+  "license": "GPL-3+",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "components/",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "core-component-page": "Polymer/core-component-page#>=0.3.0 <1.0.0",
+    "img-background": "EdgarsZagorskis/img-background#master",
+    "core-elements": "Polymer/core-elements#~0.3.3",
+    "paper-elements": "Polymer/paper-elements#~0.3.3"
+  }
+}

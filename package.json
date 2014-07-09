@@ -1,0 +1,23 @@
+{
+  "name": "mbball",
+  "version": "4.0.0-alpha1",
+  "description": "American Football results picking competition manager",
+  "keywords": "Polymer-App Football Competition",
+  "author": {
+    "name": "Alan Chandler",
+    "url": "http://www.chandlerfamily.org.uk"
+  },
+  "licence": "GPL-3+",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akc42/mbball.git"
+  },
+  "devDependencies": {
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-karma": "^0.8.3",
+    "karma-chrome-launcher": "^0.1.4",
+    "karma-cli": "0.0.4",
+    "karma-html2js-preprocessor": "^0.1.0",
+    "karma-jasmine": "~0.2.0"
+  }
+}
