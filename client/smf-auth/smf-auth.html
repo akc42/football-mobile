@@ -1,0 +1,15 @@
+<link rel="import" href="../../components/polymer/polymer.html">
+
+<polymer-element name="smf-auth" attributes="login fail splash">
+  <template>
+    <img id="splash" src="{{splash}}"/>
+    <template if="{{autheticated}}">
+      <content></content>
+    </template>
+
+  </template>
+
+  <script>
+
+  </script>
+</polymer-element>
