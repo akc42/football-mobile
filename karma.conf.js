@@ -15,10 +15,12 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-        'test/polymer-setup.js',
+        'polymer-setup.js',
+        'components/jasmine-ajax/lib/mock-ajax.js',
         'client/**/*.test.js',
-        {pattern:'components/**/*',included:false},
-        {pattern:'client/**/*',included:false}
+        'client/**/*-fixture.html',
+        {pattern:'components/**/*',included:false,served:true},
+        {pattern:'client/**/*',included:false,served:true}
     ],
 
 
@@ -31,7 +33,7 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-      'client/app/**/*-fixtures.html':['html2js']
+      'client/**/*-fixture.html':['html2js']
     },
 
 
@@ -60,7 +62,7 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Chrome', 'Firefox'],
+    browsers: ['Chrome'],
 
 
     // Continuous Integration mode

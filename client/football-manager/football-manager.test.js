@@ -1,14 +1,14 @@
 /**
  * Created by alan on 02/07/14.
  */
-describe('<football-manager>',function(){
+xdescribe('<football-manager>',function(){
 
   beforeEach(function(){
-    PolymerTests.loadElements([''])
+    PolymerTests.loadFixture(['football-manager-fixture.html']);
 
   });
 
-   it('should initialise in state "anon"',function(){
+   xit('should initialise in state "menu"',function(){
 
    }) ;
 });

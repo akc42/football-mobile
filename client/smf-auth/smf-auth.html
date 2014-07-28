@@ -1,7 +1,9 @@
 <link rel="import" href="../../components/polymer/polymer.html">
+<link rel="import" href="../../components/core-ajax/core-ajax.html">
 
 <polymer-element name="smf-auth" attributes="login fail splash">
   <template>
+    <core-ajax id="req" url="{{login}}" handleAs="json" on-core-response="{{handleResponse}}"></core-ajax>
     <img id="splash" src="{{splash}}"/>
     <template if="{{autheticated}}">
       <content></content>
@@ -10,6 +12,22 @@
   </template>
 
   <script>
-
+  Polymer('smf-auth',{
+    publish:{
+      user:{
+        value:{},
+        reflect:true
+      }
+    },
+    created:function(){
+      this.authenticated = false;
+    },
+    attached:function(){
+      this.$.req.go();
+    },
+    handleResponse:function(response){
+      //TODO decide what the response is
+    }
+  });
   </script>
 </polymer-element>

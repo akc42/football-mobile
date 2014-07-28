@@ -19,7 +19,7 @@
   ],
   "dependencies": {
     "img-background": "EdgarsZagorskis/img-background#master",
-    "core-elements": "Polymer/core-elements",
-    "paper-elements": "Polymer/paper-elements"
+    "polymer": "Polymer/polymer#~0.3.4",
+    "jasmine-ajax": "~2.0.1"
   }
 }
