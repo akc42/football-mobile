@@ -1,7 +1,7 @@
-describe('<smf-auth>',function(){
+describe('<football-app>',function(){
   beforeEach(function(done){
     jasmine.Ajax.install();
-    PolymerTests.loadFixture('client/smf-auth/smf-auth-fixture.html',done);
+    PolymerTests.loadFixture('client/football-app/football-app-fixture.html',done);
   });
   afterEach(function(){
     jasmine.Ajax.uninstall();

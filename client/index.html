@@ -1,21 +1,41 @@
 <!doctype html>
 <!--
   Copyright (c) 2014 Alan Chandler. All rights reserved
+      This file is part of MBBall, an American Football Results Picking
+    Competition Management software suite.
+
+    MBBall is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    MBBall is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with MBBall (file COPYING.txt).  If not, see <http://www.gnu.org/licenses/>.
+
 -->
 <html>
 <head>
-
+    <title>MBBall</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="icon" sizes="196x196" href="/icon.png">
   <script src="../platform/platform.js"></script>
-  <link rel="import" href="football-manager/football-manager.html">
-  <link rel="import" href="smf-auth/smf-auth.html">
 
+  <link rel="import" href="football-app/football-app.html">
 
 </head>
 <body unresolved touch-action="auto">
 
-  <smf-auth login="/football/auth_json.php" fail="/football.php" splash="football.png" user="{{user}}">
-    <football-manager user="{{user}}"></football-manager>
-  </smf-auth>
+  <football-app
+          forum="http://mb.home/forum/index.php"
+          auth="http://mb.home/forum/auth_user.php"
+          server-base="/fserve"></football-app>
 
 </body>
 </html>
