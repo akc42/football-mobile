@@ -19,9 +19,10 @@ along with MBBall (file COPYING.txt).  If not, see <http://www.gnu.org/licenses/
 -->
 
 <link rel="import" href="../../components/polymer/polymer.html">
-
+<link rel="import" href="../../components/core-ajax/core-ajax.html">
 <polymer-element name="football-app" attributes="forum auth server-base ">
   <template>
+    <smf-auth id="football-auth" url="{{auth}}" guest="false" token="{{token}}" ></smf-auth>
     <script src="{{auth}}"></script>
     <core-ajax id="participant-req"
             url="{{server-base}}/participants/{{user.uid}}"
@@ -57,6 +58,11 @@ along with MBBall (file COPYING.txt).  If not, see <http://www.gnu.org/licenses/
       this.user = {};
       this.token = '';
     },
+    ready:function() {
+      this.$.football-auth.addEventListener('auth-done', function(e){
+
+      });
+    }
     attached:function(){
       this.$.participant-req.go();
     },
