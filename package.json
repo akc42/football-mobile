@@ -16,12 +16,12 @@
     "express": "^4.7.2",
     "jwt-simple": "^0.2.0",
     "sqlite3": "^2.2.7",
-    "sqlite3-transactions": "0.0.5"
+    "sqlite3-transactions": "0.0.5",
     "static-favicon": "~1.0.0",
     "morgan": "~1.0.0",
     "cookie-parser": "~1.0.1",
     "body-parser": "~1.0.0",
-    "debug": "~0.7.4",
+    "debug": "~0.7.4"
   },
   "devDependencies": {
     "connect-livereload": "~0.4.0",

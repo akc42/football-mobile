@@ -15,7 +15,6 @@
     "core-elements": "Polymer/core-elements#~0.3.5",
     "paper-elements": "Polymer/paper-elements#~0.3.5",
     "polymer": "Polymer/polymer#~0.3.5",
-    "jasmine-ajax": "~2.0.1",
     "screenfull": "~1.2.1"
   }
 }
