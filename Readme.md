@@ -16,7 +16,7 @@ application
 
 All users currently will be checked that they are logged in to a community forum, and will also
 take their ability to access the Administrative area from information contained in the forum (see
-below).  This functionality is concentrated in a single Polymer Element `<forum-auth></forum-auth>`
+below).  This functionality is concentrated in a single Polymer Element `<smf-auth></forum-auth>`
 so may be replaced for alternative scenarios.
 
 As well as the client component of the software that runs in the users web browser, there is a

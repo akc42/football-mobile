@@ -15,10 +15,10 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-        'polymer-setup.js',
-        'components/jasmine-ajax/lib/mock-ajax.js',
-        'client/**/*.test.js',
-        'client/**/*-fixture.html',
+        'test-utils/polymer-test-setup.js',
+        'test-utils/mock-ajax.js',
+        'client/elements/*/*.test.js',
+        'client/elements/*/*-fixture.html',
         {pattern:'components/**/*',included:false,served:true},
         {pattern:'client/**/*',included:false,served:true}
     ],

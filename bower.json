@@ -11,39 +11,11 @@
     "Football"
   ],
   "license": "GPL-3+",
-  "ignore": [
-    "**/.*",
-    "node_modules",
-    "components/",
-    "test"
-  ],
   "dependencies": {
-    "img-background": "EdgarsZagorskis/img-background#master",
-    "polymer": "Polymer/polymer#~0.3.4",
+    "core-elements": "Polymer/core-elements#~0.3.5",
+    "paper-elements": "Polymer/paper-elements#~0.3.5",
+    "polymer": "Polymer/polymer#~0.3.5",
     "jasmine-ajax": "~2.0.1",
     "screenfull": "~1.2.1"
-  },
-  "resolutions": {
-    "core-toolbar": ">=0.3.0 <1.0.0",
-    "core-drawer-panel": ">=0.3.0 <1.0.0",
-    "core-item": ">=0.3.0 <1.0.0",
-    "core-menu": ">=0.3.0 <1.0.0",
-    "core-media-query": ">=0.3.0 <1.0.0",
-    "core-icon-button": ">=0.3.0 <1.0.0",
-    "core-input": ">=0.3.0 <1.0.0",
-    "core-header-panel": ">=0.3.0 <1.0.0",
-    "core-selector": ">=0.3.0 <1.0.0",
-    "core-selection": ">=0.3.0 <1.0.0",
-    "core-overlay": ">=0.3.0 <1.0.0",
-    "core-transition": ">=0.3.0 <1.0.0",
-    "core-meta": ">=0.3.0 <1.0.0",
-    "core-animation": ">=0.3.0 <1.0.0",
-    "core-collapse": ">=0.3.0 <1.0.0",
-    "core-range": ">=0.3.0 <1.0.0",
-    "core-field": ">=0.3.0 <1.0.0",
-    "polymer": ">=0.3.0 <1.0.0",
-    "core-icons": ">=0.3.0 <1.0.0",
-    "core-scroll-header-panel": ">=0.3.0 <1.0.0",
-    "sampler-scaffold": ">=0.3.0 <1.0.0"
   }
 }
