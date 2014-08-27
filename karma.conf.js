@@ -15,8 +15,8 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-        'test-utils/polymer-test-setup.js',
-        'test-utils/mock-ajax.js',
+        'client/test-utils/polymer-test-setup.js',
+        'client/test-utils/mock-ajax.js',
         'client/elements/*/*.test.js',
         'client/elements/*/*-fixture.html',
         {pattern:'components/**/*',included:false,served:true},
@@ -33,7 +33,7 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-      'client/**/*-fixture.html':['html2js']
+      'client/elements/*/*-fixture.html':['html2js']
     },
 
 
