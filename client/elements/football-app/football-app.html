@@ -14,16 +14,17 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with MBBall (file COPYING.txt).  If not, see <http://www.gnu.org/licenses/>.
+along with MBBall (file LICENCE).  If not, see <http://www.gnu.org/licenses/>.
 
 -->
 
-<link rel="import" href="../../components/polymer/polymer.html">
-<link rel="import" href="../../components/core-ajax/core-ajax.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/core-ajax/core-ajax.html">
+<link rel="import" href="../smf-auth/smf-auth.html">
 <polymer-element name="football-app" attributes="forum auth server-base ">
   <template>
     <smf-auth id="football-auth" url="{{auth}}" guest="false" token="{{token}}" ></smf-auth>
-    <script src="{{auth}}"></script>
+
     <core-ajax id="participant-req"
             url="{{server-base}}/participants/{{user.uid}}"
             handlerAs="json"
