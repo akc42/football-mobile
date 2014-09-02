@@ -26,6 +26,9 @@ describe("<smf-auth>",function(){
   afterEach(function(){
     jasmine.Ajax.uninstall();
   });
+  it("should emit auth-done when complete",function(){
+
+  });
   it("should make a request on the url given in its url parameter",function(){
     var req = jasmine.Ajax.requests;
     expect(req.mostRecent().url).toBe('/football/auth_json.php'); //Url declared in our fixture
