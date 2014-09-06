@@ -19,19 +19,27 @@
  */
 
 describe("<smf-auth>",function(){
+  var listener = function(done){
+    done();
+  };
   beforeEach(function(done){
     jasmine.Ajax.install();
-    PolymerTests.loadFixture("client/elements/smf-auth/smf-auth-fixture.html",done);
+    PolymerTests.loadFixture("client/elements/smf-auth/smf-auth-fixture.html",function(){
+      window.addEventListener('auth-done',listener(done)); //If it fires, then this test will complete, otherwise it will time out.
+    });
   });
   afterEach(function(){
     jasmine.Ajax.uninstall();
+    window.removeEventListener('auth-done',listener);
   });
   it("should emit auth-done when complete",function(){
-
+    //If auth-done never happened, we would fail this test in the before each
   });
-  it("should make a request on the url given in its url parameter",function(){
+  it("should make a request on the url given in its url parameter",function(done){
     var req = jasmine.Ajax.requests;
-    expect(req.mostRecent().url).toBe('/football/auth_json.php'); //Url declared in our fixture
-
+    setTimeout(function(){
+      expect(req.mostRecent().url).toBe('/football/auth_json.php'); //Url declared in our fixture
+      done();
+    },5000);
   });
 });

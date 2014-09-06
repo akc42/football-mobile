@@ -23,13 +23,13 @@ along with MBBall (file LICENCE).  If not, see <http://www.gnu.org/licenses/>.
 <link rel="import" href="../smf-auth/smf-auth.html">
 <polymer-element name="football-app" attributes="forum auth server-base ">
   <template>
-    <smf-auth id="football-auth" url="{{auth}}" guest="false" token="{{token}}" ></smf-auth>
+    <smf-auth id="football-auth" url="{{auth}}" token="{{token}}" ></smf-auth>
 
     <core-ajax id="participant-req"
             url="{{server-base}}/participants/{{user.uid}}"
             handlerAs="json"
             headers="x-access-token:{{token}}"
-            on-core-response="{{participantResponse}}"
+            on-core-response="{{participantResponse}}"></core-ajax>
     <core-animated-pages selected="0">
         <section id="page1">
             <h1>MBBall</h1>

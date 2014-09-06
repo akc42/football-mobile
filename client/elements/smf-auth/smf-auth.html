@@ -1,0 +1,60 @@
+<!--
+Copyright (c) 2014 Alan Chandler. All rights reserved
+This file is part of MBBall, an American Football Results Picking
+Competition Management software suite.
+
+MBBall is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+MBBall is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with MBBall (file COPYING.txt).  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/core-ajax/core-ajax.html">
+<polymer-element name="smf-auth" attributes="url timeout">
+  <template>
+    <core-ajax
+      id="auth-req"
+      url="{{url}}"
+      handlerAs="json"
+      on-core-response="{{authResponse}}"></core-ajax>
+  </template>
+  <script>
+    Polymer('smf-auth',{
+      publish:{
+        token:{
+          value:'',
+          reflect:true
+        }
+      },
+      created:function(){
+        this.timeout=10;
+        this.ajaxtimeout = false;
+      },
+
+      attached:function(){
+        this.timer = setTimeout(function(){
+          //We didn't get a response so flag it
+          this.ajaxtimeout = true;
+
+        },this.timeout*1000);
+        this.$.auth-req.go();
+      },
+      authResponse:function(response){
+        if(!this.ajaxtimeount) {
+          //didn't timeout so we can use this response.
+          clearTimeout(this.timer);  //clear the timeout
+
+        }
+
+      }
+    });
+  </script?

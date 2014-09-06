@@ -19,7 +19,7 @@ module.exports = function(config) {
         'client/test-utils/mock-ajax.js',
         'client/elements/*/*.test.js',
         'client/elements/*/*-fixture.html',
-        {pattern:'components/**/*',included:false,served:true},
+        {pattern:'bower_components/**/*',included:false,served:true},
         {pattern:'client/**/*',included:false,served:true}
     ],
 

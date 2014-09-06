@@ -5,7 +5,9 @@
     <file url="file://$PROJECT_DIR$/client/elements/football-app/football-app.html" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/client/elements/football-app/football-app.test.js" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/client/elements/smf-auth/smf-auth-fixture.html" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/client/elements/smf-auth/smf-auth.spec.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/client/elements/smf-auth/smf-auth.html" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/client/elements/smf-auth/smf-auth.test.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/client/test-utils/polymer-test-setup.js" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/gulpfile.js" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/karma.conf.js" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/package.json" charset="UTF-8" />
