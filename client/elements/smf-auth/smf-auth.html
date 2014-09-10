@@ -44,7 +44,7 @@ along with MBBall (file COPYING.txt).  If not, see <http://www.gnu.org/licenses/
         this.timer = setTimeout(function(){
           //We didn't get a response so flag it
           this.ajaxtimeout = true;
-
+		      this.fire('auth-complete',{token:this.token});	
         },this.timeout*1000);
         this.$.auth-req.go();
       },
@@ -52,7 +52,8 @@ along with MBBall (file COPYING.txt).  If not, see <http://www.gnu.org/licenses/
         if(!this.ajaxtimeount) {
           //didn't timeout so we can use this response.
           clearTimeout(this.timer);  //clear the timeout
-
+          this.token = response.token;
+          this.fire('auth-complete',{token:this.token});
         }
 
       }
