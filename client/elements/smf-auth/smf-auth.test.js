@@ -19,27 +19,55 @@
  */
 
 describe("<smf-auth>",function(){
-  var listener = function(done){
-    done();
-  };
   beforeEach(function(done){
     jasmine.Ajax.install();
-    PolymerTests.loadFixture("client/elements/smf-auth/smf-auth-fixture.html",function(){
-      window.addEventListener('auth-done',listener(done)); //If it fires, then this test will complete, otherwise it will time out.
-    });
+    jasmine.clock().install();
+    PolymerTests.loadFixture("client/elements/smf-auth/smf-auth-fixture.html",done);
   });
   afterEach(function(){
+    jasmine.clock().uninstall();
     jasmine.Ajax.uninstall();
-    window.removeEventListener('auth-done',listener);
   });
-  it("should emit auth-done when complete",function(){
-    //If auth-done never happened, we would fail this test in the before each
-  });
-  it("should make a request on the url given in its url parameter",function(done){
+  it("should make a request on the url given in its url parameter",function(){
     var req = jasmine.Ajax.requests;
-    setTimeout(function(){
-      expect(req.mostRecent().url).toBe('/football/auth_json.php'); //Url declared in our fixture
-      done();
-    },5000);
+    expect(req.mostRecent().url).toBe('/football/auth_json.php'); //Url declared in our fixture
   });
+  describe("handling no response timeout", function(){
+    beforeEach(function(){
+      this.auth = document.querySelector('smf-auth');
+      this.listener = jasmine.createSpy("authListener");
+      this.auth.addEventListener('auth-done',this.listener);
+    });
+    afterEach(function(){
+      this.auth.removeEventListener('auth-done',this.listener);
+    });
+    it("should emit auth-done on no response timeout", function(){
+      jasmine.clock().tick(950);
+      expect(this.listener).not.toHaveBeenCalled();
+      jasmine.clock().tick(100);
+      expect(this.listener).toHaveBeenCalled();
+    });
+    it("should provide an empty token if request times out",function(){
+      jasmine.clock().tick(1050); //ensure we get past the timeout
+      expect(this.auth.token).toEqual('');
+    });
+
+  });
+
+  it("should provide returned token if response received",function(done){
+    function listener(){
+      var auth = document.querySelector('smf-auth');
+      expect(auth.token).toBe('This is my token');
+      window.removeEventListener('auth-done',listener);
+      done();
+    };
+    window.addEventListener('auth-done',listener);
+    jasmine.Ajax.requests.mostRecent().response({
+      "status":200,
+      "contentType": "application/json",
+      "responseText":{"token":"This is my token"}
+    })
+
+  });
+
 });
