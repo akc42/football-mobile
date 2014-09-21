@@ -18,14 +18,28 @@
  *
  */
 
-xdescribe('<football-app>',function(){
+describe('<football-app> fails to authenticate',function(){
   beforeEach(function(done){
     jasmine.Ajax.install();
+    jasmine.clock().install();
     PolymerTests.loadFixture('client/football-app/football-app-fixture.html',done);
   });
   afterEach(function(){
+    jasmine.clock().uninstall();
     jasmine.Ajax.uninstall();
   });
+  it("should display an initial start up screen",function(){
+
+  });
+  it("should handle the case when there is a timeout",function(){
+
+  });
+});
+
+describe('<football-app> with authentication',function(){
+
+});
+
   describe("The element establishes itself",function(){
     var el;
     beforeEach(function(){
@@ -53,4 +67,4 @@ xdescribe('<football-app>',function(){
 
 
 
-});
+
