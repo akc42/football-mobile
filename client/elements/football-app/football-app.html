@@ -35,7 +35,7 @@ along with MBBall (file LICENCE).  If not, see <http://www.gnu.org/licenses/>.
             <h1>MBBall</h1>
             <p>An American Football results picking competition</p>
             <img src="mblogo.png"/>
-            <paper-dialog heading="Only Forum Members" backdrop="true" layered="true" autoCloseDisabled="true" transition="paper-transition-center">
+            <paper-dialog id="no-auth" heading="Only Forum Members" backdrop="true" layered="true" autoCloseDisabled="true" transition="paper-transition-center">
                 <p>MBBall is an American Football Results picking competition which is just one of the exciting facilities available to members of our community.
                     To use it you have to be logged on to the forum, and at the moment you are not.</p>
                 <p>If you are already a member then Login first, otherwise Register.</p>
@@ -49,8 +49,6 @@ along with MBBall (file LICENCE).  If not, see <http://www.gnu.org/licenses/>.
         <football-register user="{{user}}" token="{{token}}"></football-register>
         <football-manager user="{{user}}" token="{{token}}"></football-manager>
     </core-animated-pages>
-    </template>
-
   </template>
 
   <script>
@@ -60,22 +58,26 @@ along with MBBall (file LICENCE).  If not, see <http://www.gnu.org/licenses/>.
       this.token = '';
     },
     ready:function() {
-      this.$.football-auth.addEventListener('auth-done', function(e){
+      var auth = this.$.football-auth;
+      auth.addEventListener('auth-done', function(e){
+        if (auth.token === '' ) {
+          this.$.no-auth.open = true; //should display the dialog
+
+        } else {
+          this.$.participant-req.go();
+        }
 
       });
     }
-    attached:function(){
-      this.$.participant-req.go();
-    },
-    participantResponse:function(response){
+    participantResponse:function(e){
       //TODO decide what the response is
     },
-      Register: function(){
-          window.location = this.forum + '?action=register';
-      },
-      Login:function() {
-          window.location = this.forum + '?action=login';
-      }
+    Register: function(){
+        window.location = this.forum + '?action=register';
+    },
+    Login:function() {
+        window.location = this.forum + '?action=login';
+    }
   });
   </script>
 </polymer-element>
