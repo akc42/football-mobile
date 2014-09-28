@@ -19,7 +19,7 @@ along with MBBall (file COPYING.txt).  If not, see <http://www.gnu.org/licenses/
 -->
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/core-ajax/core-ajax.html">
-<polymer-element name="smf-auth" attributes="url timeout">
+<polymer-element name="smf-auth" attributes="url">
   <template>
     <core-ajax
       id="authreq"
@@ -35,37 +35,12 @@ along with MBBall (file COPYING.txt).  If not, see <http://www.gnu.org/licenses/
           reflect:true
         }
       },
-      created:function(){
-        this.timeout=10;
-        this.ajaxtimeout = false;
-      },
-
       attached:function(){
-        var that = this;
-        this.timer = setTimeout(function(){
-          //We didn't get a response so flag it
-<<<<<<< HEAD
-          this.ajaxtimeout = true;
-		      this.fire('auth-complete',{token:this.token});	
-=======
-          that.ajaxtimeout = true;
-          that.fire('auth-done');
->>>>>>> 5127c31a25c13b40eb15e960cf40e18613dbdb14
-        },this.timeout*1000);
         this.$.authreq.go();
       },
       authResponse:function(e){
-        if(!this.ajaxtimeount) {
-          //didn't timeout so we can use this response.
-          clearTimeout(this.timer);  //clear the timeout
-<<<<<<< HEAD
-          this.token = response.token;
-          this.fire('auth-complete',{token:this.token});
-=======
-          this.token = e.detail.response.token
-          this.fire('auth-done');
->>>>>>> 5127c31a25c13b40eb15e960cf40e18613dbdb14
-        }
+        this.token = e.detail.response.token
+        this.fire('auth-done');
       }
     });
   </script>

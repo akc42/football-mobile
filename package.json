@@ -13,14 +13,14 @@
     "url": "https://github.com/akc42/mbball.git"
   },
   "dependencies": {
-    "express": "^4.7.2",
-    "jwt-simple": "^0.2.0",
-    "sqlite3": "^2.2.7",
-    "static-favicon": "~1.0.0",
-    "morgan": "~1.0.0",
-    "cookie-parser": "~1.0.1",
     "body-parser": "~1.0.0",
-    "debug": "~0.7.4"
+    "cookie-parser": "~1.0.1",
+    "debug": "~0.7.4",
+    "express": "^4.7.2",
+    "express-jwt": "^0.3.2",
+    "morgan": "~1.0.0",
+    "sqlite3": "^2.2.7",
+    "static-favicon": "~1.0.0"
   },
   "devDependencies": {
     "connect-livereload": "~0.4.0",

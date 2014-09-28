@@ -31,12 +31,19 @@ describe('<football-app> fails to authenticate',function(){
   it("should display an initial start up screen",function(){
 
   });
-  it("should handle the case when there is a timeout",function(){
+  it("failure to authenticate should display dialog informing user to login or register",function(){
+
+  });
+  it("clicking on register should take user to forum register url",function(){
+
+  });
+  it("clicking on login should take user to forum register url",function(){
 
   });
 });
 
 describe('<football-app> with authentication',function(){
+
 
 });
 

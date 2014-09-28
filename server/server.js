@@ -10,7 +10,7 @@ var express = require('express');
 var jwt = require('jsonwebtoken');  //https://npmjs.org/package/node-jsonwebtoken
 var expressJwt = require('express-jwt'); //https://npmjs.org/package/express-jwt
 
-var secret = "this is the secret secret secret 12356";
+var secret = "MB_Footbill_15";
 
 
 var app = express();
