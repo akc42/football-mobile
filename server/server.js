@@ -36,22 +36,23 @@
   const util = require('util');
   const url = require('url');
   const querystring = require('querystring');
-  const logger = require('./logger');
+  const logger = require('./utils/logger');
   const child = require('child_process');
   const root = path.resolve(__dirname,'../');
+  const API = require('./api');
+  const PDF = require('./pdf');
+  const CSV = require('./csv');
+  const MAIL = require('./mail');
 
-// see https://stackoverflow.com/a/52171480/438737
-  const cyrb53 = function(str, seed = 0) {
-    let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
-    for (let i = 0, ch; i < str.length; i++) {
-        ch = str.charCodeAt(i);
-        h1 = Math.imul(h1 ^ ch, 2654435761);
-        h2 = Math.imul(h2 ^ ch, 1597334677);
-    }
-    h1 = Math.imul(h1 ^ h1>>>16, 2246822507) ^ Math.imul(h2 ^ h2>>>13, 3266489909);
-    h2 = Math.imul(h2 ^ h2>>>16, 2246822507) ^ Math.imul(h1 ^ h1>>>13, 3266489909);
-    return 4294967296 * (2097151 & h2) + (h1>>>0);
-  };
+  
+  
+  function loadServers(webdir, relPath) {
+    return includeAll({
+      dirname: path.resolve(webdir, relPath),
+      filter: /(.+)\.js$/
+    }) || {};
+  }
+
 
   const version = new Promise(resolve => {
     /*
@@ -109,6 +110,47 @@
       });
       server.listen(parseInt(process.env.FOOTBALL_PORT,10),'0.0.0.0');
       enableDestroy(server);
+
+      const api = this.Router();
+      debug('tell router to use api router for /api/ routes');
+      router.use('/api/', api);
+      const apis = this.loadServers(__dirname, '../api');
+      const pdfs = this.loadServers(__dirname, '../pdf');
+      /*
+        The following calls are so that we can set the situation like ...
+
+        /api/my/hierarchical/request is fielded by api/my-hierarchical-request.js file
+        /api/pdf/a/low/level/report is fielded by pdf/a-low-level-report.js file
+
+        We don't do this for csv because we need the service name to be sent as the filename
+      */
+
+      for (let service in apis) {
+        this.api.on(service.replace(/-/g, '/'), async (user, params, res, db, manager) => {
+          try {
+            await apis[service](user, params, res, db, manager);
+          } catch (err) {
+            logger('error', `/api/${service} failed with ${err.toString()}`);
+            res.statusCode = 400;
+            res.end();
+          }
+        });
+      }
+      for (let service in pdfs) {
+        this.pdf.on(service.replace(/-/g, '/'), async (user, params, doc, db, pdf, manager) => {
+          try {
+            await pdfs[service](user, params, doc, db, pdf, manager);
+          } catch (err) {
+            logger('error', `/api/pdf/${service} failed with ${err.toString()}`);
+            doc.fontSize(12).fillColor('red').text('Sorry, an unrecoverable error has been reported');
+            doc.end();
+          }
+        });
+      }
+
+
+
+
       router.get('/api/:client/done',async (req,res) => {      });
       
       router.get('/api/:channel/:token/release', checkRecorder, async (req,res) => {});
@@ -117,7 +159,7 @@
       router.get('/api/:channel/:token/start', checkRecorder, async (req,res) => {
         debug('got a start request with params ', req.params);
         res.statusCode = 200;
-        res.end(JSON.stringify(await req.recorder.record(req.params.token)));
+        res.end(JSON.stringify());
       });
       router.get('/api/status', (req,res) => {
         if (req.headers.accept && req.headers.accept == 'text/event-stream') {
@@ -222,23 +264,6 @@
     }
   }
 
-  async function usbDetach(device) {
-    if (device.deviceDescriptor.idVendor === parseInt(process.env.RECORDER_SCARLETT_VID,10) && 
-        device.deviceDescriptor.idProduct === parseInt(process.env.RECORDER_SCARLETT_PID,10)) {
-      debug('about to close scarlett recorder');
-      await recorders.scarlett.close() //stop the recorder
-      sendStatus('remove', {channel: 'scarlett'});
-      delete recorders.scarlett;
-      debug('closed scarlett recorder');
-    } else if (device.deviceDescriptor.idVendor === parseInt(process.env.RECORDER_YETI_VID,10) && 
-        device.deviceDescriptor.idProduct === parseInt(process.env.RECORDER_YETI_PID,10)) {
-      debug('about to close yeti recorder');
-      await recorders.yeti.close();
-      sendStatus('remove', {channel: 'yeti'});
-      delete recorders.yeti;
-      debug('closed yeti recorder');
-    }
-  }
   async function close(usb) {
   // My process has received a SIGINT signal
 

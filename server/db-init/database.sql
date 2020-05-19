@@ -113,7 +113,10 @@ CREATE TABLE participant (
     last_logon bigint DEFAULT (strftime('%s','now')) NOT NULL, --last time user connected
     admin_experience boolean DEFAULT 0 NOT NULL,--Set true if user has ever been administrator
     is_global_admin boolean DEFAULT 0 NOT NULL, -- Set true if user is global admin
-    is_guest boolean DEFAULT false NOT NULL --user is a guest and requires approving before is registered (baby backup from Melinda's Backups)
+    verification_key character varying, --stores a unique key which the user has to re-enter after reeiving verification e-mail.
+    verification_sent bigint DEFAULT (strftime('%s','now')) NOT NULL, --time the user was sent a verification e-mail;
+    is_verified boolean DEFAULT false NOT NULL, --email has been verified,
+    is_registered boolean DEFAULT false NOT NULL --use has been approved
 );
 
 CREATE TABLE pick (
@@ -327,7 +330,7 @@ INSERT INTO team (tid, name, logo,  confid, divid) VALUES('NYJ','New York Jets',
 INSERT INTO team (tid, name, logo,  confid, divid) VALUES('ARI','Arizona Cardinals','ARI_logo-50x50.gif','NFC','W');
 INSERT INTO team (tid, name, logo,  confid, divid) VALUES('KC','Kansas City Chiefs','KC_logo-50x50.gif','AFC','W');
 
-INSERT INTO settings (name,value) VALUES('version',13); --version of this configuration
+INSERT INTO settings (name,value) VALUES('version',14); --version of this configuration
 INSERT INTO settings (name,value) VALUES('max_round_display',18); -- max rounds to include in results table
 INSERT INTO settings (name,value) VALUES('cache_age',0);--cache age before invalid (in seconds), 0 is infinite
 INSERT INTO settings (name,value) VALUES('home_url','/forum/index.php'); --url used for home menu item

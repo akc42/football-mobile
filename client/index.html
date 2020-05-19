@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <!--
   Copyright (c) 2014 Alan Chandler. All rights reserved
       This file is part of MBBall, an American Football Results Picking
@@ -18,24 +18,114 @@
     along with MBBall (file COPYING.txt).  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<html>
-<head>
-  <title>MBBall</title>
-  <meta name="viewport" content="width=device-width">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <link rel="icon" sizes="196x196" href="images/football.png">
-  <script src="bower_components/platform/platform.js"></script>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+      content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes, shrink-to-fit=no">
 
-  <link rel="import" href="elements/football-app/football-app.html">
+    <title>Football Mobile</title>
+    <!-- because this can be served from anywhere base allows us to use relative urls -->
+    <base href="/">
+<link rel="shortcut icon" sizes="32x32" href="images/football-logo-32x32.png">
 
-</head>
-<body unresolved touch-action="auto">
+<meta name="theme-color" content="#adcabd">
+<!-- Add to homescreen for Chrome on Android. Fallback for manifest.json -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="PASv5">
 
-  <football-app
-          forum="http://mb.home/forum/index.php"
-          auth="http://mb.home/forum/auth_user.php"
-          server-base="/fserve"></football-app>
+<!-- Add to homescreen for Safari on iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PASv5">
 
-</body>
+<!-- Homescreen icons -->
+<link rel="apple-touch-icon" href="images/football-logo.svg">
+<link rel="apple-touch-icon" sizes="72x72" href="images/football-logo.svg">
+<link rel="apple-touch-icon" sizes="96x96" href="images/football-logo.svg">
+<link rel="apple-touch-icon" sizes="144x144" href="images/football-logo-144x144.png">
+<link rel="apple-touch-icon" sizes="192x192" href="images/football-logo.svg">
+
+<!-- Tile icon for Windows 8 (144x144 + tile color) -->
+<meta name="msapplication-TileImage" content="images/football-logo-144x144.png">
+<meta name="msapplication-TileColor" content="#adcabd">
+<meta name="msapplication-tap-highlight" content="no">
+    <link rel="manifest" href="manifest.json">
+    <script>
+      /*hold off for now
+      if('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js', { scope: '/' });
+      }
+      */
+    </script>
+    <script src="/lib/webcomponents-loader.js"></script>
+
+    <script type="module" src="/elements/football-app.js"></script>
+
+    <style>
+      html {
+        background: #ffffff;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: sans-serif;
+        line-height: 1.5;
+        letter-spacing: 0.1em;
+        background-color: #fafafa;
+        color: #333;
+      }
+
+      /* styling for render while resources are loading */
+      pas-app[unresolved] {
+        display: grid;
+        grid-gap:5px;
+        grid-template-rows: [header-start] 64px [header-end main-start] 1fr [main-end];
+        grid-template-columns: 1fr;
+        line-height: 68px;
+        font-size: 16pt;
+        color: #202020;
+        background-color:#ffffff;
+        height: 100vh;
+
+      }
+
+      pas-app[unresolved] header {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        height: 64px;
+        background-color: #adcabd;
+        color: #ffffff;
+        width: 100%;
+        box-shadow: 0px 20px 41px 0px rgba(0,0,0,0.2);
+      }
+
+      pas-app[unresolved] section {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        letter-spacing: 0.3em;
+        font-weight: 600;
+      }
+
+    </style>
+
+  </head>
+  <body>
+    <pas-app unresolved>
+      <header class="header"><div>Football Mobile</div></header>
+      <section><div>Application Loading ...</div></section>
+    </pas-app>
+    <noscript>
+      Please enable JavaScript to use to use football mobile.
+    </noscript>
+    <script type="module">
+      window.performance.mark('index_loaded');
+      window.performance.measure('index_loaded','navigationStart','index_loaded');
+    </script>
+
+  </body>
 </html>

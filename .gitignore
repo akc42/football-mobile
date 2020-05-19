@@ -1,5 +1,5 @@
 *~
-client/lit
+client/libs
 docs/**/*.aux
 docs/**/*.fdb_latexmk
 docs/**/*.fls

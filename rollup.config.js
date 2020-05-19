@@ -12,7 +12,7 @@ export default {
     'node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js'
   ],
   output: {
-    dir: 'client/lit',
+    dir: 'client/libs',
     format: 'esm'
   },
   plugins: [resolve()]
