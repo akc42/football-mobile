@@ -21,30 +21,29 @@
 
 (function() {
   'use strict';
+  const debug = require('debug')('football:server');
 
   const path = require('path');
-
   require('dotenv').config({path: path.resolve(__dirname,'.env')});
   
-  const fs = require('fs').promises;
-
-  const http = require('http');
-  const debug = require('debug')('football:web');
+  const sqlite3 = require('sqlite3');
+  const { open } = require('sqlite');
+  const bodyParser = require('body-parser');
   const Router = require('router');
-  const enableDestroy = require('server-destroy');
+  const jwt = require('jwt-simple');
+  const finalhandler = require('finalhandler');
 
-  const util = require('util');
-  const url = require('url');
-  const querystring = require('querystring');
   const logger = require('./utils/logger');
-  const child = require('child_process');
-  const root = path.resolve(__dirname,'../');
-  const API = require('./api');
-  const PDF = require('./pdf');
-  const CSV = require('./csv');
-  const MAIL = require('./mail');
+  const Responder = require('./utils/responder');
 
-  
+
+  function dbOpen() {
+    return open({
+      filename: path.resolve(__dirname, '../data', process.env.FOOTBALL_DB),
+      mode: sqlite3.OPEN_READWRITE,
+      driver: sqlite3.Database
+    });
+  }  
   
   function loadServers(webdir, relPath) {
     return includeAll({
@@ -52,219 +51,253 @@
       filter: /(.+)\.js$/
     }) || {};
   }
+  function forbidden(req,res, message) {
+    debug('In "forbidden"');
+    logger('auth', `${message} with request url of ${req.originalUrl}`, req.headers['x-forwarded-for']);
+    res.setHeader('Set-Cookie', 'MBBALL=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/');
+    res.statusCode = 403;
+    res.end();
+  }
 
+  function finalErr (err, res, req) {
+    logger('error', `Final Error at url ${req.originalUrl} with error ${err.stack}`);
+  }
 
-  const version = new Promise(resolve => {
-    /*
-      we use the following file to workout the copyright year. As the system becomes more stable
-      this becomes harder to chose one that closely represents the latest changes. The obvious
-      choice is the .env file, as that is normally built during the release of a new version
-    */
-
-    child.exec('git describe --abbrev=0 --tags',{cwd: root}, (err,stdout,stderr) => {
-      let version;
-      if (stderr) {
-        logger('error', 'git describe failed reading verion number with ' + err.message);
-        if (process.env.REC_VERSION) {
-          version = process.env.REC_VERSION;
-        } else {
-          version = ':v0.0.0';
-        }
-      } else {
-        version = stdout.trim();
-      }
-      resolve(version);
-    });
-  });
-
-  const setTimeoutPromise = util.promisify(setTimeout);
-
+  function generateCookie(uid, cid) {
+    const date = new Date();
+    date.setTime(date.getTime() + (ParseInt(process.env.FOOTBALL_COOKIE_LENGTH,10) * 24 * 60 * 60 * 1000));
+    const payload = {
+      exp: Math.round(date.getTime()/1000),
+      uid: uid,
+      cid, cid
+    };
+    return `MBBALL=${jwt.encode(payload, process.env.FOOTBALL_TOKEN)}; expires=${date.toGMTString()}; Path=/`;
+  }
 
   let server;
-  let statusid = 0;
-  const subscribedChannels = {};
-  let statusTimer = 0;
 
-  async function startUp (http, Router,enableDestroy, logger, Recorder, usb) {
+  async function startUp (Router, Responder, logger, dbOpen) {
+    let db;
+    try {
+      //try and open the database, so that we can see if it us upto date
+      db = await dbOpen();
+      const {value: dbversion } = await db.get(`SELECT value FROM settings WHERE name = 'version'`);
+      const version = parseInt(process.env.FOOTBALL_DB_VERSION,10);
+      if (dbversion !== version) {
+        if (dbversion > version) throw new Error('Setting Version in Database too high');
+        for(let i = dbversion; i < version; i++) {
+          const updater = require('./db-init/dbupdate_' + i.toString()); //get specific updater for a version
+          await updater(db); //and call it
+        }
+      }
+    } catch (e) {
+      if (e.code === 'SQLITE_CANTOPEN') {
+        debug('could not open database as it did not exist');
+        await require('./db-init/dbcreate');
+      } else {
+        logger('error', 'failed to set up database');
+      };
+    } finally {
+      if (db) db.close();
+    }
     try {
       const routerOpts = {mergeParams: true};
       const router = Router(routerOpts);  //create a router
-          
-      debug('have server ssl keys about to create the http2 server')
-      server = http.createServer((req,res) => {
-        const reqURL = url.parse(req.url).pathname;
-        debugfile('request for ', reqURL, ' received');
-
-        function final(err) {
-          if (err) {
-            logger('url','Request Error ' + (err.stack || err.toString()));
-          } else {
-            logger('url','Request for ' + reqURL + ' not found');
-          }
-          //could not find so send a 404
-          res.statusCode = 404;
-          res.end();
-        }
-        router(req, res, final);
-
-      });
-      server.listen(parseInt(process.env.FOOTBALL_PORT,10),'0.0.0.0');
-      enableDestroy(server);
-
-      const api = this.Router();
+      const api = Router(routerOpts);
+      const conf = Router();
+      const reg = Router(routerOpts);
+      const ses = Router();
+      const cid = Router(routerOpts);
+      const cidrid = Router(routerOpts);
+    
       debug('tell router to use api router for /api/ routes');
       router.use('/api/', api);
-      const apis = this.loadServers(__dirname, '../api');
-      const pdfs = this.loadServers(__dirname, '../pdf');
       /*
-        The following calls are so that we can set the situation like ...
+        Our first set of calls are almost related to the static files.  They are a few api calls to retrieve configuration items
+        and as such will be get requests and will have no requirements for ony other parameters.  They are of the form
+        /api/config/xxxx
 
-        /api/my/hierarchical/request is fielded by api/my-hierarchical-request.js file
-        /api/pdf/a/low/level/report is fielded by pdf/a-low-level-report.js file
+      */
+      api.use('/config/', conf);
+      const confs = loadServers(__dirname, '../config');
+      for (const config in confs){
+        conf.get(`/${config}`, async (req,res) => {
+          try {
+            res.writeHead(200, {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache',
+              'X-Accel-Buffering': 'no'
+            });
+            const response = await confs[config](dbOpen);
+            res.end(JSON.stringify(response));
+          } catch (e) {
+            forbidden(req, res, e.toString());
+          }
+        });
+      }
+      /*
+        we follow by building routes which are supported by files in the reg directory.  These are the api calls which
+        a made from links we will have sent the user by e-mail.  As such they are get requests which will be of a form
+        /api/reg/xxxx/:token where xxx is the filename in the directory and :token will be a jwt which has been encoded for 
+        us to identify the user.  Successfull processing of this request  will result in a 302 response (temporary redirect)
+        to /index.html 
+      */
+      api.use('/reg/', reg);
+      const regapis = loadServers(__dirname, '../reg');
+      for (const regapi in regapis ) {
+        reg.get(`/${regapi}/:token`, async (req,res) => {  //so we declare a route for this file
+          try {
+            const payload = jwt.decode(req.params.token, process.env.FOOTBALL_TOKEN);
+            const cid = await regapis[regapi] (payload,dbOpen);  //then call it
+            res.writeHead(302, {
+              'Location': '/index.html',
+              'Set-Cookie': generateCookie(payload.uid, cid),
+              'Content-Type': 'text/html',
+              'Cache-Control': 'no-cache',
+              'X-Accel-Buffering': 'no' 
+            });
+            res.end();
+          } catch(e) {
+            forbidden(req, res, e.toString());
+          }
 
-        We don't do this for csv because we need the service name to be sent as the filename
+        })
+      }
+
+      /*
+        The next set of routes are from the session directory.  These are routes 
+        that occur before the session manager has establised who you are and given you a
+        cookie confirming that you are logged in. Since all requests beyond here are POST
+        requests, we also introduce a parser to parse the body of the message.
+        Requests in this section take a url of /api/session/xxx
+
+      */
+      api.use(bodyParser);
+      api.use('/session/',ses);
+
+      const sessions = loadServers(__dirname, '../session');  //pre - cookie calls
+      //this defines our routes - we require everything to be a post
+      for (const session in sessions) {
+        ses.post(session, async (req, res) => {
+          try {
+            res.writeHead(200, {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache',
+              'X-Accel-Buffering': 'no'
+            });
+            const responder = new Responder(res);
+            await sessions[session](req.body,dbOpen, responder);
+            responder.end();
+          } catch (e) {
+            forbidden(req, res, e.toString());
+          }
+        });
+      }
+      /*
+          From this point on, all calls expect the user to be logged on and so we first introduce some middle where that will check that
+          and return an unauthorised response if someone attempts to use it.
+
+          First we have the basic api requests - mostly for administrative purposes unrelated to foot ball
       */
 
-      for (let service in apis) {
-        this.api.on(service.replace(/-/g, '/'), async (user, params, res, db, manager) => {
+
+      api.use((req, res, next) => {
+        const cookies = req.headers.cookie;
+        if (!cookies) {
+          forbidden(req, res,'No Cookie');
+          return;
+        }
+        const matches = cookies.match(/^(.*; +)?MBBALL=([^;]+)(.*)?$/);
+        if (matches) {
+          const token = matches[2];
           try {
-            await apis[service](user, params, res, db, manager);
-          } catch (err) {
-            logger('error', `/api/${service} failed with ${err.toString()}`);
-            res.statusCode = 400;
-            res.end();
+            const payload = jwt.decode(token, process.env.FOOTBALL_TOKEN);  //this will throw if the cookie is expired
+            req.user = {
+              uid: payload.uid,
+              cid: payload.cid
+            }
+            res.setHeader('Set-Cookie', generateCookie(payload.uid,payload.cid)); //refresh cookie to the new value
+          } catch (error) {
+            forbidden(req,res, 'Invalid Auth Token');
           }
-        });
-      }
-      for (let service in pdfs) {
-        this.pdf.on(service.replace(/-/g, '/'), async (user, params, doc, db, pdf, manager) => {
-          try {
-            await pdfs[service](user, params, doc, db, pdf, manager);
-          } catch (err) {
-            logger('error', `/api/pdf/${service} failed with ${err.toString()}`);
-            doc.fontSize(12).fillColor('red').text('Sorry, an unrecoverable error has been reported');
-            doc.end();
-          }
-        });
-      }
-
-
-
-
-      router.get('/api/:client/done',async (req,res) => {      });
-      
-      router.get('/api/:channel/:token/release', checkRecorder, async (req,res) => {});
-      router.get('/api/:channel/:token/renew', checkRecorder,(req,res) => { });
-      router.get('/api/:channel/:token/reset', checkRecorder, async (req,res) => { }); 
-      router.get('/api/:channel/:token/start', checkRecorder, async (req,res) => {
-        debug('got a start request with params ', req.params);
-        res.statusCode = 200;
-        res.end(JSON.stringify());
-      });
-      router.get('/api/status', (req,res) => {
-        if (req.headers.accept && req.headers.accept == 'text/event-stream') {
-          //we make our unique client id from their ip address
-          const client = cyrb53(req.headers['x-forwarded-for']).toString(16);
-          const response = res;
-          debug('/api/status received creating/reusing channel ', client);
-          res.writeHead(200, {
-            'Content-Type': 'text/event-stream',
-            'Cache-Control': 'no-cache',
-            'X-Accel-Buffering': 'no' 
-          });
-          if (subscribedChannels[client] === undefined) {
-            subscribedChannels[client] = {response: response,channels: {}};
-          } else {
-            subscribedChannels[client].response = response;
-          }
-          req.once('end', () => {
-            debug('client closed status channel ', client.toString());
-            if (subscribedChannels[client] !== undefined) delete subscribedChannels[client].response;
-            //we don't do anything else as they may come back and we need to have the correct picture
-          });
-          //don't do anymore until we have a version read (normally will have completed by now)
-          version.then(version => {
-            //before anything else we send the client info to the user (should wake him up if asleep)
-            sendStatus('newid', {
-              client: client, 
-              renew: parseInt(process.env.RECORDER_RENEW_TIME,10),
-              log: process.env.RECORDER_NO_REMOTE_LOG === undefined,
-              warn: process.env.RECORDER_NO_REMOTE_WARN === undefined,
-              version: version
-            }, response);
-            const status = {
-              scarlett: recorders.scarlett !== undefined? recorders.scarlett.status : {connected: false},
-              yeti: recorders.yeti !== undefined? recorders.yeti.status :{connected: false}
-            };
-            //then send the current status of all the microphones.
-            sendStatus('status', status, response);
-          });
-
-
-
         } else {
-          res.writeHead(404);
-          res.end();
+          forbidden(req, res, 'Invalid Cookie');
         }
       });
-
-      logger('app', 'Recorder Web Server Operational Running on Port:' +
-          process.env.RECORDER_PORT + ' with Node Version: ' + process.version);
-    } catch(err) {
-      logger('error', `Error occurred in startup; error ${err}`);
-      close();
-    }
-  }
-  function checkRecorder(req, res, next) {
-    debug('recording router channel = ', req.params.channel);
-    if (recorders[req.params.channel] !== undefined) {
-      debug('middleware found recorder ', req.params.channel);
-      req.recorder =  recorders[req.params.channel];
-      next();
-    } else {
-      next(`Requested channel ${req.params.channel} not plugged in`);
-    }
-
-  }
-
-  function sendStatus(type, data, response) {
-    debugstatus('send status of event type ', type, ' to ', response ? 'one client': 'all clients')
-    if (response) {
-      sendMessage(response, type, data);
-    } else {
-      for(const client in subscribedChannels) {
-        if (subscribedChannels[client].response !== undefined) sendMessage(subscribedChannels[client].response, type, data);
+      /*
+          we now need to process the admin type api calls
+      */
+      const apis = loadServers(__dirname, '../admin');
+      for (const adm in apis) {
+        api.post(`/${adm}`, async (req,res) => {
+          try {
+            res.writeHead(200, {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache',
+              'X-Accel-Buffering': 'no'
+            });
+            const responder = new Responder(res);
+            await apis[adm](req.user,req.body,dbOpen,responder);
+            responder.end();  //responder doesn't mind multiple ends, so we do it here just incase.
+          } catch(e) {
+            forbidden(req, res, e.toString());
+          }
+        })
       }
-    }
+      /*
+        Quite a lot of the api calls will feature the cid (competition id) and rid(round id) as parameters to them
+        although not strictly necessary, I am going to create two separate api sets for /api/:cid/xxx and /api/:cid/:rid/xxx
+        urls to see how they work
+      */
+      api.use('/:cid/', cid);
+      cid.use('/:rid/', cidrid);#
+      const cids = loadServers(__dirname, '../cid');
+      const cidrids = loadServers(__dirname, '../cidrid');
+      for (const c in cids) {
+        cid.post(`/${c}`, async (req, res) => {
+          try {
+            res.writeHead(200, {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache',
+              'X-Accel-Buffering': 'no'
+            });
+            const responder = new Responder(res);
+            await cids[c](req.user, req.params.cid, req.body, dbOpen, responder);
+            responder.end();  //responder doesn't mind multiple ends, so we do it here just incase.
+          } catch (e) {
+            forbidden(req, res, e.toString());
+          }
+        })
+      }
+      for (const r in cidrids) {
+        api.post(`/${r}`, async (req, res) => {
+          try {
+            res.writeHead(200, {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache',
+              'X-Accel-Buffering': 'no'
+            });
+            const responder = new Responder(res);
+            await cidrids[r](req.user, req.params.cid, req.params.rid, req.body, dbOpen, responder);
+            responder.end();  //responder doesn't mind multiple ends, so we do it here just incase.
+          } catch (e) {
+            forbidden(req, res, e.toString());
+          }
+        })
+      }
+      server = http.createServer((req,res) => {
+        router(req,res,finalhandler(req,res, {onerror: finalErr}))
+      });
+      server.listen(parseInt(process.env.FOOTBALL_PORT, 10), '0.0.0.0');
+      enableDestroy(this.server);
+      logger('app', 'Football Web Server Operational Running on Port:' +
+        process.env.FOOTBALL_PORT);
 
-  }
-  function sendMessage(res,type,data) {
-    statusid++;
-    res.write(`id: ${statusid.toString()}\n`);
-    res.write(`event: ${type}\n`);
-    res.write("data: " + JSON.stringify(data) + '\n\n');
-    debugstatus('message sent with data  ', data);
-  }
-  async function usbAttach(device) {
-    if (device.deviceDescriptor.idVendor === parseInt(process.env.RECORDER_SCARLETT_VID,10) && 
-        device.deviceDescriptor.idProduct === parseInt(process.env.RECORDER_SCARLETT_PID,10)) {
-      debug('detected scarlett added');
-      await setTimeoutPromise(parseInt(process.env.RECORDER_USB_SETTLE,10));  //allow interface to settle   
-      recorders.scarlett = new Recorder(process.env.RECORDER_SCARLETT_HW, process.env.RECORDER_SCARLETT_FORMAT, process.env.RECORDER_SCARLETT_NAME);
-      sendStatus('add', {channel: 'scarlett', name: recorders.scarlett.name});
-      debug('created scarlett recorder');    
-    } else if (device.deviceDescriptor.idVendor === parseInt(process.env.RECORDER_YETI_VID,10) && 
-        device.deviceDescriptor.idProduct === parseInt(process.env.RECORDER_YETI_PID,10)) {
-      debug('detected yeti added');
-      await setTimeoutPromise(parseInt(process.env.RECORDER_USB_SETTLE,10));  //allow interface to settle   
-      recorders.yeti = new Recorder(process.env.RECORDER_YETI_HW, process.env.RECORDER_YETI_FORMAT, process.env.RECORDER_YETI_NAME);
-      sendStatus('add', {channel: 'yeti', name: recorders.yeti.name});
-      debug('created yeti recorder');    
-    
+    } catch(e) {
+      logger('error', 'Initialisation Failed with error ' + e.toString());
     }
   }
-
-  async function close(usb) {
+  async function close() {
   // My process has received a SIGINT signal
 
     if (server) {
@@ -272,32 +305,9 @@
       try {
         const tmp = server;
         server = null;
-        if (statusTimer !== 0) clearInterval(statusTimer);
-        debug('Tell our subscribers we are shutting down');
-        sendStatus('close',{});
-        debug('Lets just stop for 1/2 second to allow our close events to be send out')
-        await new Promise(resolve => setTimeout(() => resolve(),500));
-        debug('about to stop monitoring udev events')
-        usb.off('attach', usbAttach);
-        usb.off('detach', usbDetach);
-        if (recorders.scarlett !== undefined) {
-          //need to shut off the recording smoothly
-          debug('stopping scarlett');
-          await recorders.scarlett.close();
-          debug('scarlett stopped');
-          delete recorders.scarlett;
-        }
-        if (recorders.yeti !== undefined) {
-          debug('stopping yeti');
-          await recorders.yeti.close();
-          debug('yeti stopped');
-          delete recorders.yeti;
-        }
-        debug('Lets just stop for 1/2 second to allow our volume subscriber shutdown messages to go out')
-        await new Promise(resolve => setTimeout(() => resolve(),500));
-        debug('About to close Web Server');
+        //we might have to stop more stuff later, so leave as a possibility
         tmp.destroy();
-        logger('app', 'Recorder Server ShutDown');
+        logger('app', 'Football Server ShutDown');
       } catch (err) {
         logger('error', `Trying to close caused error:${err}`);
       }
@@ -307,7 +317,7 @@
   if (!module.parent) {
     //running as a script, so call startUp
     debug('Startup as main script');
-    startUp(http, Router, enableDestroy, logger, Recorder, usb);
+    startUp(Router, Responder, logger, dbOpen);
     process.on('SIGINT', () => close(usb));
   }
   module.exports = {
