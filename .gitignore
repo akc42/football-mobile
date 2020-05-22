@@ -16,3 +16,4 @@ keys
 .DS_Store
 npm-debug.log
 .vscode/launch.json
+release.info
