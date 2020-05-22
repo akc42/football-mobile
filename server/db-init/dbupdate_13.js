@@ -24,18 +24,55 @@
   const logger = require('../utils/logger');
 
   module.exports = async function (db) {
-    debug('update participant table');
-    await db.exec(`ALTER TABLE participant ADD is_registered boolean DEFAULT false NOT NULL;`);
-    await db.exec(`ALTER TABLE participant ADD is_verified boolean DEFAULT false NOT NULL;`);
-    await db.exec(`ALTER TABLE participant ADD verification_key character varying;`);
-    await db.exec(`ALTER TABLE participant ADD verification_sent bigint DEFAULT(strftime('%s', 'now')) NOT NULL;`);
-    await db.exec(`UPDATE participant SET is_registerd = true, is_verified = true;`); //all particiants so far can be considered registered and verified
-    debug('update version');
-    await db.exec(`UPDATE settings SET value = 14 WHERE name = 'version';`);
-
-    debug('Vacuum');
-    await db.exec(`VACUUM;`);
-    debug('Completed update to version 14');
-
+    try {
+      debug('foreign keys off');
+      await db.exec('PRAGMA foreign_keys = OFF;');
+      debug('begin exclusive');
+      await db.exec('BEGIN EXCLUSIVE');
+      
+      debug('update participant table, by copying out and back');
+      await db.exec(`CREATE TABLE old_participant (
+          uid integer PRIMARY KEY,
+          name character varying,
+          email character varying,
+          password character varying, --stores md5 of password to enable login if doing local authentication
+          last_logon bigint DEFAULT (strftime('%s','now')) NOT NULL, --last time user connected
+          admin_experience boolean DEFAULT 0 NOT NULL,--Set true if user has ever been administrator
+          is_global_admin boolean DEFAULT 0 NOT NULL, -- Set true if user is global admin
+          is_guest boolean DEFAULT false NOT NULL --user is a guest and requires approving before is registered (baby backup from Melinda's Backups)
+      );`);
+      await db.exec(`INSERT INTO 
+        old_participant (uid,name,email,password,last_login,admin_experience,is_global_admin, is_guest) 
+        SELECT uid,name,email,password,last_login,admin_experience,is_global_admin, is_guest FROM participant`);
+      await db.exec('DROP TABLE participant');
+      await db.exec(`CREATE TABLE participant(
+        uid integer PRIMARY KEY,
+        name character varying,
+        email character varying,
+        password character varying, --stores md5 of password to enable login if doing local authentication
+        last_logon bigint DEFAULT(strftime('%s', 'now')) NOT NULL, --last time user connected
+        admin_experience boolean DEFAULT 0 NOT NULL, --Set true if user has ever been administrator
+        is_global_admin boolean DEFAULT 0 NOT NULL, --Set true if user is global admin
+        verification_key character varying, --stores a unique key which the user has to re - enter after reeiving verification e - mail.
+        verification_sent bigint DEFAULT(strftime('%s', 'now')) NOT NULL, --time the user was sent a verification e - mail;
+        is_verified boolean DEFAULT false NOT NULL, --email has been verified,
+        is_registered boolean DEFAULT false NOT NULL--use has been approved
+      );`);
+      await db.exec(`INSERT INTO 
+        participant (uid,name,email,password,last_login,admin_experience,is_global_admin, is_guest) 
+        SELECT uid,name,email,password,last_login,admin_experience,is_global_admin, is_guest FROM old_participant`);
+      await db.exec(`UPDATE participant SET is_registerd = true, is_verified = true;`); //all particiants so far can be considered registered and verified
+      debug('update version');
+      await db.exec(`UPDATE settings SET value = 14 WHERE name = 'version';`);
+      db.exec('COMMIT');
+      debug('foreign keys on');
+      await db.exec('PRAGMA foreign_keys = ON;');
+      debug('Vacuum');
+      await db.exec(`VACUUM;`);
+      debug('Completed update to version 14');
+    } catch(e) {
+      await db.exec('ROLLBACK');
+      logger('error', 'SQL Update failed with ' + e.toString());
+    }
   };
 })();

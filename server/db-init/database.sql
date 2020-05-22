@@ -32,7 +32,7 @@ CREATE TABLE competition (
     gap integer DEFAULT 300 NOT NULL, --Seconds to go before match to make pick deadline
     guest_approval boolean DEFAULT 0 NOT NULL, --Set if BB''s Need Approval after registering to play
     creation_date bigint DEFAULT (strftime('%s','now')) NOT NULL, --Date Competition Created
-    results_cache text, -- php serialized cache of summary.inc when rid = maxround
+    results_cache text, -- JSON String cache of summary.inc when rid = maxround
     cache_store_date bigint DEFAULT (strftime('%s','now'))
 );
 
@@ -158,7 +158,7 @@ CREATE TABLE round (
     ou_round boolean DEFAULT 0 NOT NULL, --set if over underscores are requested for this round
     deadline bigint, --Time Deadline for submitting answers to bonus questions
     open boolean DEFAULT 0 NOT NULL,  --says whether round is availble for display
-    results_cache text, -- php serialized cache of recent result table
+    results_cache text, -- JSON String cache of recent result table
     cache_store_date bigint DEFAULT (strftime('%s','now')),
     PRIMARY KEY (cid,rid)
 );

@@ -22,26 +22,34 @@
 (function() {
   'use strict';
   const debug = require('debug')('football:server');
-
+  const debugdb = require('debug')('football:db');
+  const debugapi = require('debug')('football:api');
   const path = require('path');
   require('dotenv').config({path: path.resolve(__dirname,'.env')});
-  
+  const fs = require('fs').promises;
   const sqlite3 = require('sqlite3');
   const { open } = require('sqlite');
+  const includeAll = require('include-all');
   const bodyParser = require('body-parser');
   const Router = require('router');
   const jwt = require('jwt-simple');
+  const http = require('http');
+  const serverDestroy = require('server-destroy');
   const finalhandler = require('finalhandler');
 
   const logger = require('./utils/logger');
   const Responder = require('./utils/responder');
-
+  const versionPromise = require('./version');
 
   function dbOpen() {
+    debugdb('Open Database Called');
     return open({
       filename: path.resolve(__dirname, '../data', process.env.FOOTBALL_DB),
       mode: sqlite3.OPEN_READWRITE,
       driver: sqlite3.Database
+    }).then(db => {
+      db.exec('PRAGMA foreign_keys = ON;')
+      return db;
     });
   }  
   
@@ -71,32 +79,53 @@
       uid: uid,
       cid, cid
     };
+    debug('generated cookie for uid ', uid, ' cid ', cid ,' expires ', date.toGMTString());
     return `MBBALL=${jwt.encode(payload, process.env.FOOTBALL_TOKEN)}; expires=${date.toGMTString()}; Path=/`;
   }
 
   let server;
 
-  async function startUp (Router, Responder, logger, dbOpen) {
+  async function startUp (http, serverDestroy,Router, finalhandler, Responder, logger, dbOpen) {
     let db;
+    let dbRollbackOnFailure = false;
     try {
+      /*
+        start off a process to find the version of the app, and the copyright year
+      */
+
       //try and open the database, so that we can see if it us upto date
       db = await dbOpen();
       const {value: dbversion } = await db.get(`SELECT value FROM settings WHERE name = 'version'`);
       const version = parseInt(process.env.FOOTBALL_DB_VERSION,10);
+      debugdb('database is at version ', dbversion, ' we require ', version);
       if (dbversion !== version) {
         if (dbversion > version) throw new Error('Setting Version in Database too high');
+        await db.exec('PRAGMA foreign_keys = OFF;')
+        await db.exec('BEGIN EXCLUSIVE');
+        dbRollbackOnFailure = true;
         for(let i = dbversion; i < version; i++) {
-          const updater = require('./db-init/dbupdate_' + i.toString()); //get specific updater for a version
-          await updater(db); //and call it
+          const update = await fs.readFile(
+            path.resolve(__dirname, 'db-init',`update_${i}.sql`), 
+            { encoding: 'utf8' }
+          );
+          debugdb('About to update database from version ',i);
+          await db.exec(update);
         }
+        debugdb('Completed Updates');
+        await db.exec('COMMIT');
+        dbRollbackOnFailure = false;
+        await db.exec('VACUUM');
+        await db.exec('PRAGMA foreign_keys = ON;')
+        debug('Committed Updates, ready to go')
       }
     } catch (e) {
       if (e.code === 'SQLITE_CANTOPEN') {
-        debug('could not open database as it did not exist');
-        await require('./db-init/dbcreate');
+        debugdb('could not open database as it did not exist - so now going to create it');
+        await require('./dbcreate')();
       } else {
-        logger('error', 'failed to set up database');
+        logger('error', `Failed to set up database, because of error ${e}`);
       };
+      if (dbRollbackOnFailure) db.exec('ROLLBACK');
     } finally {
       if (db) db.close();
     }
@@ -118,10 +147,13 @@
         /api/config/xxxx
 
       */
+     debug('setting up config apis');
       api.use('/config/', conf);
-      const confs = loadServers(__dirname, '../config');
+      const confs = loadServers(__dirname, 'config');
       for (const config in confs){
+        debugapi(`Set up /api/config/${config} route`);
         conf.get(`/${config}`, async (req,res) => {
+          debugapi(`Received /api/config/${config} request`);
           try {
             res.writeHead(200, {
               'Content-Type': 'application/json',
@@ -142,10 +174,13 @@
         us to identify the user.  Successfull processing of this request  will result in a 302 response (temporary redirect)
         to /index.html 
       */
+      debug('Setting up Registration Apis')
       api.use('/reg/', reg);
-      const regapis = loadServers(__dirname, '../reg');
+      const regapis = loadServers(__dirname, 'reg');
       for (const regapi in regapis ) {
+        debugapi(`Setting up /api/reg/${regapi} route`);
         reg.get(`/${regapi}/:token`, async (req,res) => {  //so we declare a route for this file
+          debugapi(`Received /api/reg/${regapi} request`);
           try {
             const payload = jwt.decode(req.params.token, process.env.FOOTBALL_TOKEN);
             const cid = await regapis[regapi] (payload,dbOpen);  //then call it
@@ -172,13 +207,17 @@
         Requests in this section take a url of /api/session/xxx
 
       */
+
       api.use(bodyParser);
+      debug('Setting up Session Apis')
       api.use('/session/',ses);
 
-      const sessions = loadServers(__dirname, '../session');  //pre - cookie calls
+      const sessions = loadServers(__dirname, 'session');  //pre - cookie calls
       //this defines our routes - we require everything to be a post
       for (const session in sessions) {
+        debugapi(`Setting up /api/session/${session} route`);
         ses.post(session, async (req, res) => {
+          debugapi(`Received /api/session/${session} request`);
           try {
             res.writeHead(200, {
               'Content-Type': 'application/json',
@@ -200,8 +239,9 @@
           First we have the basic api requests - mostly for administrative purposes unrelated to foot ball
       */
 
-
+      debug('Setting up to Check Cookies from further in');
       api.use((req, res, next) => {
+        debugapi('checking cookie');
         const cookies = req.headers.cookie;
         if (!cookies) {
           forbidden(req, res,'No Cookie');
@@ -209,6 +249,7 @@
         }
         const matches = cookies.match(/^(.*; +)?MBBALL=([^;]+)(.*)?$/);
         if (matches) {
+          debugapi('Cookie found')
           const token = matches[2];
           try {
             const payload = jwt.decode(token, process.env.FOOTBALL_TOKEN);  //this will throw if the cookie is expired
@@ -227,9 +268,12 @@
       /*
           we now need to process the admin type api calls
       */
-      const apis = loadServers(__dirname, '../admin');
+      debug('Setting up Admin Apis');
+      const apis = loadServers(__dirname, 'admin');
       for (const adm in apis) {
+        debugapi(`Setting up /api/${adm} route`);
         api.post(`/${adm}`, async (req,res) => {
+          debugapi(`Received /api/${adm} request`);
           try {
             res.writeHead(200, {
               'Content-Type': 'application/json',
@@ -249,12 +293,15 @@
         although not strictly necessary, I am going to create two separate api sets for /api/:cid/xxx and /api/:cid/:rid/xxx
         urls to see how they work
       */
+      debug('Setting Up cid and cidrid Apis');
       api.use('/:cid/', cid);
-      cid.use('/:rid/', cidrid);#
-      const cids = loadServers(__dirname, '../cid');
-      const cidrids = loadServers(__dirname, '../cidrid');
+      cid.use('/:rid/', cidrid);
+      const cids = loadServers(__dirname, 'cid');
+      const cidrids = loadServers(__dirname, 'cidrid');
       for (const c in cids) {
+        debugapi(`Setting up /api/:cid/${c} route`);
         cid.post(`/${c}`, async (req, res) => {
+          debugapi(`Received /api/:cid/${c} request, cid=`,req.params.cid);
           try {
             res.writeHead(200, {
               'Content-Type': 'application/json',
@@ -270,7 +317,9 @@
         })
       }
       for (const r in cidrids) {
-        api.post(`/${r}`, async (req, res) => {
+        debugapi(`Setting up /api/:cid/:rid/${r} route`);
+        cidrid.post(`/${r}`, async (req, res) => {
+          debugapi(`Received /api/:cid/:rid/${r} request, cid= ${req.params.cid} rid= ${req.params.rid}`);
           try {
             res.writeHead(200, {
               'Content-Type': 'application/json',
@@ -285,14 +334,14 @@
           }
         })
       }
+      debug('Creating Web Server');
       server = http.createServer((req,res) => {
         router(req,res,finalhandler(req,res, {onerror: finalErr}))
       });
       server.listen(parseInt(process.env.FOOTBALL_PORT, 10), '0.0.0.0');
-      enableDestroy(this.server);
-      logger('app', 'Football Web Server Operational Running on Port:' +
-        process.env.FOOTBALL_PORT);
-
+      serverDestroy(server);
+      const {version} = await versionPromise;
+      logger('app', `Release ${version} of Football Web Server Operational on Port:${process.env.FOOTBALL_PORT} using node ${process.version}`);
     } catch(e) {
       logger('error', 'Initialisation Failed with error ' + e.toString());
     }
@@ -301,13 +350,13 @@
   // My process has received a SIGINT signal
 
     if (server) {
-      logger('app', 'Starting Server ShutDown Sequence');
+      logger('app', 'Starting Football Web Server ShutDown Sequence');
       try {
         const tmp = server;
         server = null;
         //we might have to stop more stuff later, so leave as a possibility
         tmp.destroy();
-        logger('app', 'Football Server ShutDown');
+        logger('app', 'Football web Server ShutDown Complete');
       } catch (err) {
         logger('error', `Trying to close caused error:${err}`);
       }
@@ -317,8 +366,8 @@
   if (!module.parent) {
     //running as a script, so call startUp
     debug('Startup as main script');
-    startUp(Router, Responder, logger, dbOpen);
-    process.on('SIGINT', () => close(usb));
+    startUp(http, serverDestroy, Router, finalhandler, Responder, logger, dbOpen);
+    process.on('SIGINT',close);
   }
   module.exports = {
     startUp: startUp,

@@ -19,9 +19,8 @@ INSERT INTO settings (name,value) VALUES('defaultbonus',2); --default value of q
 
 UPDATE settings SET value = '/inc/template.inc' WHERE name = 'template'
 UPDATE settings SET value = './img/emoticons' WHERE name = 'emoticon_dir'
-UPDATE settomgs SET value = 'img/emoticons' WHERE name = 'emoticon_url'
+UPDATE settings SET value = 'img/emoticons' WHERE name = 'emoticon_url'
 
 UPDATE settings SET value = 13 WHERE name = 'version';
 
-VACUUM;
 
