@@ -4,20 +4,20 @@
 
     This file is part of Football Mobile.
 
-    Recorder is free software: you can redistribute it and/or modify
+    Football-Mobile is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    Recorder is distributed in the hope that it will be useful,
+    Football-Mobile is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Recorder.  If not, see <http://www.gnu.org/licenses/>.
+    along with Football-Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-const version = 'recorder-v2'
+const version = 'fm-v1'
 const api = /^\/api\/(status)|((\w+)\/(volume|timer|done|log|warn|token|((\S+)\/(take|start|renew|release|stop))))$/i;
 self.addEventListener('install', (event) => 
   event.waitUntil(caches.open(version).then( cache => cache.addAll([

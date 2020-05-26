@@ -24,13 +24,14 @@
 
   const chalk = require('chalk');
   const COLOURS = {
-    app: chalk.magenta,
-    api: chalk.green,
-    error: chalk.white.bgRed,
-    url: chalk.white.bgMagenta,
-    rec: chalk.cyan,
+    app: chalk.magentaBright,
+    db: chalk.greenBright,
+    api: chalk.cyanBright,
     log: chalk.yellowBright,
-    err: chalk.redBright
+    //error like have backGround colouring
+    auth: chalk.black.bgCyan,
+    err: chalk.white.bgBlue,
+    error: chalk.white.bgRed
   };
 
   function logger(level, message, client) {

@@ -1,3 +1,4 @@
+
 /**
 @licence
     Copyright (c) 2020 Alan Chandler, all rights reserved
@@ -25,7 +26,8 @@
   const debugdb = require('debug')('football:db');
   const debugapi = require('debug')('football:api');
   const path = require('path');
-  require('dotenv').config({path: path.resolve(__dirname,'.env')});
+  require('dotenv').config({path: path.resolve(__dirname,'db-init','football.env')});
+  
   const fs = require('fs').promises;
   const sqlite3 = require('sqlite3');
   const { open } = require('sqlite');
@@ -41,10 +43,14 @@
   const Responder = require('./utils/responder');
   const versionPromise = require('./version');
 
+  
+  const cookieConfig = {};
+
+
   function dbOpen() {
     debugdb('Open Database Called');
     return open({
-      filename: path.resolve(__dirname, '../data', process.env.FOOTBALL_DB),
+      filename: process.env.FOOTBALL_DB,
       mode: sqlite3.OPEN_READWRITE,
       driver: sqlite3.Database
     }).then(db => {
@@ -62,7 +68,6 @@
   function forbidden(req,res, message) {
     debug('In "forbidden"');
     logger('auth', `${message} with request url of ${req.originalUrl}`, req.headers['x-forwarded-for']);
-    res.setHeader('Set-Cookie', 'MBBALL=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/');
     res.statusCode = 403;
     res.end();
   }
@@ -71,16 +76,22 @@
     logger('error', `Final Error at url ${req.originalUrl} with error ${err.stack}`);
   }
 
-  function generateCookie(uid, cid) {
+  function generateCookie(user, usage) {
     const date = new Date();
-    date.setTime(date.getTime() + (ParseInt(process.env.FOOTBALL_COOKIE_LENGTH,10) * 24 * 60 * 60 * 1000));
-    const payload = {
-      exp: Math.round(date.getTime()/1000),
-      uid: uid,
-      cid, cid
-    };
-    debug('generated cookie for uid ', uid, ' cid ', cid ,' expires ', date.toGMTString());
-    return `MBBALL=${jwt.encode(payload, process.env.FOOTBALL_TOKEN)}; expires=${date.toGMTString()}; Path=/`;
+    const type = usage || 'play';
+    if (type !== 'logoff') {
+      date.setTime(date.getTime() + ((type === 'play'? cookieConfig.cookieExpires: cookieConfig.cookieShortExpires)  * 60 * 60 * 1000));
+      const payload = {
+        exp: Math.round(date.getTime()/1000),
+        user: user,
+        usage: type
+      };
+      debug('generated cookie for uid ', user.uid,' expires ', date.toGMTString());
+      return `MBBALL=${jwt.encode(payload, cookieConfig.cookieKey)}; expires=${date.toGMTString()}; Path=/`;
+    } else {
+      return 'MBBALL=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
+    }
+
   }
 
   let server;
@@ -88,6 +99,8 @@
   async function startUp (http, serverDestroy,Router, finalhandler, Responder, logger, dbOpen) {
     let db;
     let dbRollbackOnFailure = false;
+    let dbBroken = '';
+    let dcid = 0;
     try {
       /*
         start off a process to find the version of the app, and the copyright year
@@ -95,7 +108,7 @@
 
       //try and open the database, so that we can see if it us upto date
       db = await dbOpen();
-      const {value: dbversion } = await db.get(`SELECT value FROM settings WHERE name = 'version'`);
+      const { value: dbversion } = await db.get('SELECT value FROM settings WHERE name = "version"');
       const version = parseInt(process.env.FOOTBALL_DB_VERSION,10);
       debugdb('database is at version ', dbversion, ' we require ', version);
       if (dbversion !== version) {
@@ -123,13 +136,30 @@
         debugdb('could not open database as it did not exist - so now going to create it');
         await require('./dbcreate')();
       } else {
-        logger('error', `Failed to set up database, because of error ${e}`);
+        dbBroken = `${e} Failed to set up database`;
       };
       if (dbRollbackOnFailure) db.exec('ROLLBACK');
     } finally {
       if (db) db.close();
     }
     try {
+      if (dbBroken.length > 0) throw new Error(dbBroken);
+      const db = await dbOpen();
+      await db.exec('BEGIN TRANSACTION');
+      let s = await db.prepare('SELECT value FROM settings WHERE name = ?');
+      
+      const { value: cacheAge } = await s.get('cache_age');
+      const { value: serverPort } = await s.get('server_port');
+      const { value: cookieName } = await s.get('cookie_name');
+      const { value: cookieKey } = await s.get('cookie_key');
+      const { value: cookieExpires } = await s.get('cookie_expires');
+      const { value: cookieShortExpires } = await s.get('cookie_short_expires');
+      await db.exec('COMMIT');
+      db.close();
+      cookieConfig.cookieKey = cookieKey;
+      cookieConfig.cookieExpires = cookieExpires;
+      cookieConfig.cookieShortExpires = cookieShortExpires;
+
       const routerOpts = {mergeParams: true};
       const router = Router(routerOpts);  //create a router
       const api = Router(routerOpts);
@@ -182,11 +212,11 @@
         reg.get(`/${regapi}/:token`, async (req,res) => {  //so we declare a route for this file
           debugapi(`Received /api/reg/${regapi} request`);
           try {
-            const payload = jwt.decode(req.params.token, process.env.FOOTBALL_TOKEN);
-            const cid = await regapis[regapi] (payload,dbOpen);  //then call it
+            const payload = jwt.decode(req.params.token, cookieKey);
+            const usage = await regapis[regapi] (payload,dbOpen);  //then call it
             res.writeHead(302, {
               'Location': '/index.html',
-              'Set-Cookie': generateCookie(payload.uid, cid),
+              'Set-Cookie': generateCookie(payload.user,usage),
               'Content-Type': 'text/html',
               'Cache-Control': 'no-cache',
               'X-Accel-Buffering': 'no' 
@@ -225,7 +255,7 @@
               'X-Accel-Buffering': 'no'
             });
             const responder = new Responder(res);
-            await sessions[session](req.body,dbOpen, responder);
+            await sessions[session](req.headers['x-forwarded-for'],req.body,dbOpen, responder);
             responder.end();
           } catch (e) {
             forbidden(req, res, e.toString());
@@ -252,17 +282,44 @@
           debugapi('Cookie found')
           const token = matches[2];
           try {
-            const payload = jwt.decode(token, process.env.FOOTBALL_TOKEN);  //this will throw if the cookie is expired
-            req.user = {
-              uid: payload.uid,
-              cid: payload.cid
-            }
-            res.setHeader('Set-Cookie', generateCookie(payload.uid,payload.cid)); //refresh cookie to the new value
+            const payload = jwt.decode(token, cookieKey);  //this will throw if the cookie is expired
+            req.user = payload.user;
+            req.usage = payload.usage
+            res.setHeader('Set-Cookie', cookie); //refresh cookie to the new value 
+            next();
           } catch (error) {
             forbidden(req,res, 'Invalid Auth Token');
           }
         } else {
           forbidden(req, res, 'Invalid Cookie');
+        }
+
+      });
+      /*
+        at this point in the chain we can now add validate user.  We have got a valid cookie
+        with possible different uses.  validate user wants to know what they are.
+      */
+     debug('Set up to validate user');
+      api.post('validate_user',(req,res) => {
+        debugapi('we got a validate user, respond with uid',req.user.uid,' usage', req.usage);
+        res.writeHead(200, {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'X-Accel-Buffering': 'no'
+        });
+        res.end(JSON.stringify({user:req.user,usage:req.usage}));
+      });
+      /*
+        Beyond here we are only allowed if our cookie specified a usage of play, so we need some middleware to detect it
+      */
+      debug('Set up to check cookie usage');
+      api.use((req,res,next) => {
+
+        debugapi('checking cookie usage')
+        if (req.usage === 'play') {
+          next();
+        } else {
+          forbidden(req,res, `Incorrect Usage in Cookie of ${req.usage}`);
         }
       });
       /*
@@ -338,12 +395,13 @@
       server = http.createServer((req,res) => {
         router(req,res,finalhandler(req,res, {onerror: finalErr}))
       });
-      server.listen(parseInt(process.env.FOOTBALL_PORT, 10), '0.0.0.0');
+      server.listen(serverPort, '0.0.0.0');
       serverDestroy(server);
       const {version} = await versionPromise;
-      logger('app', `Release ${version} of Football Web Server Operational on Port:${process.env.FOOTBALL_PORT} using node ${process.version}`);
+      logger('app', `Release ${version} of Football Web Server Operational on Port:${serverPort} using node ${process.version}`);
     } catch(e) {
       logger('error', 'Initialisation Failed with error ' + e.toString());
+      await close();
     }
   }
   async function close() {

@@ -1,0 +1,7 @@
+{
+  "--app-text-color": "#212121",
+  "--app-reverse-text-color": "white",
+  "--app-header-color": "#adcabd",
+  "--app-accent-color": "#0000ff",
+  "--app-spinner-color": "#adcabd"
+}

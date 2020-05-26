@@ -38,7 +38,7 @@
     let db
     try {
       db = await open({
-        filename: path.resolve(__dirname, '../data', process.env.FOOTBALL_DB),
+        filename: process.env.FOOTBALL_DB,
         driver: sqlite3.Database
       });
       debug('Opened database - ready to start creating structure');

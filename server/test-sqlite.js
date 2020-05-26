@@ -104,9 +104,7 @@ let rid;
             }
             rounds = null;
             console.log('read list of rounds and worked out maxrid as ', maxrid);
-            let competitions = db.all(`SELECT c.cid AS cid, c.description AS name FROM competition c LEFT JOIN registration u ON c.cid = u.cid AND u.uid  = ?
-                            LEFT JOIN round r ON c.cid = r.cid  WHERE c.cid <> ?
-                            AND (c.open = 1 OR r.open = 1 OR c.cid = ?) GROUP BY c.cid, c.description ORDER BY c.cid DESC`, uid, cid, dcid);
+ 
             console.log('read the competition list for drop down menu - ', competitions.length, ' entries plus cid ', cid);
             //summary.inc (no attempt to use cache for this test)
             let usedCache = false;
