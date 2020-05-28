@@ -16,11 +16,13 @@
     by Accuvision (or by potential or existing customers in interacting with Accuvision).
 */
 
-import {css} from '../lit/lit-element.js';
+import {css} from '../libs/lit-element.js';
 
 export default  css`
         :host {
           display: block;
+          margin-bottom: 10px;
+          margin-top: 10px
         }
         input, textarea {
           border-left: none;

@@ -24,7 +24,7 @@ import { LitElement, html } from '../libs/lit-element.js';
 import {ifDefined} from '../libs/if-defined.js';
 import {classMap} from '../libs/class-map.js';
 
-import style from '../styls/input.js';
+import style from '../styles/input.js';
 import { ValueChanged } from '../modules/events.js';
 
 class FancyInput extends LitElement {
