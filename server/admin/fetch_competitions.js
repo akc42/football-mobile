@@ -25,8 +25,7 @@
 (function () {
   'use strict';
 
-  module.exports = async (user,params,dbOpen,responder) => {
-    db = await dbOpen();
+  module.exports = async (user,params,db,responder) => {
     await db.exec('BEGIN TRANSACTION');
     const competitions = await db.all(`SELECT cid, name, open FROM competition ORDER BY cid DESC`);
     responder.addSection('competitions', competitions);

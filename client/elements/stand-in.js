@@ -41,7 +41,21 @@ class StandIn extends LitElement {
   }
   render() {
     return html`
-      <p><span>${this.standingfor}</span> has not been implemented yet.  This is a place holder for that implementation.</p>
+      <style>
+        :host {
+          max-width: 600px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        #element {
+          display:inline-block;
+          font-weight:bold;
+          align-self: center;
+        }
+      </style>
+        <div id=element>${this.standinfor}</div> 
+        <p>${this.standinfor} has not been implemented yet.  This is a place holder for that implementation.</p>
     `;
   }
 }

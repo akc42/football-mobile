@@ -23,6 +23,10 @@ import { cache } from '../libs/cache.js';
 import api from '../modules/api.js';
 import setUser from '../modules/user.js';
 import { AuthChanged } from '../modules/events.js';
+import Debug from '../modules/debug.js';
+import config from '../modules/config.js';
+
+const debug = Debug('session');
 
 import './stand-in.js';
 import './app-waiting.js';
@@ -39,7 +43,8 @@ class AppSession extends LitElement {
     return {
       state: {type: String},
       authorised: {type: Boolean},
-      waiting: {type: Boolean}
+      waiting: {type: Boolean},
+      visited: {type: Boolean}
     };
   }
   constructor() {
@@ -47,6 +52,7 @@ class AppSession extends LitElement {
     this.state = ''
     this.authorised = false;
     this.waiting = false;
+    this.visited = false;
     this._logOff = this._logOff.bind(this);
   }
   connectedCallback() {
@@ -68,21 +74,34 @@ class AppSession extends LitElement {
     super.update(changed);
   }
   updated(changed) {
-    if (changed.has('state') && this.state === 'validate') {
-      if (document.cookie.match(/^(.*; +)?MBBALL=[^;]+(.*)?$/)) {
-        performance.mark('start_user_validate');
-        api('validate_user', {}).then(response => {
-          if (response.usage !== undefined) { //api request didn't fail
-            setUser(response.user);
-            if (response.usage === 'play') this.authorised = true;
-            this.state = response.usage;
-          } else {
-            this.state = 'logon'
-          }
-        });
-      } else {
-        this.state = 'logon';
-      }
+    if (changed.has('state')) {
+      debug(`state-changed to ${this.state}`);
+      switch(this.state) {
+        case 'validate':
+          config().then(conf => {
+            const mbball = RegExp(`^(.*; +)?${conf.cookieName}=[^;]+(.*)?$`);
+            const mbvisited = RegExp(`^(.*; +)?${conf.cookieVisitName}=[^;]+(.*)?$`);
+            this.visited = mbvisited.test(document.cookie);
+            if (mbball.test(document.cookie)) {
+              performance.mark('start_user_validate');
+              api('validate_user', {}).then(response => {
+                if (response.usage !== undefined) { //api request didn't fail
+                  setUser(response.user);
+                  if (response.usage === 'play') this.authorised = true;
+                  this.state = response.usage;
+                } else {
+                  this.state = 'logon'
+                }
+              });
+            } else {
+              this.state = 'logon';
+            }
+            });
+          break;
+        case 'logon':
+          import('./fm-logon.js');
+          break;
+      } 
     }
     super.updated(changed);
   }
@@ -91,15 +110,23 @@ class AppSession extends LitElement {
 
   render() {
     return html`
+      <style>
+      :host {
+        display:flex;
+        flex-direction: column;
+        flex: 1;
+      }
+      </style>
       <app-overlay id="email"></app-overlay>
       <app-overlay id="inuse"></app-overlay>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
       ${cache(this.authorised? '' : html`
         ${cache({
-          validate: html``,
-          logon: html`<stand-in standinfor="fm-logon"></stand-in>`,
-          pinpass: html`<stand-in profile standinfor="fm-logon" ></stand-in >`,
-          emailupdate: html`<stand-in profile standinfor="fm-logon" ></stand-in >`,
+          validate: html`<div></div>`,
+          play: html`<div></div>`,
+          logon: html`<fm-logon ?visited=${this.visited}></fm-logon>`,
+          pinpass: html`<fm-login profile ?visited=${this.visited}></fm-login>`,
+          emailupdate: html`<fm-login profile ?visited=${this.visited}></fm-login>`,
           await: html`<stand-in standinfor="fm-await" ></stand-in >`
 
         }[this.state])}

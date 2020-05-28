@@ -21,7 +21,7 @@
 
 (function () {
   'use strict';
-  const logger = require('./utils/logger');
+  const logger = require('../utils/logger');
   // see https://stackoverflow.com/a/52171480/438737
   const cyrb53 = function (str, seed = 0) {
     let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
@@ -37,11 +37,8 @@
 
 
 
-
-  module.exports = async (ip,message,dbOpen,responder) => {
-    
+  module.exports = async (ip,params) => { 
+    const message = `:${params.topic}: ${params.message}`;
     logger('log', message, cyrb53(ip).toString(16));
-    responder.addSection('status', true);
-
   };
 })();

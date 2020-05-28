@@ -17,7 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with football mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-let user;
+let user = {uid:0};
 
 export function setUser(u) {
   user = u;

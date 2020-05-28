@@ -55,6 +55,21 @@ export class AuthChanged extends Event {
   }
 };
 
+export class FormError extends Event {
+  static eventType = 'form-error';
+
+  /*
+     The following are the fields provided by this event
+
+     none
+
+  */
+
+  constructor() {
+    super('form-error',{composed: true, bubbles: true});
+  }
+};
+
 export class KeyUpdated extends Event {
   static eventType = 'key-updated';
 

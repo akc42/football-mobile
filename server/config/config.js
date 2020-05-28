@@ -24,31 +24,60 @@
   const debug = require('debug')('football:api:config');
   const versionPromise = require('../version');
 
-  module.exports = async function(dbOpen) {
-    const config = {
-      pointsMap: JSON.parse(process.env.FOOTBALL_POINTS_MAP),
-      underdogMap: JSON.parse(process.env.FOOTBALL_UNDERDOG_MAP),
-      playoffMap: JSON.parse(process.env.FOOTBALL_PLAYOFF_MAP),
-      bonusMap: JSON.parse(process.env.FOOTBALL_POINTS_MAP),
-      defaultBonus:parseInt(process.env.FOOTBALL_DEFAULT_BONUS,10)
-    }
-    db = await dbOpen();
-    await db.exec('BEGIN TRANSACTION')
-    const { value: dcid } = await db.get(`SELECT value FROM settings WHERE name = 'default_competition'`);
-    const {rid: drid} = await db.get(`SELECT rid FROM round WHERE cid = ? ORDER BY rid DESC LIMIT 1`, dcid);
-    config.dcid = dcid;
-    config.drid = drid;
-    //get the very latest competition 
-    const {cid: lcid, administrator} = await db.get(`SELECT cid, administrator FROM competition ORDER BY cid DESC LIMIT 1`);
-    config.lcid = lcid;
-    config.luid = administrator;
-    await db.exec('ROLLBACK');
-   db.close();
-    const {version, year} = await versionPromise;
-    config.version = version;
-    config.copyrightYear = year;
-    debug('Success config');
-    return config;
-    
+  module.exports = async function(db) {
+      await db.exec('BEGIN TRANSACTION')
+      const s = await db.prepare('SELECT value FROM settings WHERE name = ?');
+      const { value: dcid } = await s.get('default_competition');
+      const { value: pointsMap } = await s.get('pointsmap');
+      const { value: underdogMap } = await s.get('underdogmap');
+      const { value: playoffMap } = await s.get('playoffmap');
+      const { value: bonusMap } = await s.get('bonusmap');
+      const { value: defaultBonus } = await s.get('defaultbonus');
+      const { value: clientLog } = await s.get('client_log');
+      const { value: clientLogUid } = await s.get('client_log_uid');
+      const { value: cookieName } = await s.get('cookie_name');
+      const { value: cookieVisitName } = await s.get('cookie_visit_name');
+      const { value: mainMenuIcon } = await s.get('main_menu_icon');
+      await s.finalize();
+      const extras = {};
+      const rowc = await db.get(`SELECT cid, administrator FROM competition ORDER BY cid DESC LIMIT 1`);
+      if (rowc !== undefined) {
+        debug('rowc found ', rowc);
+        extras.lcid = rowc.cid;
+        extras.luid = rowc.administrator;
+      } else {
+        debug('rowc undefined');
+        extras.lcid = 0;
+        extras.luid = 0;
+      }
+      const rowr = await db.get(`SELECT rid FROM round WHERE cid = ? ORDER BY rid DESC LIMIT 1`, dcid);
+      if (rowr !== undefined) {
+        debug('rowr found', rowr);
+        extras.drid = rowr.rid;
+      } else {
+        debug('rowr undefined');
+        extras.drid = 0;
+      }
+      await db.exec('COMMIT');
+      const { version, year } = await versionPromise;
+      const config = {
+        dcid:dcid,
+        pointsMap:pointsMap, 
+        underdogMap:underdogMap, 
+        playoffMap: playoffMap, 
+        bonusMap: bonusMap, 
+        defaultBonus: defaultBonus, 
+        clientLog: clientLog, 
+        clientLogUid: clientLogUid,
+        version: version,
+        copyrightYear: year,
+        cookieName: cookieName,
+        cookieVisitName: cookieVisitName,
+        mainMenuIcon: mainMenuIcon,
+        ...extras
+      };
+      debug('Success config');
+      return config;
+
   };
 })();

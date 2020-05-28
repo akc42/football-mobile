@@ -42,21 +42,22 @@
   const logger = require('./utils/logger');
   const Responder = require('./utils/responder');
   const versionPromise = require('./version');
-
+  if (process.env.DB_DEBUG !== undefined) {
+    sqlite3.verbose();
+  }
   
   const cookieConfig = {};
 
 
-  function dbOpen() {
+  async function dbOpen() {
     debugdb('Open Database Called');
-    return open({
+    const db = await open({
       filename: process.env.FOOTBALL_DB,
       mode: sqlite3.OPEN_READWRITE,
       driver: sqlite3.Database
-    }).then(db => {
-      db.exec('PRAGMA foreign_keys = ON;')
-      return db;
-    });
+    })
+    await db.exec('PRAGMA foreign_keys = ON;');
+    return db;
   }  
   
   function loadServers(webdir, relPath) {
@@ -142,11 +143,14 @@
     } finally {
       if (db) db.close();
     }
+    let dbIsOpen;
     try {
       if (dbBroken.length > 0) throw new Error(dbBroken);
-      const db = await dbOpen();
+      dbIsOpen = false;
+      db = await dbOpen();
+      dbIsOpen = true; 
       await db.exec('BEGIN TRANSACTION');
-      let s = await db.prepare('SELECT value FROM settings WHERE name = ?');
+      const s = await db.prepare('SELECT value FROM settings WHERE name = ?');
       
       const { value: cacheAge } = await s.get('cache_age');
       const { value: serverPort } = await s.get('server_port');
@@ -154,8 +158,10 @@
       const { value: cookieKey } = await s.get('cookie_key');
       const { value: cookieExpires } = await s.get('cookie_expires');
       const { value: cookieShortExpires } = await s.get('cookie_short_expires');
+      await s.finalize();
       await db.exec('COMMIT');
-      db.close();
+      await db.close();
+      dbIsOpen = false;
       cookieConfig.cookieKey = cookieKey;
       cookieConfig.cookieExpires = cookieExpires;
       cookieConfig.cookieShortExpires = cookieShortExpires;
@@ -184,16 +190,20 @@
         debugapi(`Set up /api/config/${config} route`);
         conf.get(`/${config}`, async (req,res) => {
           debugapi(`Received /api/config/${config} request`);
+          let db;
           try {
             res.writeHead(200, {
               'Content-Type': 'application/json',
               'Cache-Control': 'no-cache',
               'X-Accel-Buffering': 'no'
             });
-            const response = await confs[config](dbOpen);
+            db = await dbOpen();
+            const response = await confs[config](db);
             res.end(JSON.stringify(response));
           } catch (e) {
             forbidden(req, res, e.toString());
+          } finally {
+            if (db) db.close();
           }
         });
       }
@@ -248,6 +258,7 @@
         debugapi(`Setting up /api/session/${session} route`);
         ses.post(session, async (req, res) => {
           debugapi(`Received /api/session/${session} request`);
+          let db;
           try {
             res.writeHead(200, {
               'Content-Type': 'application/json',
@@ -255,18 +266,19 @@
               'X-Accel-Buffering': 'no'
             });
             const responder = new Responder(res);
-            await sessions[session](req.headers['x-forwarded-for'],req.body,dbOpen, responder);
+            db = await dbOpen()
+            await sessions[session](req.headers['x-forwarded-for'],req.body,db, responder);
             responder.end();
           } catch (e) {
             forbidden(req, res, e.toString());
+          } finally {
+            if (db) await db.close();
           }
         });
       }
       /*
-          From this point on, all calls expect the user to be logged on and so we first introduce some middle where that will check that
+          From this point on, all calls expect the user to be logged on and so we first introduce some middleware that will check that
           and return an unauthorised response if someone attempts to use it.
-
-          First we have the basic api requests - mostly for administrative purposes unrelated to foot ball
       */
 
       debug('Setting up to Check Cookies from further in');
@@ -293,7 +305,6 @@
         } else {
           forbidden(req, res, 'Invalid Cookie');
         }
-
       });
       /*
         at this point in the chain we can now add validate user.  We have got a valid cookie
@@ -314,7 +325,6 @@
       */
       debug('Set up to check cookie usage');
       api.use((req,res,next) => {
-
         debugapi('checking cookie usage')
         if (req.usage === 'play') {
           next();
@@ -331,6 +341,7 @@
         debugapi(`Setting up /api/${adm} route`);
         api.post(`/${adm}`, async (req,res) => {
           debugapi(`Received /api/${adm} request`);
+          let db;
           try {
             res.writeHead(200, {
               'Content-Type': 'application/json',
@@ -338,10 +349,13 @@
               'X-Accel-Buffering': 'no'
             });
             const responder = new Responder(res);
+            db = await dbOpen();
             await apis[adm](req.user,req.body,dbOpen,responder);
             responder.end();  //responder doesn't mind multiple ends, so we do it here just incase.
           } catch(e) {
             forbidden(req, res, e.toString());
+          } finally {
+            await db.close();
           }
         })
       }
@@ -359,6 +373,7 @@
         debugapi(`Setting up /api/:cid/${c} route`);
         cid.post(`/${c}`, async (req, res) => {
           debugapi(`Received /api/:cid/${c} request, cid=`,req.params.cid);
+          let db;
           try {
             res.writeHead(200, {
               'Content-Type': 'application/json',
@@ -366,10 +381,13 @@
               'X-Accel-Buffering': 'no'
             });
             const responder = new Responder(res);
-            await cids[c](req.user, req.params.cid, req.body, dbOpen, responder);
+            db = await dbOpen();
+            await cids[c](req.user, req.params.cid, req.body, db, responder);
             responder.end();  //responder doesn't mind multiple ends, so we do it here just incase.
           } catch (e) {
             forbidden(req, res, e.toString());
+          } finally {
+            if (db) await db.close();
           }
         })
       }
@@ -377,6 +395,7 @@
         debugapi(`Setting up /api/:cid/:rid/${r} route`);
         cidrid.post(`/${r}`, async (req, res) => {
           debugapi(`Received /api/:cid/:rid/${r} request, cid= ${req.params.cid} rid= ${req.params.rid}`);
+          let db
           try {
             res.writeHead(200, {
               'Content-Type': 'application/json',
@@ -384,10 +403,13 @@
               'X-Accel-Buffering': 'no'
             });
             const responder = new Responder(res);
-            await cidrids[r](req.user, req.params.cid, req.params.rid, req.body, dbOpen, responder);
+            db = await dbOpen();
+            await cidrids[r](req.user, req.params.cid, req.params.rid, req.body, db, responder);
             responder.end();  //responder doesn't mind multiple ends, so we do it here just incase.
           } catch (e) {
             forbidden(req, res, e.toString());
+          } finally {
+            if (db) await db.close();
           }
         })
       }
@@ -401,6 +423,7 @@
       logger('app', `Release ${version} of Football Web Server Operational on Port:${serverPort} using node ${process.version}`);
     } catch(e) {
       logger('error', 'Initialisation Failed with error ' + e.toString());
+      if (dbIsOpen) await db.close();
       await close();
     }
   }

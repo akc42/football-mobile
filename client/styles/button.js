@@ -23,17 +23,15 @@
 import { css } from '../libs/lit-element.js';
 
 export default css`
-  :host {
-    background-color: white;
-    padding: 20px;
-    margin: 0;
+  button {
+    background-color: var(--app-accent-color);
+    min-width:80px;
+    color: var(--app-reverse-text-color);
+    border: none;
+    padding: 5px;
+    border-radius:5px;
+    box-shadow: 2px 2px 5px 4px rgba(0,0,0,0.2);
   }
-  @media (min-width: 500px) {
-    :host {
-      margin: 10px auto 20px auto;
-      padding:10px;
-      border-radius: 10px;
-      box-shadow: 0px 0px 38px -2px rgba(0, 0, 0, 0.5);
-    }
-  }
+  button:active {
+    box-shadow: none;
 `;

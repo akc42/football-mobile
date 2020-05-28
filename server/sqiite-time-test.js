@@ -20,9 +20,22 @@ let rid;
 
     let db;
     try {
+        const ostart = Date.now();
+        
+        for(let i = 0; i < 100000; i++) {
+            db = await open({
+                filename: '/home/alan/databases/sqlite/football.db',
+                driver: sqlite3.Database
+            });
+            await db.close();
+        }
+        const oend = Date.now();
+        console.log('Open Test took ', oend - ostart, ' milliseconds');
+
+        
         db = await open({
             filename: '/home/alan/databases/sqlite/football.db',
-            driver: sqlite3.Database 
+            driver: sqlite3.Database
         });
         await db.exec('PRAGMA foreign_keys = ON');
         const t1start = Date.now();
@@ -42,8 +55,10 @@ let rid;
             await db.exec('COMMIT');
         }
         const t2end = Date.now();
-        
         console.log('T2 took ', t2end - t2start, ' milliseconds');
+
+
+
     } catch(e) {
         await db.exec('ROLLBACK');
         console.log(e);

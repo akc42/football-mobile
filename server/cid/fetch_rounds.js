@@ -25,8 +25,7 @@
 (function () {
   'use strict';
 
-  module.exports = async (user,cid, params,dbOpen,responder) => {
-    db = await dbOpen();
+  module.exports = async (user,cid, params,db,responder) => {
     await db.exec('BEGIN TRANSACTION');
     const rounds = await db.all(`SELECT round, name, open FROM round WHERE cid = ? ORDER BY rid DESC`, cid);
     responder.addSection('rounds', rounds);

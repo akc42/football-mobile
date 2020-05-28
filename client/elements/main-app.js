@@ -18,6 +18,7 @@
     along with Football-Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
+import {classMap} from '../libs/class-map.js';
 import {cache} from '../libs/cache.js';
 import config from '../modules/config.js'; 
 import {switchPath} from '../modules/utils.js';
@@ -53,6 +54,7 @@ class MainApp extends LitElement {
       lcid: {type: Number}, //cid of latest competition
       luid: {type: Number}, //admin of latest competition
       drid: {type: Number},
+      menuIcon: {type: String}
     };
   }
   constructor() {
@@ -69,9 +71,10 @@ class MainApp extends LitElement {
     this.lastRoundTime = 0;
     this.dcid = 0;
     this.drid = 0;
+    this.menuIcon = 'menu';
     window.fetch('/api/config/styles', { method: 'get' }).then(response => response.json()).then(styles => {
       for (let key in styles) {
-        this.style.setProperty('--' + key, styles[key]);
+        this.style.setProperty('--' + key.replace(/_/g,'-'), styles[key]);
       }
     });
     config().then(config => {
@@ -80,9 +83,10 @@ class MainApp extends LitElement {
       this.dcid = config.dcid;
       this.drid = config.drid;
       this.lcid = config.lcid;
-      this.luid = config.luid
+      this.luid = config.luid;
       if (this.cid === 0) this.cid = this.dcid; //we use dcid if cid not been set yet, else we leave it
       if (this.rid === 0) this.rid = this.drid;
+      this.menuIcon = config.mainMenuIcon;
       //and the rest
     });
   }
@@ -130,16 +134,10 @@ class MainApp extends LitElement {
     return html`  
       <style>
         :host {
-          --app-text-color: #212121;
-          --app-reverse-text-color: white;
-          --app-header-color: #adcabd;
-          --app-accent-color: #0000ff;
-          --app-header-size: 64px;
-          --icon-size: 24px;
+
           height: 100vh;
           display: flex;
           flex-direction: column-reverse;
-
         }
         #mainmenu {
           display:flex;
@@ -160,17 +158,26 @@ class MainApp extends LitElement {
           align-items:center;
         }
         section {
-          max-height: calc(100vh - var(--app-header-size));
+          height: calc(100vh - var(--app-header-size));
           overflow-y:auto;
-          display:flex;
+        }
+        .flexing {
+          display: flex;
           flex-direction: column;
-          justify-content: flex-start;
         }
 
         .iconreplace {
           width: var(--icon-size);
           height:var(--icon-size);
           background-color: transparent;
+        }
+        #logo {
+          display:block;
+          color: transparent;
+          height: var(--app-header-size);
+          width: var(--app-header-size);
+          background: url("../images/football-logo.svg");
+          background-size: var(--app-header-size) var(--app-header-size);
         }
         #appinfo {
           display:flex;
@@ -238,15 +245,15 @@ class MainApp extends LitElement {
         `:'')}
       <header>
         ${cache(this.authorised? html`
-        <material-icon @click=${this._menu}>menu</material-icon>        
+        <material-icon @click=${this._menu}>${this.menuIcon}</material-icon>        
         `:html`<div class="iconreplace"></div>` )}
-        <img src="images/football.svg" length="24px" width="24px" alt="football logo"/>
+        <div id="logo">Football Logo</div>
         <div id="appinfo">
           <div id="version">${this.version}</div>
           <div id="copy">&copy; 2008-${this.copyrightYear} Alan Chandler</div>
         </div>
       </header>
-      <section>
+      <section class="${classMap({flexing: !this.authorised})}">
         <app-session @auth-changed=${this._authChanged}></app-session>
         ${cache(this.authorised? html`
           <app-pages

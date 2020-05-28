@@ -36,7 +36,7 @@ class MaterialIcon extends LitElement {
         font-family:"Material Icons";
         font-weight:normal;
         font-style:normal;
-        font-size:var(--icon-size, 24px);
+        font-size:var(--icon-size, var(--default-icon-size));
         line-height:1;
         letter-spacing:
         normal;

@@ -26,7 +26,7 @@
   const COLOURS = {
     app: chalk.magentaBright,
     db: chalk.greenBright,
-    api: chalk.cyanBright,
+    api: chalk.bold,
     log: chalk.yellowBright,
     //error like have backGround colouring
     auth: chalk.black.bgCyan,
