@@ -20,11 +20,41 @@
 
 (function() {
   'use strict';
-  const fs = require('fs').promises;
-  const path = require('path');
-  const stylesPromise = fs.readFile(path.resolve(__dirname, '../..', 'styles.json'));
-  module.exports = async function() {
-    const styles = await stylesPromise;
-    return JSON.parse(styles);
+  const debug = require('debug')('football:api:styles');
+
+  module.exports = async function(db) {
+    debug('got a styles request');
+    await db.exec('BEGIN TRANSACTION')
+    const s = await db.prepare('SELECT style FROM styles WHERE name = ?');
+    const {style: app_primary_color} = await s.get('app-primary-color');
+    const {style: app_accent_color} = await s.get('app-accent-color');
+    const {style: app_text_color} = await s.get('app-text-color');
+    const {style: app_reverse_text_color} = await s.get('app-reverse-text-color');
+    const {style: app_header_color} = await s.get('app-header-color');
+    const {style: app_spinner_color} = await s.get('app-spinner-color');
+    const {style: app_button_color} = await s.get('app-button-color');
+    const {style: app_cancel_button_color} = await s.get('app-cancel-button-color');
+    const {style: button_bird_color} = await s.get('button-bird-color');
+    const {style: app_header_size } = await s.get('app-header-size');
+    const { style: default_icon_size} = await s.get('default-icon-size');
+    const { style: email_input_length } = await s.get('email-input-length');
+    await s.finalize();
+    const styles = {
+      app_primary_color:app_primary_color,
+      app_accent_color:app_accent_color,
+      app_text_color:app_text_color,
+      app_reverse_text_color:app_reverse_text_color,
+      app_header_color:app_header_color,
+      app_spinner_color:app_spinner_color,
+      app_button_color:app_button_color,
+      app_cancel_button_color:app_cancel_button_color,
+      button_bird_color:button_bird_color,
+      app_header_size:app_header_size,
+      default_icon_size: default_icon_size,
+      email_input_length: email_input_length
+    }; 
+    await db.exec('COMMIT');   
+    debug('got styles');
+    return styles;
   };
 })();

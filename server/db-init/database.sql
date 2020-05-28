@@ -167,6 +167,16 @@ CREATE TABLE settings (
     name character varying(20) PRIMARY KEY, -- Setting Name
     value integer -- although an Int, We can store strings in here
 );
+--Styles used throughout the application
+CREATE TABLE styles (
+    name character varying PRIMARY KEY, --style variable name without the leading double dashes
+    style character varying DEFAULT NULL --the value of the style.  Note it could refer to another style using 'var(--my-other-style)'
+);
+--Emoticons used in the application
+CREATE TABLE emoticons (
+    code char varying PRIMARY KEY, --code used in text preceed by ":" that user can use to include the emoticon
+    filename char varying --The filename to be displayed as an image for that emoticon 
+);
 
 CREATE TABLE team (
     tid varchar(3) PRIMARY KEY,
@@ -330,19 +340,24 @@ INSERT INTO team (tid, name, logo,  confid, divid) VALUES('ARI','Arizona Cardina
 INSERT INTO team (tid, name, logo,  confid, divid) VALUES('KC','Kansas City Chiefs','KC_logo-50x50.gif','AFC','W');
 
 INSERT INTO settings (name,value) VALUES('version',14); --version of this configuration
-
+-- values for client config
 INSERT INTO settings (name,value) VALUES('default_competition',0); -- cid of default competition 0 means we don't know what it is
 INSERT INTO settings (name,value) VALUES('pointsmap','[1,2,4,6,8,12,16]'); -- map of slider position to output result
 INSERT INTO settings (name,value) VALUES('underdogmap','[0,1,2,4,6,8]'); --map of absolute slider positions to underdog points
 INSERT INTO settings (name,value) VALUES('playoffmap','[1,2,4,6,8]'); --map of playoff points slider position to points allocated
 INSERT INTO settings (name,value) VALUES('bonusmap','[1,2,4,6,8,12,16]');--map of bonus question points slider position to points allocated
 INSERT INTO settings (name,value) VALUES('defaultbonus',2); --default value of question bonus when new round created
+INSERT INTO settings (name,value) VALUES('client_log',''); --if none empty string should specify which function areas client should log.
+INSERT INTO settings (name,value) VALUES('client_log_uid',0); --if non zero limit client logging to that uid.
+INSERT INTO settings (name,value) VALUES('cookie_visit_name','MBFMVISIT'); --name used for a cookie to record a visit where the user logged on.
+INSERT INTO settings (name,value) VALUES('main_menu_icon','menu'); --character from material icon font to use as the main menu.
+--values for server config
 INSERT INTO settings (name,value) VALUES('cache_age',84400);--cache age before invalid (in seconds), 0 is infinite
 INSERT INTO settings (name,value) VALUES('server_port', 2040); --port the api server should listen on.
-INSERT INTO settings (name,value) VALUES('cookie_name', 'MBBall'), --key used to encrypt/decrypt cookie token
-INSERT INTO settings (name,value) VALUES('cookie_key', 'Football9Key7AID'), --key used to encrypt/decrypt cookie token
-INSERT INTO settings (name,value) VALUES('cookie_expires', 720), --hours until expire for standard logged on token
-INSERT INTO settings (name,value) VALUES('cookie_short_expires', 24), --hours until expire for short length cookie
+INSERT INTO settings (name,value) VALUES('cookie_name', 'MBBall'); --name used for our main cookie
+INSERT INTO settings (name,value) VALUES('cookie_key', 'Football9Key7AID'); --key used to encrypt/decrypt cookie token
+INSERT INTO settings (name,value) VALUES('cookie_expires', 720); --hours until expire for standard logged on token
+INSERT INTO settings (name,value) VALUES('cookie_short_expires', 24); --hours until expire for short length cookie
 
 -- Messages used by admin
 INSERT INTO settings (name,value) VALUES('msgdeletecomp','Deleting a Competition will delete all the Rounds and Matches associated with it. Do you wish to Proceed?');
@@ -360,7 +375,20 @@ INSERT INTO settings (name,value) VALUES('msgdeleteround','Deleting a Round will
 INSERT INTO settings (name,value) VALUES('msgapprove','You are changing the approval status of a Baby Backup for this Competition. Are you sure you want to do this?');
 INSERT INTO settings (name,value) VALUES('msgunregister','This will Un-Register this User from this Competition. Do you wish to Proceed?');
 INSERT INTO settings (name,value) VALUES('msgconstraint','Cannot remove team from competition, it is used in picks or matches');
-
+-- STYLES ----------------------------
+-- THIS will possibly change in every use of this application
+INSERT INTO styles (name,style) VALUES('app-primary-color', '#adcabd'); --Main colour for use in the application
+INSERT INTO styles (name,style) VALUES('app-accent-color', '#131335'); --Colour to use when something is to stand out - Main Button, Results Tables Headings etc 
+INSERT INTO styles (name,style) VALUES('app-text-color', '#212121'); --Main text colour to use
+INSERT INTO styles (name,style) VALUES('app-reverse-text-color', 'white'); --Text colour to use when writing on accent or primary colour backgrounds
+INSERT INTO styles (name,style) VALUES('app-header-color',   'var(--app-primary-color)'); --Top Header Bar Colour
+INSERT INTO styles (name,style) VALUES('app-spinner-color', 'var(--app-accent-color)'); --Spinner Dot Colour
+INSERT INTO styles (name,style) VALUES('app-button-color', 'var(--app-accent-color)'); --Main Button Colour
+INSERT INTO styles (name,style) VALUES('app-cancel-button-color', 'var(--app-primary-color)'); --Cancel Button Colour
+INSERT INTO styles (name,style) VALUES('button-bird-color', 'var(--app-primary-color)'); --Colour of birds in the Send Button.
+INSERT INTO styles (name,style) VALUES('app-header-size', '64px'); --height of the main header bar
+INSERT INTO styles (name,style) VALUES('default-icon-size', '24px'); --default icon size
+INSERT INTO styles (name,style) VALUES('email-input-length','220px'); --input field width for e-mail input 
 
 -- END OF STANDARD DATA ----------------------------------------------------------
 -- INDEXES --------------------------------------------------------------
