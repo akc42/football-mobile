@@ -17,8 +17,8 @@
     You should have received a copy of the GNU General Public License
 		along with Football Mobilve.  If not, see <http://www.gnu.org/licenses/>.
 
-The majority of the code in this module is copyright as below:-
-
+Although the use of the lit element helper and construction of the custom element are mine, the concept 
+and details of the css in this element were derived from work licenced as below:-
 		
 Copyright (c) 2020 by Claudia (https://codepen.io/eyesight/pen/KGEebY)
 
@@ -27,118 +27,38 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-
 */
 import { LitElement, html } from '../libs/lit-element.js';
+import { cache } from '../libs/cache.js';
+import {classMap} from '../libs/class-map.js';
 
+import button from '../styles/button.js';
 /*
      <send-button>
 */
 class SendButton extends LitElement {
   static get styles() {
-    return [];
+    return [button];
   }
   static get properties() {
     return {
-    
+			showFeather: {type: Boolean},
+			showBirds: {type: Boolean}
     };
   }
   constructor() {
-    super();
-  }
-  connectedCallback() {
-    super.connectedCallback();
-  }
-  disconnectedCallback() {
-    super.disconnectedCallback();
-  }
-  update(changed) {
-    super.update(changed);
-  }
-  firstUpdated() {
-    var el = document.querySelector(".button-bird");
-    var text = document.querySelector(".button-bird__text");
-    el.addEventListener('click', function () {
-      el.classList.toggle('active');
-
-      if (el.classList.contains('active')) {
-        console.log('true');
-        text.innerHTML = 'DONE';
-      } else {
-        text.innerHTML = 'SEND';
-      }
-    });
-
-  }
-  updated(changed) {
-    super.updated(changed);
-  }
+		super();
+		this.showFeather = false;
+		this.showBirds = false;
+	}
+	firstUpdated() {
+		this.feather = this.shadowRoot.querySelector('#feather');
+	}
   render() {
     return html`
       <style>
-				:host {
-				--sizeh4: 25px;
-				--sizew4: 59px;
-				--seizew4fore: 118px;
-				--color4: #131335;
-				--color4blue: #BEEDFF;
-				--widthBird2: 60px;
-				--widthBird1: 30px;
-				--heightBird2: 33px;
-$sizeh4: 25px;
-$sizew4: 59px;
-$sizew4fore: 118px;
-$color4: #131335;
-$color4Blue: #BEEDFF;
-$widthBird2: 60px;
-$widthBird1: 30px;
-$heightBird2: 33px;
-				}
-body{
-	margin: 0;
-	padding: 0;
-	overflow-x:hidden;
-}
-.wrapper-no4 {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	background: linear-gradient(to bottom, var(--color4Blue), white);
-	height: 100vh;
-	width: 100vw;
-	max-width:100%;
-	overflow: hidden;
-}
-.wrapper-no4	.button-bird{
-		width: 300px; 
-		height: 88px;
-		background-color: var(--color4);
-		border-radius: 5px;
-		position: absolute;
-		top: 50%; 
-		opacity: 1;
-		transform: translateY(-50%);
-		padding: 0;
-		border: none;
-		display: flex;
-		justify-content: center;
+/*
 
-.wrapper-no4		.button-bird__text{
-			text-align: center;
-			font-size: 20px;
-			font-family: Helvetica, Arial, sans-serif;
-			color: var(--color4Blue);
-			position: absolute;
-			z-index: 1000;
-			top: 50%;
-			margin: 0;
-			transform: translateY(-50%);
-		} 
-.wrapper-no4		.button-bird:focus {
-		  outline: none;
-		}
 
 .wrapper-no4		.button-bird:hover	.bird--30{
 				left: 600px;
@@ -164,7 +84,7 @@ body{
 			top: 12px;
 			display: none;
 			opacity: 0;
-			fill: $color4;
+			fill: var(--color4)
 		}
 	
 	
@@ -873,105 +793,128 @@ body{
 		  animation-duration: 0.6s;
 		  animation-delay: -0.75s;
 		}
-	
+*/
 
-	@keyframes fly-cycle {
-	  100% {
-	  	background-position: -360px 0; 
-	  } 
-	}
-	@keyframes text-fade {
-	  0% {
-	  	color: transparent;
-	  	opacity: 1;
-	  	top: -50%;
-	  	left: auto;
-	  }
-	  1% {
-	  	color: transparent;
-	  	opacity: 0;
-	  } 
-	  50%{
-	  	color: transparent;
-	  	opacity: 0;
-	  }
-	  100% {
-	  	color: $color4;
-	  	opacity: 1;
-	  } 
-	}
-	@keyframes feather-fade {
-	  0% {
-	  	top: -100px;
-	  	opacity: 0;
-	  }
-	  25% {
-	  	transform: rotate(10deg);
-	  	left: 30%;
-	  } 
-	  50%{
-	  	transform: rotate(-5deg);
-	  	opacity: 1;
-	  	left: 45%;
-	  }
-	  75%{
-	  	transform: rotate(10deg);
-	  	left: 32%;
-	  }
-	  100% {
-	  	transform: rotate(0deg);
-	  	opacity: 1;
-	  	top: 12px;
-	  	left: 43%;
-	  } 
-	}
-}
+
+			#defs {display: none;}
+			button, #text {
+				position: relative;
+			}
+			@keyframes feather-fade {
+				0% {
+					top: -20px;
+					opacity: 0;
+				}
+				25% {
+					transform: rotate(10deg);
+					left: 30%;
+				} 
+				50%{
+					transform: rotate(-5deg);
+					opacity: 1;
+					left: 45%;
+				}
+				75%{
+					transform: rotate(10deg);
+					left: 32%;
+				}
+				100% {
+					transform: rotate(0deg);
+					opacity: 1;
+					left: calc(50% - 20px);
+					top: calc(100% + 10px);
+				} 
+			}
+			.feather {
+					position: absolute;
+					width: 41px;
+					height: 23px;
+					left: calc(50% - 20px);
+					top: calc(100% + 10px);
+					opacity: 0; 
+					filter: var(--button-bird-color);
+					animation: feather-fade 1.5s linear 0.5s forwards;
+			}
+			button:focus, .feather:focus, bird:focus {
+				outline: none;
+
+			}
+			.bird {
+					display:block;
+					position: absolute;
+					background: transparent;
+					width: 30px;
+					height: 35px;
+					overflow: hidden;
+					opacity:0;
+				  transition : left 1.5s cubic-bezier(0.42, 0, 0.58, 1), top 1.5s cubic-bezier(0.42, 0, 0.58, 1), opacity 0.5s linear 1s
+			}	
+			button:hover	.birdonhover, .flying{
+				left: 15px !important;
+				top: -7px !important;
+				opacity: 1;
+				transition: all 0.01s;
+			}
+
+
+
+			.birdicon {
+					width: 90px;
+					height: 35px;
+					transform: translateX(-100%);
+					filter: var(--button-bird-color);
+					animation-name: fly-cycle;
+					animation-duration: 0.5s;
+					animation-timing-function: steps(3);
+					animation-iteration-count: infinite;
+			}
+			@keyframes fly-cycle {
+	  		100% {
+	  			transform: translateX(0); 
+	  		} 
+			}
       </style>
-        <button class="button-bird">
-        <p class="button-bird__text">SEND</p>
-        <svg version="1.1" class="feather" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-             viewBox="0 0 75 38" style="enable-background:new 0 0 75 38;" xml:space="preserve">
-        <g>
-            <path d="M20.8,31.6c3.1-0.7,2.9-2.3,2,1c9.1,4.4,20.4,3.7,29.1-0.8l0,0c0.7-2.1,1-3.9,1-3.9c0.6,0.8,0.8,1.7,1,2.9
-                c4.1-2.3,7.6-5.3,10.2-8.3c0.4-2.2,0.4-4,0.4-4.1c0.6,0.4,0.9,1.2,1.2,2.1c4.5-6.1,5.4-11.2,3.7-13.5c1.1-2.6,1.6-5.4,1.2-7.7
-                c-0.5,2.4-1.2,4.7-2.1,7.1c-5.8,11.5-16.9,21.9-30.3,25.3c13-4,23.6-14.4,29.1-25.6C62.8,9,55.6,16.5,44.7,20.7
-                c2.1,0.7,3.5,1.1,3.5,1.6c-0.1,0.4-1.3,0.6-3.2,0.4c-7-0.9-7.1,1.2-16,1.5c1,1.3,2,2.5,3.1,3.6c-1.9-0.9-3.8-2.2-5.6-3.6
-                c-0.9,0.1-10.3,4.9-22.6-12.3C5.9,17.7,11.8,26.9,20.8,31.6z"/>
-        </g>
-        </svg>
-        <span class="bird"></span>
-        <span class="bird--1"></span>
-        <span class="bird--2"></span>
-        <span class="bird--3"></span>
-        <span class="bird--4"></span>
-        <span class="bird--5"></span>
-        <span class="bird--6"></span>
-        <span class="bird--7"></span>
-        <span class="bird--8"></span>
-        <span class="bird--9"></span>
-        <span class="bird--10"></span>
-        <span class="bird--11"></span>
-        <span class="bird--12"></span>
-        <span class="bird--13"></span>
-        <span class="bird--14"></span>
-        <span class="bird--15"></span>
-        <span class="bird--16"></span>
-        <span class="bird--17"></span>
-        <span class="bird--18"></span>
-        <span class="bird--19"></span>
-        <span class="bird--20"></span>
-        <span class="bird--21"></span>
-        <span class="bird--22"></span>
-        <span class="bird--23"></span>
-        <span class="bird--24"></span>
-        <span class="bird--25"></span>
-        <span class="bird--26"></span>
-        <span class="bird--27"></span>
-        <span class="bird--28"></span>
-        <span class="bird--29"></span>
-        <span class="bird--30"></span>
+			<svg id="defs">
+				<defs>
+					<symbol id="ficon" viewBox="0 0 66.836823 36.261105">
+					<path d="m 16.9,32.3 c 3.1,-0.7 2.9,-2.3 2,1 C 28,37.7 39.3,37 48,32.5 v 0 c 0.7,-2.1 1,-3.9 1,-3.9 0.6,0.8 0.8,1.7 1,2.9 4.1,-2.3 7.6,-5.3 10.2,-8.3 0.4,-2.2 0.4,-4 0.4,-4.1 0.6,0.4 0.9,1.2 1.2,2.1 C 66.3,15.1 67.2,10 65.5,7.7 66.6,5.1 67.1,2.3 66.7,0 66.2,2.4 65.5,4.7 64.6,7.1 58.8,18.6 47.7,29 34.3,32.4 47.3,28.4 57.9,18 63.4,6.8 58.9,9.7 51.7,17.2 40.8,21.4 c 2.1,0.7 3.5,1.1 3.5,1.6 -0.1,0.4 -1.3,0.6 -3.2,0.4 -7,-0.9 -7.1,1.2 -16,1.5 1,1.3 2,2.5 3.1,3.6 C 26.3,27.6 24.4,26.3 22.6,24.9 21.7,25 12.3,29.8 0,12.6 c 2,5.8 7.9,15 16.9,19.7 z" />
+					</symbol>
+					<symbol id="bicon" viewBox="0 0 180 69.539766">
+
+					<path d="m 8.7598116,37.861293 c 5.7456834,-1.978022 11.4913654,-3.390895 15.2590264,-1.978022 3.767661,1.412873 7.441131,2.166405 11.208792,3.579278 2.825745,1.036107 9.32496,1.22449 13.751962,-2.072214 2.731554,-1.978021 6.687598,-4.615384 11.020408,0 C 59.811617,35.977463 58.587127,34.752973 58.304553,33.811058 57.927787,32.492376 58.021978,31.738844 56.609105,30.23178 54.536892,28.065375 51.711146,28.724715 50.10989,28.913098 47.095762,29.289865 46.813187,27.123459 47.378336,24.768671 47.943485,22.413883 58.210361,3.858153 55.855573,1.9743225 52.653061,-0.28627405 48.602826,-0.56884865 45.11774,0.93821575 40.031397,3.2930038 29.481947,15.349519 26.750393,18.363648 c -3.390895,3.767661 -0.09419,9.984301 -0.09419,9.984301 0,0 2.731554,4.050236 -5.086342,2.44898 C 16.6719,29.666631 0,31.45627 0,31.45627 Z"/>
+					<path d="m 106.8877,30.468291 c 1.76135,0.09785 5.08835,-0.684971 6.84971,0.09785 1.95706,0.97853 2.15276,1.663501 3.13129,2.739884 0.68497,0.880677 2.34848,1.565648 3.1313,2.739884 -4.69694,-2.054913 -9.39389,1.272089 -9.98101,1.761354 -1.27209,0.97853 -2.25062,2.348472 -2.73988,3.91412 v 0 c -1.4678,3.914121 -7.534682,28.768784 -9.10033,27.790254 -2.446325,-1.467795 -7.143269,-4.794798 -8.415358,-8.1218 -2.152766,-5.479768 -2.739884,-17.907099 -8.708918,-21.82122 -5.773327,-3.718414 -11.644507,-4.990503 -17.026422,-2.837737 -5.381916,2.152766 -3.816268,-1.663501 -3.816268,-1.663501 0,0 20.353425,-4.011973 29.551608,-5.381915 9.198182,-1.369942 14.188688,0.587118 17.124278,0.782824 z"/>
+					<path d="m 172.1751,34.772704 c 1.17373,-0.293434 3.12996,-0.684679 7.8249,1.369357 -0.78249,-1.173735 -2.34747,-1.956225 -3.12996,-2.738715 -0.8803,-1.075925 -1.07592,-1.858415 -3.12996,-2.738716 -1.66279,-0.782491 -4.98838,0.09781 -6.84679,-0.09781 -2.93434,-0.195622 -8.02053,-2.249659 -17.21479,-0.78249 -9.19426,1.467169 -29.44119,5.379621 -29.44119,5.379621 0,0 -1.66279,3.81464 3.81464,1.662791 5.47743,-2.151848 15.35637,-2.151848 20.14912,-0.195622 2.15185,0.78249 4.01026,2.151848 5.47743,3.912451 2.15185,2.347471 4.49932,13.204523 6.9446,14.671692 1.17374,0.684679 5.96649,-6.846789 8.50959,-11.248297 2.44528,1.662792 5.2818,2.934338 8.21614,3.619017 0.48906,0.09781 -1.95622,-8.607392 -3.03215,-12.030787 0.58687,-0.391245 1.17374,-0.586868 1.85842,-0.78249 z"/>
+					</symbol>
+				<defs>
+			</svg>
+      <button @click=${this._restartAnimations}>
+
+				${cache(this.showFeather ? html`
+				<svg id="feather" class="feather" ><use xlink:href="#ficon"></use></svg>`: '')}
+					${cache([...Array(40).keys()].map(k => {
+					const finalLeft = Math.random() * 150 + 50;
+					const finalTop= Math.random() * 200 + 50;
+					const birdStyle = `left:${finalLeft}px;top:-${finalTop}px;`	
+					return html`
+					<div style="${birdStyle}" class="bird ${classMap({
+						birdonhover: k < 5,
+						flying: this.showBirds,
+						gamma: false,
+						delta: false,
+						epsilon: false,
+						zeta: false,
+						eta: false,
+						theta: false,
+					})}"><svg class="birdicon"><use xlink:href="#bicon"></svg></div>`}))}		
+				<div id="text"><slot></slot></div>
     </button>
     `;
-  }
+	}
+	_restartAnimations() {
+		this.showBirds = true;
+		this.showFeather = true;
+		setTimeout(() => this.showBirds= false,250);
+		setTimeout(() => this.showFeather = false, 4000);
+	}
 }
 customElements.define('send-button', SendButton);

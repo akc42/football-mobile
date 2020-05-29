@@ -26,6 +26,7 @@ export default css`
   button {
     background-color: var(--app-accent-color);
     min-width:80px;
+    min-height:30px;
     color: var(--app-reverse-text-color);
     border: none;
     padding: 5px;

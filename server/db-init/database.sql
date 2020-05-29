@@ -385,7 +385,7 @@ INSERT INTO styles (name,style) VALUES('app-header-color',   'var(--app-primary-
 INSERT INTO styles (name,style) VALUES('app-spinner-color', 'var(--app-accent-color)'); --Spinner Dot Colour
 INSERT INTO styles (name,style) VALUES('app-button-color', 'var(--app-accent-color)'); --Main Button Colour
 INSERT INTO styles (name,style) VALUES('app-cancel-button-color', 'var(--app-primary-color)'); --Cancel Button Colour
-INSERT INTO styles (name,style) VALUES('button-bird-color', 'var(--app-primary-color)'); --Colour of birds in the Send Button.
+INSERT INTO styles (name,style) VALUES('button-bird-color', 'invert(9%) sepia(23%) saturate(2922%) hue-rotate(213deg) brightness(92%) contrast(102%)'); --Colour of birds in the Send Button NOTE this is done by putting desired color in calcfilter.js .
 INSERT INTO styles (name,style) VALUES('app-header-size', '64px'); --height of the main header bar
 INSERT INTO styles (name,style) VALUES('default-icon-size', '24px'); --default icon size
 INSERT INTO styles (name,style) VALUES('email-input-length','220px'); --input field width for e-mail input 

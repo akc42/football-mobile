@@ -307,10 +307,10 @@ function hexToRgb(hex) {
     ]
     : null;
 }
-console.log('argv[1]', process.argv[1]);
+console.log('argv[2]', process.argv[2]);
 let input = process.argv[2];
 if (input === undefined || input.length < 1 || input.length > 7) {
-   console.log('Please call "node calcfilter.js <hex color>" with or without the #');
+   console.log('Please call "node calcfilter.js <hex color>" without the #');
    process.exit(1);
 }
 if (input.charAt(0) !== '#') input = '#' + input;
