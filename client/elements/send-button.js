@@ -847,8 +847,20 @@ class SendButton extends LitElement {
 					height: 35px;
 					overflow: hidden;
 					opacity:0;
-				  transition : left 1.5s cubic-bezier(0.42, 0, 0.58, 1), top 1.5s cubic-bezier(0.42, 0, 0.58, 1), opacity 0.5s linear 1s
 			}	
+			.alpha {
+				transition : left 1.5s cubic-bezier(0.42, 0, 0.58, 1), top 1.5s cubic-bezier(0.42, 0, 0.58, 1), opacity 0.5s linear 1s;
+			}
+			.beta {
+				transition : left 1.5s cubic-bezier(0.42, 0, 0.58, 1) .3s, top 1.8s cubic-bezier(0.42, 0, 0.58, 1), opacity 0.5s linear 1.3s;
+			}
+			.gamma {
+				transition : left 1.7s cubic-bezier(0.42, 0, 0.58, 1) .6s, top 2s cubic-bezier(0.42, 0, 0.58, 1) .3s, opacity 0.5s linear 1.8s;
+			}
+			.delta {
+				transition : left 2s cubic-bezier(0.42, 0, 0.58, 1) 1s, top 1s cubic-bezier(0.42, 0, 0.58, 1) 2s, opacity 0.5s linear 2.5s;
+			}
+
 			button:hover	.birdonhover, .flying{
 				left: 15px !important;
 				top: -7px !important;
@@ -899,12 +911,10 @@ class SendButton extends LitElement {
 					<div style="${birdStyle}" class="bird ${classMap({
 						birdonhover: k < 5,
 						flying: this.showBirds,
-						gamma: false,
-						delta: false,
-						epsilon: false,
-						zeta: false,
-						eta: false,
-						theta: false,
+						alpha: k % 4 === 0,
+						beta: k % 4 === 1,
+						gamma: k % 4 === 2,
+						delta: k % 4 === 3
 					})}"><svg class="birdicon"><use xlink:href="#bicon"></svg></div>`}))}		
 				<div id="text"><slot></slot></div>
     </button>
