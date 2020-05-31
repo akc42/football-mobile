@@ -1,4 +1,3 @@
-
 /**
 @licence
     Copyright (c) 2020 Alan Chandler, all rights reserved
@@ -20,23 +19,37 @@
 */
 
 
+
 import { css } from '../libs/lit-element.js';
 
 export default css`
-  button {
-    background-color: var(--app-button-color);
-    min-width:80px;
-    min-height:30px;
-    color: var(--button-text-color);
-    border: none;
-    padding: 5px;
-    border-radius:5px;
-    box-shadow: 2px 2px 5px 4px rgba(0,0,0,0.2);
-  }
-  button[cancel] {
-    background-color: var(--app-cancel-button-color);
-    color: var(--cancel-button-text-color);
-  }
-  button:active {
-    box-shadow: none;
+    :host {
+      display: flex;
+      flex-direction: row;
+
+    }
+    :host([hidden]) {
+      display: none;
+    }
+
+    #checkmark {
+      width: 16px;
+      height:16px;
+      --icon-size:  12px;
+      -webkit-box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.5);
+      -moz-box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.5);
+      box-shadow: 2px 2px 6px 0px rgba(0,0,0,0.5);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #checkmark[checked] {
+      background-color: var(--app-accent-color,);
+    }
+    #checkmark[disabled], #checkmark[checked][disabled] {
+      background: var(--app-disabled-color, lightgrey);
+      color: var(--app-disabled-text, lightgrey)
+    }
+    #checklabel {
+      margin-left: 10px;
+    }
 `;

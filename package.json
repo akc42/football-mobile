@@ -24,7 +24,6 @@
     "chalk": "^3.0.0",
     "debug": "^4.1.1",
     "dotenv": "^8.2.0",
-    "elix": "^12.1.4",
     "finalhandler": "^1.1.2",
     "html-to-text": "^5.1.1",
     "include-all": "^4.0.3",

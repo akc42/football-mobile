@@ -33,8 +33,10 @@
     const {style: app_header_color} = await s.get('app-header-color');
     const {style: app_spinner_color} = await s.get('app-spinner-color');
     const {style: app_button_color} = await s.get('app-button-color');
+    const { style: button_text_color } = await s.get('button-text-color');
     const {style: app_cancel_button_color} = await s.get('app-cancel-button-color');
-    const {style: button_bird_color} = await s.get('button-bird-color');
+    const { style: cancel_button_text_color } = await s.get('cancel-button-text-color');
+    const {style: primary_color_filter} = await s.get('primary-color-filter');
     const {style: app_header_size } = await s.get('app-header-size');
     const { style: default_icon_size} = await s.get('default-icon-size');
     const { style: email_input_length } = await s.get('email-input-length');
@@ -47,8 +49,10 @@
       app_header_color:app_header_color,
       app_spinner_color:app_spinner_color,
       app_button_color:app_button_color,
+      button_text_color: button_text_color,
       app_cancel_button_color:app_cancel_button_color,
-      button_bird_color:button_bird_color,
+      cancel_button_text_color: cancel_button_text_color,
+      primary_color_filter:primary_color_filter,
       app_header_size:app_header_size,
       default_icon_size: default_icon_size,
       email_input_length: email_input_length

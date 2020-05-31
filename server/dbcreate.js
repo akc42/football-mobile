@@ -38,12 +38,12 @@
     let db
     try {
       db = await open({
-        filename: process.env.FOOTBALL_DB,
+        filename: path.resolve(__dirname, process.env.FOOTBALL_DB_DIR, process.env.FOOTBALL_DB),
         driver: sqlite3.Database
       });
       debug('Opened database - ready to start creating structure');
 
-      const database = await fs.readFile(path.resolve(__dirname,'db-init','database.sql'),'utf8');
+      const database = await fs.readFile(path.resolve(__dirname, process.env.FOOTBALL_DB_DIR,'database.sql'),'utf8');
       await db.exec(database);
       debug('Successfully updated blank database with script')
     } catch(e) {

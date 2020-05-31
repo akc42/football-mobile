@@ -24,13 +24,13 @@ import './fancy-input.js';
 import './send-button.js';
 import app from '../styles/app.js';
 import button from '../styles/button.js';
-
+import notice from '../styles/notice.js';
 /*
-     <fm-logon>
+     <app-logon>: Collects, username, password and notes forgotten password requests
 */
-class FmLogon extends LitElement {
+class AppLogon extends LitElement {
   static get styles() {
-    return [app, button];
+    return [app, button, notice];
   }
   static get properties() {
     return {
@@ -66,37 +66,17 @@ class FmLogon extends LitElement {
   render() {
     return html`
       <style>
-        :host {
-          display: flex;
-          flex-direction:column;
-          justify-content: flex-start;
-          max-width: 600px;
-          flex: 1;
-        }
-        header {
-          height: var(--app-header-size);
-          margin: 0 auto;
-          padding: 0;
+        #email {
+          width: var(--email-input-length);
         }
         p {
           font-size: 1.3em;
         }
-        #email {
-          width: var(--email-input-length);
-        }
-        .action {
-          display: flex;
-          width:100%;
-          flex-direction:row;
-          justify-content: space-evenly;
-        }
-
-
-       @media (max-height: 1300px) {
+        @media (max-height: 1300px) {
           p {
             font-size:1em;
           }
- 
+
         }
         @media (max-height: 1000px) {
           p {
@@ -109,17 +89,10 @@ class FmLogon extends LitElement {
             font-size: 0.5em;
           }
         }
- 
- 
+
         @media (max-height: 600px) {
           p {
             font-size: 0.45em;
-          }
-        }
-
-        @media (max-width: 500px) {
-          :host {
-            justify-content: space-between;
           }
         }
 
@@ -127,29 +100,12 @@ class FmLogon extends LitElement {
 
       </style>
       <header><img src="../images/mb-logo.svg" height="64px"></header>
-      ${this.visited ? '' : html`
+      
         <section class="intro">
-          <p>Welcome back to <strong>Melinda's Backups Football Results Picking Competition</strong>.  This 
-          new version has been renamed <em>Football Mobile</em> and has been designed so you can use it on 
-          your mobile phone if you wish. Sadly, with no forum available, you will be have to provide an 
-          email address and password, but once you have we will use cookies with a special encrypted 
-          token to help us remember you on this device.  By proceeding further you agree to this use of
-          cookies.</p>
-          <p>Also, in this first time through we will require you to verify
-          your email address. We will send you a short lived link to take you to your profile page
-          and set up a more permenant password.  <strong>Do Not</strong> try to log on if your e-mail has 
-          changed since you last connected, enter your new e-mail address below and select
-          the <strong>New Member</strong> option.</p>
-          
-          <p>If you have never taken part in one of our competitions, we don't have any record of you, please 
-          enter your e-mail address and select the <strong>New Member</strong> option.</p>
-          
-          <p>This is not a public competition and you will require to be approved before being accepted. You will
-          be given an oportunity to enter some brief explanation as to why you should be approved once your e-mail
-          address has been verified</p>
+
         </section>
-      `}
-       <app-form id="logon" action="${this.visited?'/api/session/logon':'/api/session/verify'}" class="inputs" @keys-pressed="${this._sendData}">
+     
+       <app-form id="logon" action="/api/session/logon" class="inputs" @keys-pressed="${this._sendData}">
         <fancy-input
           label="E-Mail"
           .message=${this.email.length > 0 ? 'Email Not Known' : 'Required'}
@@ -160,8 +116,7 @@ class FmLogon extends LitElement {
           name="email"
           id="email"
           .value="${this.email}"
-          @value-changed="${this._emChanged}"></fancy-input>
-        ${this.visited? html`
+          @value-changed="${this._emChanged}"></fancy-input>  
           <fancy-input              
             label="Password"
             message="Password Incorrect"
@@ -170,12 +125,11 @@ class FmLogon extends LitElement {
             id="pw"
             .value="${this.password}"
             @value-changed="${this._pwChanged}"></fancy-input>
-          <button id="forgotten" @click=${this._forgotten}>Forgotten Password</button>
-        ` : ''}
+          <div id="forgotten" @click=${this._forgotten}>Forgotten Password</div>
+          <app-checkbox 
       </app-form>
       <section class="action">          
-        <button @click=${this._sendData}>Logon</button>
-        <send-button @click=${this._newMember}>New Member</send-button>
+        <send-button @click=${this._sendData}>Log On</send-button>
       </section>
     `;
   }
@@ -195,4 +149,4 @@ class FmLogon extends LitElement {
 
   }
 }
-customElements.define('fm-logon', FmLogon);
+customElements.define('app-logon', AppLogon);

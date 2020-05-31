@@ -832,7 +832,7 @@ class SendButton extends LitElement {
 					left: calc(50% - 20px);
 					top: calc(100% + 10px);
 					opacity: 0; 
-					filter: var(--button-bird-color);
+					filter: var(--primary-color-filter);
 					animation: feather-fade 1.5s linear 0.5s forwards;
 			}
 			button:focus, .feather:focus, bird:focus {
@@ -874,7 +874,7 @@ class SendButton extends LitElement {
 					width: 90px;
 					height: 35px;
 					transform: translateX(-100%);
-					filter: var(--button-bird-color);
+					filter: var(--primary-color-filter);
 					animation-name: fly-cycle;
 					animation-duration: 0.5s;
 					animation-timing-function: steps(3);

@@ -143,12 +143,12 @@ INSERT INTO settings (name,value) VALUES('client_log',''); --if none empty strin
 INSERT INTO settings (name,value) VALUES('client_log_uid',0); --if non zero limit client logging to that uid.
 INSERT INTO settings (name,value) VALUES('cookie_visit_name','MBFMVISIT'); --name used for a cookie to record a visit where the user logged on.
 INSERT INTO settings (name,value) VALUES('main_menu_icon','menu'); --character from material icon font to use as the main menu.
-
+INSERT INTO settings (name,value) VALUES('webmaster','webmaster@example.com'); --site webmaster.
 --values for server config
 INSERT INTO settings (name,value) VALUES('cache_age',84400);--cache age before invalid (in seconds), 0 is infinite
 INSERT INTO settings (name,value) VALUES('server_port', 2040); --port the api server should listen on.
 INSERT INTO settings (name,value) VALUES('cookie_name', 'MBBall'); --name used for our main cookie
-INSERT INTO settings (name,value) VALUES('cookie_key', 'Football9Key7AID'); --key used to encrypt/decrypt cookie token
+INSERT INTO settings (name,value) VALUES('cookie_key', 'newCookieKey'); --key used to encrypt/decrypt cookie token
 INSERT INTO settings (name,value) VALUES('cookie_expires', 720); --hours until expire for standard logged on token
 INSERT INTO settings (name,value) VALUES('cookie_short_expires', 24); --hours until expire for short length cookie
 
@@ -176,8 +176,10 @@ INSERT INTO styles (name,style) VALUES('app-reverse-text-color', 'white'); --Tex
 INSERT INTO styles (name,style) VALUES('app-header-color', 'var(--app-primary-color)'); --Top Header Bar Colour
 INSERT INTO styles (name,style) VALUES('app-spinner-color', 'var(--app-accent-color)'); --Spinner Dot Colour
 INSERT INTO styles (name,style) VALUES('app-button-color', 'var(--app-accent-color)'); --Main Button Colour
-INSERT INTO styles (name,style) VALUES('app-cancel-button-color', 'var(--app-primary-color)'); --Cancel Button Colour
-INSERT INTO styles (name,style) VALUES('button-bird-color', 'invert(9%) sepia(23%) saturate(2922%) hue-rotate(213deg) brightness(92%) contrast(102%)'); --Colour of birds in the Send Button.
+INSERT INTO styles (name,style) VALUES('app-cancel-button-color', 'lightsteelblue'); --Cancel Button Colour
+INSERT INTO styles (name,style) VALUES('button-text-color', 'var(--app-reverse-text-color)'); --Color of text on primary buttons
+INSERT INTO styles (name,style) VALUES('cancel-button-text-color', 'var(--app-text-color)'); --Color of text on cancel buttons
+INSERT INTO styles (name,style) VALUES('primary-color-filter', 'invert(9%) sepia(23%) saturate(2922%) hue-rotate(213deg) brightness(92%) contrast(102%)'); --Filter needed to color svg to match app-primary-color NOTE this is done by putting desired color in calcfilter.js 
 INSERT INTO styles (name,style) VALUES('app-header-size', '64px'); --height of the main header bar
 INSERT INTO styles (name,style) VALUES('default-icon-size', '24px'); --default icon size
 INSERT INTO styles (name,style) VALUES('email-input-length','220px'); --input field width for e-mail input 

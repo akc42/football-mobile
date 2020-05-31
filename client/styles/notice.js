@@ -19,18 +19,35 @@
 */
 
 
-let configPromise;
+import {css} from '../libs/lit-element.js';
 
-export function mockConfig(promise) {
-  configPromise = promise;
-}
-
-export default async function config () {
-  if (configPromise === undefined) {
-    configPromise = window.fetch('/api/config/config', {method: 'get'}).then(async response => {
-      if (response.status === 200) return {server: true, ...await response.json()};
-      return {server: false}
-    });
+export default  css`
+  :host {
+    display: flex;
+    flex-direction:column;
+    justify-content: flex-start;
+    max-width: 600px;
+    flex: 1;
   }
-  return await configPromise;
-}
+  header {
+    height: var(--app-header-size);
+    margin: 0 auto;
+    padding: 0;
+  }
+
+
+  .action {
+    display: flex;
+    width:100%;
+    flex-direction:row;
+    justify-content: space-evenly;
+  }
+
+
+  @media (max-width: 500px) {
+    :host {
+      justify-content: space-between;
+    }
+  }
+
+`;

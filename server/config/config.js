@@ -38,6 +38,7 @@
       const { value: cookieName } = await s.get('cookie_name');
       const { value: cookieVisitName } = await s.get('cookie_visit_name');
       const { value: mainMenuIcon } = await s.get('main_menu_icon');
+      const { value: webmaster } = await s.get('webmaster');
       await s.finalize();
       const extras = {};
       const rowc = await db.get(`SELECT cid, administrator FROM competition ORDER BY cid DESC LIMIT 1`);
@@ -74,6 +75,7 @@
         cookieName: cookieName,
         cookieVisitName: cookieVisitName,
         mainMenuIcon: mainMenuIcon,
+        webmaster: webmaster,
         ...extras
       };
       debug('Success config');

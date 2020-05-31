@@ -37,8 +37,8 @@
 
 
 
-  module.exports = async (ip,params) => { 
+  module.exports = async (headers,params) => { 
     const message = `:${params.topic}: ${params.message}`;
-    logger('log', message, cyrb53(ip).toString(16));
+    logger('log', message, cyrb53(headers['x-forwarded-for']).toString(16));
   };
 })();

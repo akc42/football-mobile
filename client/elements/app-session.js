@@ -21,14 +21,13 @@
 import { LitElement, html } from '../libs/lit-element.js';
 import { cache } from '../libs/cache.js';
 import api from '../modules/api.js';
-import setUser from '../modules/user.js';
+import { setUser } from '../modules/user.js';
 import { AuthChanged } from '../modules/events.js';
 import Debug from '../modules/debug.js';
 import config from '../modules/config.js';
 
 const debug = Debug('session');
 
-import './stand-in.js';
 import './app-waiting.js';
 import './app-overlay.js';
 
@@ -44,7 +43,9 @@ class AppSession extends LitElement {
       state: {type: String},
       authorised: {type: Boolean},
       waiting: {type: Boolean},
-      visited: {type: Boolean}
+      webmaster: {type: String},
+      email: {type: String},
+      user: {type:String},
     };
   }
   constructor() {
@@ -52,13 +53,19 @@ class AppSession extends LitElement {
     this.state = ''
     this.authorised = false;
     this.waiting = false;
-    this.visited = false;
+    this.webmaster = 'webmaster@example.com';
     this._logOff = this._logOff.bind(this);
+    this.email = '';
+    config().then(conf => {
+      this.cookieVisitName = conf.cookieVisitName;
+      this.cookieName = conf.cookieName;
+      this.webmaster = conf.webmaster;
+    });
   }
   connectedCallback() {
     super.connectedCallback();
     window.addEventListener('logoff-request', this._logOff);
-    this.state = 'validate';
+    if (this.consentOverlay !== undefined) this.state = 'consent';
   }
   disconnectedCallback() {
     super.disconnectedCallback();
@@ -67,7 +74,7 @@ class AppSession extends LitElement {
   }
   update(changed) {
     if (changed.has('authorised')) {
-      if (!this.authorised) this.state='validate';
+      if (!this.authorised) this.state='consent';
       this.dispatchEvent(new AuthChanged(this.authorised));
 
     }
@@ -76,36 +83,62 @@ class AppSession extends LitElement {
   updated(changed) {
     if (changed.has('state')) {
       debug(`state-changed to ${this.state}`);
+      this.waiting = true;
       switch(this.state) {
-        case 'validate':
-          config().then(conf => {
-            const mbball = RegExp(`^(.*; +)?${conf.cookieName}=[^;]+(.*)?$`);
-            const mbvisited = RegExp(`^(.*; +)?${conf.cookieVisitName}=[^;]+(.*)?$`);
-            this.visited = mbvisited.test(document.cookie);
-            if (mbball.test(document.cookie)) {
-              performance.mark('start_user_validate');
-              api('validate_user', {}).then(response => {
-                if (response.usage !== undefined) { //api request didn't fail
-                  setUser(response.user);
-                  if (response.usage === 'play') this.authorised = true;
-                  this.state = response.usage;
-                } else {
-                  this.state = 'logon'
-                }
-              });
+        case 'consent':
+          config().then(() => { //only using this to wait until config has been read, since this is the first state
+            const mbvisited = new RegExp(`^(.*; +)?${this.cookieVisitName}=([^;]+)(.*)?$`);
+            if (mbvisited.test(document.cookie)) {
+              this.state = 'validate';
             } else {
-              this.state = 'logon';
+              import('./app-consent.js').then(this.waiting = false);
             }
+          });
+          break;
+        case 'validate':
+          //we can't get here without first having gone through consent
+          const mbball = new RegExp(`^(.*; +)?${this.cookieName}=([^;]+)(.*)?$`);
+          if (mbball.test(document.cookie)) {
+            performance.mark('start_user_validate');
+            api('validate_user', {}).then(response => {
+              if (response.usage !== undefined) { //api request didn't fail
+                setUser(response.user);              
+                if (response.usage === 'play') this.authorised = true;
+                this.state = response.usage;
+              } else {
+                this.state = 'forbidden'
+              }
             });
+          } else {
+            const mbvisited = new RegExp(`^(.*; +)?${this.cookieVisitName}=([^;]+)(.*)?$`);
+            const matches = document.cookie.match(mbvisited);
+            if (!matches || matches.length < 3 || typeof matches[2] !== 'string') this.state = 'forbidden';
+            this.state = matches[2];
+          }
           break;
+        case'emailverify':
+          import ('./app-email-verify.js').then(this.waiting = false);
+          break;
+        case 'await':
+        case 'member':
+          import ('./stand-in.js').then(this.waiting=false);
+          break;
+        case 'requestpin':
+          import('./app-request-pin.js').then(this.waiting=false);
+          break;
+        case 'pinpass':
         case 'logon':
-          import('./fm-logon.js');
+          import('./app-logon.js').then(this.waiting = false);
           break;
+        default:
+          import('./app-forbidden.js').then(this.waiting = false);
       } 
     }
     super.updated(changed);
   }
   firstUpdated() {
+    this.consentOverlay = this.shadowRoot.querySelector('#consent');
+    if (this.state === '') this.state = 'consent';
   }
 
   render() {
@@ -117,28 +150,67 @@ class AppSession extends LitElement {
         flex: 1;
       }
       </style>
-      <app-overlay id="email"></app-overlay>
+
       <app-overlay id="inuse"></app-overlay>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
       ${cache(this.authorised? '' : html`
         ${cache({
-          validate: html`<div></div>`,
+          consent: html`<app-consent @consent-accept=${this._consent}>Loading Consent Form</app-consent>`,
+          validate: html`<div>Validating</div>`,
+          forbidden: html`,<app-forbidden webmaster="${this.webmaster}"></app-forbidden>`,
+          emailverify: html`<app-email-verify @email-status=${this._processEmail}>Loading Email Verify</app-email-verify>`,
+          member: html`<stand-in standinfor="app-member"></stand-in>`,
+          requestpin: html`<app-request-pin></app-request-pin>`,
           play: html`<div></div>`,
-          logon: html`<fm-logon ?visited=${this.visited}></fm-logon>`,
-          pinpass: html`<fm-login profile ?visited=${this.visited}></fm-login>`,
-          emailupdate: html`<fm-login profile ?visited=${this.visited}></fm-login>`,
+          logon: html`<app-logon .email=${this.email}></app-logon>`,
+          pinpass: html`<app-logon .email=${this.email} profile ></app-logon>`,
+          emailupdate: html`<app-logon profile ?visited=${this.visited}></app-logon>`,
           await: html`<stand-in standinfor="fm-await" ></stand-in >`
 
         }[this.state])}
       `)}
     `;
   }
+  _consent() {
+    this._makeVisitCookie('emailverify'); //next state if we don't actually have a cookie
+    this.state = 'validate';
+  }
   _fetchLogon() {
-    import('./fm-logon.js').then()
+    import('./app-logon.js').then()
   }
 
   _logOff(e) {
     this.state = 'logoff';
+  }
+  _makeVisitCookie(value) {
+    const expiryDate = new Date();
+    expiryDate.setTime(expiryDate.getTime() + (90 * 24 * 60 * 60 * 100))
+    document.cookie = `${this.cookieVisitName}=${value}; expires=${expiryDate.toGMTString()}; Path=/`; 
+  }
+  _processEmail(e) {
+    e.stopPropagation();
+    this.email = e.status.email;
+    switch(e.status.type) {
+      case 'membershipreq':
+          this.state = 'member';
+        break;
+      case 'matched':
+        setUser(e.status.user);
+        if (e.status.user.waiting_approval != 0) {
+          this._makeVisitCookie('await');
+          this.state = 'await';
+        } else {
+          if (e.status.user.password) {
+            this._makeVisitCookie('logon');
+            this.state = 'logon';
+          } else {
+            this.state = 'requestpin';
+          }
+        }
+        break;
+      default:
+        this.state = 'forbidden';
+    }
   }
 }
 customElements.define('app-session', AppSession);

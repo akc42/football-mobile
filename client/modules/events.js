@@ -55,6 +55,20 @@ export class AuthChanged extends Event {
   }
 };
 
+export class ConsentAccept extends Event {
+  static eventType = 'consent-accept';
+
+  /*
+     The following are the fields provided by this event
+
+     none
+
+  */
+
+  constructor() {
+    super('consent-accept',{composed: true, bubbles: true});
+  }
+};
 export class FormError extends Event {
   static eventType = 'form-error';
 
@@ -251,6 +265,21 @@ export class RouteChanged extends Event {
   }
 };
 
+export class EmailStatus extends Event {
+  static eventType = 'email-status';
+
+  /*
+     The following are the fields provided by this event
+
+     status: We have an update releted to our view of users email address
+
+  */
+
+  constructor(status) {
+    super('email-status',{composed: true, bubbles: true});
+    this.status = status;
+  }
+};
 
 export class ValueChanged extends Event {
   static eventType = 'value-changed';

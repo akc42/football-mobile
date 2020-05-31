@@ -52,7 +52,7 @@
   async function dbOpen() {
     debugdb('Open Database Called');
     const db = await open({
-      filename: process.env.FOOTBALL_DB,
+      filename: path.resolve(__dirname,process.env.FOOTBALL_DB_DIR,process.env.FOOTBALL_DB),
       mode: sqlite3.OPEN_READWRITE,
       driver: sqlite3.Database
     })
@@ -151,17 +151,17 @@
       dbIsOpen = true; 
       await db.exec('BEGIN TRANSACTION');
       const s = await db.prepare('SELECT value FROM settings WHERE name = ?');
-      
-      const { value: cacheAge } = await s.get('cache_age');
       const { value: serverPort } = await s.get('server_port');
       const { value: cookieName } = await s.get('cookie_name');
       const { value: cookieKey } = await s.get('cookie_key');
       const { value: cookieExpires } = await s.get('cookie_expires');
       const { value: cookieShortExpires } = await s.get('cookie_short_expires');
+      const { value: cookieVisitName } = await s.get('cookie_visit_name');
       await s.finalize();
       await db.exec('COMMIT');
       await db.close();
       dbIsOpen = false;
+      cookieConfig.cookeName = cookieName;
       cookieConfig.cookieKey = cookieKey;
       cookieConfig.cookieExpires = cookieExpires;
       cookieConfig.cookieShortExpires = cookieShortExpires;
@@ -171,12 +171,27 @@
       const api = Router(routerOpts);
       const conf = Router();
       const reg = Router(routerOpts);
-      const ses = Router();
+      const ses = Router(routerOpts);
       const cid = Router(routerOpts);
       const cidrid = Router(routerOpts);
     
       debug('tell router to use api router for /api/ routes');
       router.use('/api/', api);
+      /*
+        Just a little helper utility for development - not normally needed
+      */
+     debug('setup delete visit cookie helper')
+      api.get('/deletecookie', (req,res) => {
+        debugapi('Received Delete Cookie request')
+        const cookie = `${cookieVisitName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
+        res.writeHead(200, {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'X-Accel-Buffering': 'no',
+          'Set-Cookie': cookie
+        });
+        res.end('DONE');
+      });
       /*
         Our first set of calls are almost related to the static files.  They are a few api calls to retrieve configuration items
         and as such will be get requests and will have no requirements for ony other parameters.  They are of the form
@@ -185,6 +200,7 @@
       */
      debug('setting up config apis');
       api.use('/config/', conf);
+      
       const confs = loadServers(__dirname, 'config');
       for (const config in confs){
         debugapi(`Set up /api/config/${config} route`);
@@ -207,6 +223,7 @@
           }
         });
       }
+ 
       /*
         we follow by building routes which are supported by files in the reg directory.  These are the api calls which
         a made from links we will have sent the user by e-mail.  As such they are get requests which will be of a form
@@ -248,7 +265,8 @@
 
       */
 
-      api.use(bodyParser);
+      api.use(bodyParser.json());
+
       debug('Setting up Session Apis')
       api.use('/session/',ses);
 
@@ -256,7 +274,7 @@
       //this defines our routes - we require everything to be a post
       for (const session in sessions) {
         debugapi(`Setting up /api/session/${session} route`);
-        ses.post(session, async (req, res) => {
+        ses.post(`/${session}`, async (req, res) => {
           debugapi(`Received /api/session/${session} request`);
           let db;
           try {
@@ -267,7 +285,7 @@
             });
             const responder = new Responder(res);
             db = await dbOpen()
-            await sessions[session](req.headers['x-forwarded-for'],req.body,db, responder);
+            await sessions[session](req.headers,req.body,db, responder);
             responder.end();
           } catch (e) {
             forbidden(req, res, e.toString());
@@ -286,10 +304,11 @@
         debugapi('checking cookie');
         const cookies = req.headers.cookie;
         if (!cookies) {
-          forbidden(req, res,'No Cookie');
+          forbidden(req, res, 'No Cookie');
           return;
         }
-        const matches = cookies.match(/^(.*; +)?MBBALL=([^;]+)(.*)?$/);
+        const mbball = new RegExp(`^(.*; +)?${cookieConfig.cookieName}=([^;]+)(.*)?$`);
+        const matches = cookies.match(mbball);
         if (matches) {
           debugapi('Cookie found')
           const token = matches[2];
@@ -297,7 +316,7 @@
             const payload = jwt.decode(token, cookieKey);  //this will throw if the cookie is expired
             req.user = payload.user;
             req.usage = payload.usage
-            res.setHeader('Set-Cookie', cookie); //refresh cookie to the new value 
+            res.setHeader('Set-Cookie', generateCookie(payload.user,payload.usage)); //refresh cookie to the new value 
             next();
           } catch (error) {
             forbidden(req,res, 'Invalid Auth Token');

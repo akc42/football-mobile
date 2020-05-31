@@ -33,9 +33,7 @@ import './app-session.js';
      <fm-app>: The controlling app
 */
 class MainApp extends LitElement {
-  static get styles() {
-    return [];
-  }
+
   static get properties() {
     return {
       authorised: {type: Boolean},
@@ -54,11 +52,14 @@ class MainApp extends LitElement {
       lcid: {type: Number}, //cid of latest competition
       luid: {type: Number}, //admin of latest competition
       drid: {type: Number},
-      menuIcon: {type: String}
+      menuIcon: {type: String},
+      webmaster: {type: String},
+      server: {type: Boolean},
     };
   }
   constructor() {
     super();
+    this.server = false;
     this.authorised = false;
     this.version = 'v4.0.0';
     this.copyrightYear = '2020'
@@ -72,22 +73,30 @@ class MainApp extends LitElement {
     this.dcid = 0;
     this.drid = 0;
     this.menuIcon = 'menu';
-    window.fetch('/api/config/styles', { method: 'get' }).then(response => response.json()).then(styles => {
+    this.webmaster = 'webmaster@example.com';
+    window.fetch('/api/config/styles', { method: 'get' }).then(response => {
+      if (response.status === 200) return response.json();
+      return {};
+    }).then(styles => {
       for (let key in styles) {
         this.style.setProperty('--' + key.replace(/_/g,'-'), styles[key]);
       }
     });
     config().then(config => {
-      this.version = config.version;
-      this.copyrightYear = config.copyrightYear;
-      this.dcid = config.dcid;
-      this.drid = config.drid;
-      this.lcid = config.lcid;
-      this.luid = config.luid;
-      if (this.cid === 0) this.cid = this.dcid; //we use dcid if cid not been set yet, else we leave it
-      if (this.rid === 0) this.rid = this.drid;
-      this.menuIcon = config.mainMenuIcon;
-      //and the rest
+      this.server = config.server;
+      if (this.server) {
+        this.version = config.version;
+        this.copyrightYear = config.copyrightYear;
+        this.dcid = config.dcid;
+        this.drid = config.drid;
+        this.lcid = config.lcid;
+        this.luid = config.luid;
+        if (this.cid === 0) this.cid = this.dcid; //we use dcid if cid not been set yet, else we leave it
+        if (this.rid === 0) this.rid = this.drid;
+        this.menuIcon = config.mainMenuIcon;
+        this.webmaster = config.webmaster;
+        //and the rest
+      }
     });
   }
   connectedCallback() {
@@ -149,16 +158,16 @@ class MainApp extends LitElement {
           font-weight: bold;
         }
         header {
-          height: var(--app-header-size);
-          color: var(--app-reverse-text-color);
-          background-color: var(--app-header-color);
+          height: var(--app-header-size, 64px);
+          color: var(--app-reverse-text-color, white);
+          background-color: var(--app-header-color,#adcabd );
           display: flex;
           flex-direction: row;
           justify-content: space-between;
           align-items:center;
         }
         section {
-          height: calc(100vh - var(--app-header-size));
+          height: calc(100vh - var(--app-header-size, 64px));
           overflow-y:auto;
         }
         .flexing {
@@ -174,10 +183,10 @@ class MainApp extends LitElement {
         #logo {
           display:block;
           color: transparent;
-          height: var(--app-header-size);
-          width: var(--app-header-size);
+          height: var(--app-header-size, 64px);
+          width: var(--app-header-size, 64px);
           background: url("../images/football-logo.svg");
-          background-size: var(--app-header-size) var(--app-header-size);
+          background-size: var(--app-header-size, 64px) var(--app-header-size,64px);
         }
         #appinfo {
           display:flex;
@@ -204,9 +213,12 @@ class MainApp extends LitElement {
           background-color: white;
           align-self: center;
         }
-
+        #apologies {
+          padding: 30px;
+        }
 
       </style>
+
        ${cache(this.authorised ? html`
         <app-overlay id="mainmenu" closeOnClick>
           <div role="menuitem" @click=${this._goHome}>Home</div>
@@ -254,8 +266,9 @@ class MainApp extends LitElement {
         </div>
       </header>
       <section class="${classMap({flexing: !this.authorised})}">
+      ${cache(this.server ? html`
         <app-session @auth-changed=${this._authChanged}></app-session>
-        ${cache(this.authorised? html`
+        ${cache(this.authorised ? html`
           <app-pages
             .user=${this.user}
             .cid=${this.cid}
@@ -264,9 +277,16 @@ class MainApp extends LitElement {
             .dcid=${this.dcid}
             @dcid-changed=${this._dcidChanged}
             @competitions-changed=${this._refreshComp}
-            @rounds-changed=${this._refreshRound}></app-pages>
+            @rounds-changed=${this._refreshRound}></app-pages>      
         `:'' )}
-        
+      ` : html`
+        <section id=apologies>
+          <img src="../images/mb-logo.svg" height="64px">
+          <h1>Apologies</h1> 
+          <p>It appears the api server is not running right now.  We will be back soon. Please wait a few minutes and then try reloading the page.</p>
+        <section>
+      `)}
+   
       </section>
 
     `;

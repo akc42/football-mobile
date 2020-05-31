@@ -25,7 +25,7 @@ let topics = '';
 let debugEnabled = false;
 let limitedUser = 0;
 config().then(conf => {
-  if (conf.clientLog.length > 0) {
+  if (conf.server && conf.clientLog.length > 0) {
     limitedUser = conf.clientLogUid;
     topics = conf.clientLog;
     debugEnabled = true;
