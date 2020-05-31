@@ -27,6 +27,7 @@ import button from '../styles/button.js';
 import notice from '../styles/notice.js';
 import { EmailStatus } from '../modules/events.js';
 import api from '../modules/api.js';
+import user from '../modules/user/js';
 import './app-waiting.js';
 
 
@@ -38,22 +39,6 @@ class AppRequestPin extends LitElement {
   static get styles() {
     return [app, button, notice];
   }
-  static get properties() {
-    return {
-      user: {type: String},
-      waiting: {type: Boolean}
-    };
-  }
-  constructor() {
-    super();
-    this.email = '';
-    t
-  }
-
-  firstUpdated() {
-    this.input = this.shadowRoot.querySelector('#email');
-  }
-
   render() {
     return html`
       <style>
@@ -94,41 +79,20 @@ class AppRequestPin extends LitElement {
       <header><img src="../images/mb-logo.svg" height="64px"></header>
       
       <section class="intro">
-        <p></p>     
+        <h2>${user.name}</h2>
+        <p>We are going to send you via email to <em>${user.email}</em> a link which will temporarily (for the next 12 hours) automatically log you on to this web site, to enable you to reset your password.  Please only continue if this e-mail above is yours.</p>
+        <p> Unfortunately if you have already changed your e-mail address and the address will not allow you to receive the link, then you will have to cancel this action to return to the previous page, where you can enter your new email address and request membership.</p>     
 
       </section>
       <section class="action">          
-        <send-button @click=${this._sendData}>Request Password Code</send-button>
+        <button @click=${this._sendLink}>Send Me the Link</button>
+        <button cancel @click=${this._cancel}>Cancel</button>
       </section>
     `;
   }
-  _emChanged(e) {
-    this.email = e.changed;
-    this.pending = false;
-  }
-
-  _newMember(e) {
-    e.stopPropagation();
-    if (!this.input.invalid) this.dispatchEvent(new EmailStatus({type:'membershipreq',email:this.email}));
-  }
-
-  async _sendData() {
-    if (!this.input.invalid) {
-      this.waiting = true;
-      const response = await api('session/verifyemail',{email:this.email});
-      this.waiting = false;
-      if (response.state === 'found') {
-          if (response.user.waiting_email != 0 && response.user.email !== this.email) {
-            this.pending = true;
-            this.input.invalid = true;
-          } else {
-            this.dispatchEvent(new EmailStatus({type: 'matched', email: this.email, user: response.user}));
-          }
-      } else {
-        this.input.invalid = true;
-      }
-    } 
+  _cancel() {
 
   }
+
 }
 customElements.define('app-request-pin', AppRequestPin);
