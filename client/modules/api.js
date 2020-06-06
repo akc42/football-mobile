@@ -19,7 +19,7 @@
 */
 
 
-import { LogoffRequest, LocationAltered } from "./events.js";
+import { ApiError, LogoffRequest, LocationAltered } from "./events.js";
 
 export default function api(url, params, signal) {
   const options = {
@@ -32,14 +32,25 @@ export default function api(url, params, signal) {
   };
   if (signal) options.signal = signal;
   return window.fetch('/api/' + url, options).then(response => {
-    if (response.status !== 200) {
-      window.dispatchEvent(new LogoffRequest());
+    if (!response.ok ) {
       //put us back to home
       window.history.pushState({}, null, '/');
       window.dispatchEvent(new LocationAltered());
-      return {};
+      if (response.status === 403) {
+        //unauthorised so log off, but then do no more
+        window.dispatchEvent(new LogoffRequest());
+      } 
+      return {status: false, reason: `fetch returned response code ${response.status}`};
     } else {
       return response.json();
     }
+  }).then(response => {
+    if (!response.status) {
+      console.warn('api call failed with', response.reason);
+      window.dispatchEvent(new ApiError());
+      delete response.reason;
+    }
+    delete response.status;
+    return response;
   });
 }
