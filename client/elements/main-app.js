@@ -22,10 +22,12 @@ import {classMap} from '../libs/class-map.js';
 import {cache} from '../libs/cache.js';
 import config from '../modules/config.js'; 
 import {switchPath} from '../modules/utils.js';
-
+import './app-error.js';
 import './app-overlay.js';
 import './app-pages.js';
 import './app-session.js';
+import { SessionStatus } from '../modules/events.js';
+import AppKeys from '../modules/keys.js';
 
 
 
@@ -55,11 +57,13 @@ class MainApp extends LitElement {
       menuIcon: {type: String},
       webmaster: {type: String},
       server: {type: Boolean},
+      serverError: {type: Boolean} //we received an error
     };
   }
   constructor() {
     super();
     this.server = false;
+    this.serverError = false;
     this.authorised = false;
     this.version = 'v4.0.0';
     this.copyrightYear = '2020'
@@ -98,29 +102,44 @@ class MainApp extends LitElement {
         //and the rest
       }
     });
+    this.serverError = false;
+    this._keyPressed = this._keyPressed.bind(this);
   }
   connectedCallback() {
     super.connectedCallback();
     this.removeAttribute('unresolved');
     this.editingDcid = false;
+
   }
   disconnectedCallback() {
     super.disconnectedCallback();
   }
   update(changed) {
-    if (changed.has('authorised') && this.authorised) {
-      api(`admin/fetch_competitions`).then(response => {
-        this.competitions = response.competitions;
-        this.lastCompTime = response.timestamp;
-      });
-      if (this.cid !== 0) {
-        //we have a specific competition set, so get its rounds
-        api(`${cid}/fetch_rounds`).then(response => {
-          this.rounds = response.rounds;
-          this.lastRoundTime = response.timestamp;
+    if (changed.has('authorised')) {
+      if (this.authorised) {
+        //once authorised, the menu key invokes the main menu
+        document.body.addEventListener('key-pressed', this._keyPressed);
+        if (this.keys === undefined) {
+          this.keys= new AppKeys(document.body, 'Enter F12');
+        } else {
+          this.keys.connect();
+        }
+        
+        api(`admin/fetch_competitions`).then(response => {
+          this.competitions = response.competitions;
+          this.lastCompTime = response.timestamp;
         });
+        if (this.cid !== 0) {
+          //we have a specific competition set, so get its rounds
+          api(`${cid}/fetch_rounds`).then(response => {
+            this.rounds = response.rounds;
+            this.lastRoundTime = response.timestamp;
+          });
+        }
+      } else {
+        if (this.keys !== undefined) this.keys.disconnect()
+        document.body.removeEventListener('key-pressed', this._keyPressed);
       }
-
     } else if (changed.has('cid') && this.authorised && this.cid !== 0) {
       //we have a specific competition set, so get its rounds
       api(`${cid}/fetch_rounds`).then(response => {
@@ -134,6 +153,7 @@ class MainApp extends LitElement {
     this.mainmenu = this.shadowRoot.querySelector('#mainmenu');
     this.competitionMenu = this.shadowRoot.querySelector('#competitions');
     this.roundsMenu = this.shadowRoot.querySelector('#rounds');
+    this.session = this.shadowRoot.querySelector('#session');
   }
   updated(changed) {
     super.updated(changed);
@@ -185,7 +205,7 @@ class MainApp extends LitElement {
           color: transparent;
           height: var(--app-header-size, 64px);
           width: var(--app-header-size, 64px);
-          background: url("../images/football-logo.svg");
+          background: url("../appimages/football-logo.svg");
           background-size: var(--app-header-size, 64px) var(--app-header-size,64px);
         }
         #appinfo {
@@ -236,7 +256,7 @@ class MainApp extends LitElement {
             `: '')}
             <div id="memberapprove" role="menuitem" @click=${this._selectPage}>Approve Members</div>           
           `:'')}
-          <div id="editprofile" role="menuitem" @click=${this._selectPage}>Edit Profile</div>
+          <div id="editprofile" role="menuitem" @click=${this._selectPage}>Edit Profile F12</div>
         </app-overlay>
         <app-overlay id="competitions" closeOnClick @overlay-closed=${this._compClosed}>
           ${cache(this.competitions.filter(competition => competition.open || this.globalAdmin ||  //Only a few can see hidden competitions
@@ -265,30 +285,23 @@ class MainApp extends LitElement {
           <div id="copy">&copy; 2008-${this.copyrightYear} Alan Chandler</div>
         </div>
       </header>
-      <section class="${classMap({flexing: !this.authorised})}">
-      ${cache(this.server ? html`
-        <app-session @auth-changed=${this._authChanged}></app-session>
-        ${cache(this.authorised ? html`
-          <app-pages
-            .user=${this.user}
-            .cid=${this.cid}
-            .rid=${this.rid}
-            @rid-changed=${this._ridChanged}
-            .dcid=${this.dcid}
-            @dcid-changed=${this._dcidChanged}
-            @competitions-changed=${this._refreshComp}
-            @rounds-changed=${this._refreshRound}></app-pages>      
-        `:'' )}
-      ` : html`
-        <section id=apologies>
-          <img src="../images/mb-logo.svg" height="64px">
-          <h1>Apologies</h1> 
-          <p>It appears the api server is not running right now.  We will be back soon. Please wait a few minutes and then try reloading the page.</p>
-        <section>
-      `)}
-   
+      <section class="${classMap({flexing: !this.authorised || this.serverError})}">
+        <app-error webmaster="${this.webmaster}" @session-status=${this._errorChanged} ></app-error>
+        ${cache(this.serverError? '' : html`     
+          <app-session id="session" @auth-changed=${this._authChanged}></app-session>
+          ${cache(this.authorised ? html`
+            <app-pages
+              .user=${this.user}
+              .cid=${this.cid}
+              .rid=${this.rid}
+              @rid-changed=${this._ridChanged}
+              .dcid=${this.dcid}
+              @dcid-changed=${this._dcidChanged}
+              @competitions-changed=${this._refreshComp}
+              @rounds-changed=${this._refreshRound}></app-pages>      
+          `:'' )}
+        `)}
       </section>
-
     `;
   }
   _authChanged(e) {
@@ -322,11 +335,32 @@ class MainApp extends LitElement {
   _editRound(e){
 
   }
-  _goHome(e) {
+  _errorChanged(e) {
+    if (e.status.type === 'error') {
+      this.serverError = true;
+      this.authorised = false;
+    } else if (e.status.type === 'reset') {
+      this.serverError = false;
+    }
+  }
+  _goHome() {
     switchPath('/');
+  }
+  _keyPressed(e) {
+
   }
   _menu(e) {
     if (this.mainmenu) this.mainmenu.show();
+  }
+  async _reset(e) {
+    this.serverError = false;
+    if (this.authorised) {
+      this._goHome();
+    } else {
+      await this.requestUpdate();
+      const session = this.shadowRoot.querySelector('#session');
+      session.dispatchEvent(new SessionStatus('reset'));
+    }
   }
   _ridChanged(e){
     this.rid = e.changed;
