@@ -22,7 +22,7 @@ import { LitElement, html } from '../libs/lit-element.js';
 import { cache } from '../libs/cache.js';
 import api from '../modules/api.js';
 import { setUser } from '../modules/user.js';
-import { AuthChanged } from '../modules/events.js';
+import { AuthChanged, ApiError } from '../modules/events.js';
 import Debug from '../modules/debug.js';
 import config from '../modules/config.js';
 
@@ -43,7 +43,6 @@ class AppSession extends LitElement {
       state: {type: String},
       authorised: {type: Boolean},
       waiting: {type: Boolean},
-      webmaster: {type: String},
       email: {type: String},
       user: {type:String},
     };
@@ -53,23 +52,25 @@ class AppSession extends LitElement {
     this.state = ''
     this.authorised = false;
     this.waiting = false;
-    this.webmaster = 'webmaster@example.com';
+
     this._logOff = this._logOff.bind(this);
     this.email = '';
     config().then(conf => {
       this.cookieVisitName = conf.cookieVisitName;
       this.cookieName = conf.cookieName;
-      this.webmaster = conf.webmaster;
     });
+    this._reset = this._reset.bind(this);
   }
   connectedCallback() {
     super.connectedCallback();
     window.addEventListener('logoff-request', this._logOff);
+    this.addEventListener('session-status', this._reset);
     if (this.consentOverlay !== undefined) this.state = 'consent';
   }
   disconnectedCallback() {
     super.disconnectedCallback();
     window.removeEventListener('logoff-request', this._logOff);
+    this.removeEventListener('session-status', this._reset);
     this.authorised = false;
   }
   update(changed) {
@@ -105,8 +106,6 @@ class AppSession extends LitElement {
                 setUser(response.user);              
                 if (response.usage === 'play') this.authorised = true;
                 this.state = response.usage;
-              } else {
-                this.state = 'forbidden'
               }
             });
           } else {
@@ -120,18 +119,27 @@ class AppSession extends LitElement {
           import ('./app-email-verify.js').then(this.waiting = false);
           break;
         case 'await':
+          this.waiting = true;
+          import('./app-await.js').then(this.waiting = false);
         case 'member':
           import ('./stand-in.js').then(this.waiting=false);
           break;
         case 'requestpin':
           import('./app-request-pin.js').then(this.waiting=false);
           break;
+        case 'markpass':
+          this._makeVisitCookie('logon'); //we discovered this user has a password, so next visit he should log on.
+          this.state = 'await';
+          break;
         case 'pinpass':
         case 'logon':
           import('./app-logon.js').then(this.waiting = false);
           break;
+        case 'logoff':
+            document.cookie = `${this.cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
+            this.state = 'consent';
+          break;
         default:
-          import('./app-forbidden.js').then(this.waiting = false);
       } 
     }
     super.updated(changed);
@@ -155,17 +163,15 @@ class AppSession extends LitElement {
       <app-waiting ?waiting=${this.waiting}></app-waiting>
       ${cache(this.authorised? '' : html`
         ${cache({
-          consent: html`<app-consent @consent-accept=${this._consent}>Loading Consent Form</app-consent>`,
+          consent: html`<app-consent @session-status=${this._consent}>Loading Consent Form</app-consent>`,
           validate: html`<div>Validating</div>`,
-          forbidden: html`,<app-forbidden webmaster="${this.webmaster}"></app-forbidden>`,
-          emailverify: html`<app-email-verify @email-status=${this._processEmail}>Loading Email Verify</app-email-verify>`,
+          emailverify: html`<app-email-verify @session-status=${this._processEmail}>Loading Email Verify</app-email-verify>`,
           member: html`<stand-in standinfor="app-member"></stand-in>`,
-          requestpin: html`<app-request-pin></app-request-pin>`,
-          play: html`<div></div>`,
+          requestpin: html`<app-request-pin @session-status=${this._processEmail}></app-request-pin>`,
           logon: html`<app-logon .email=${this.email}></app-logon>`,
           pinpass: html`<app-logon .email=${this.email} profile ></app-logon>`,
           emailupdate: html`<app-logon profile ?visited=${this.visited}></app-logon>`,
-          await: html`<stand-in standinfor="fm-await" ></stand-in >`
+          await: html`<app-await .email=${this.email}></app-await>`
 
         }[this.state])}
       `)}
@@ -173,7 +179,7 @@ class AppSession extends LitElement {
   }
   _consent() {
     this._makeVisitCookie('emailverify'); //next state if we don't actually have a cookie
-    this.state = 'validate';
+    this.state = 'validate'; //this makes us go check the cookie
   }
   _fetchLogon() {
     import('./app-logon.js').then()
@@ -194,23 +200,17 @@ class AppSession extends LitElement {
       case 'membershipreq':
           this.state = 'member';
         break;
-      case 'matched':
-        setUser(e.status.user);
-        if (e.status.user.waiting_approval != 0) {
-          this._makeVisitCookie('await');
-          this.state = 'await';
-        } else {
-          if (e.status.user.password) {
-            this._makeVisitCookie('logon');
-            this.state = 'logon';
-          } else {
-            this.state = 'requestpin';
-          }
-        }
+      case 'markpass':
+        this._makeVisitCookie('logon');  //we have a password in the database, so next time we can logon (fall throu this time)
+      case 'await':
+        this.state = 'await';
         break;
       default:
-        this.state = 'forbidden';
+        
     }
+  }
+  _reset() {
+    this.state = 'consent';
   }
 }
 customElements.define('app-session', AppSession);

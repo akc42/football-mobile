@@ -80,8 +80,12 @@ class AppRequestPin extends LitElement {
       
       <section class="intro">
         <h2>${user.name}</h2>
-        <p>We are going to send you via email to <em>${user.email}</em> a link which will temporarily (for the next 12 hours) automatically log you on to this web site, to enable you to reset your password.  Please only continue if this e-mail above is yours.</p>
-        <p> Unfortunately if you have already changed your e-mail address and the address will not allow you to receive the link, then you will have to cancel this action to return to the previous page, where you can enter your new email address and request membership.</p>     
+        <p>We are going to send you (via email) a link which will temporarily (for the next 12 hours) automatically 
+        log you on to this web site, to enable you to reset your password.  The email address we will
+        use is <em>${user.email}</em>. Please only continue if this e-mail address is yours.</p>
+        <p> Unfortunately if you have already changed your e-mail address and this address will not allow you to
+        receive the link, then you will have to cancel this action to return to the previous page, where you can enter your new email address and request membership instead
+        .</p>     
 
       </section>
       <section class="action">          
@@ -91,7 +95,11 @@ class AppRequestPin extends LitElement {
     `;
   }
   _cancel() {
-
+    this.dispatchEvent(new EmailStatus({type:'cancelpin', email:user.email}));
+  }
+  async _sendLink() {
+    const response = await api('session/sendpin',{email:user.email})
+    this.dispatchEvent(new EmailStatus({type:'sentpin', email:user.email}));
   }
 
 }

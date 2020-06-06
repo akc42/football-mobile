@@ -21,14 +21,12 @@ import { LitElement, html } from '../libs/lit-element.js';
 
 
 import './fancy-input.js';
-import './send-button.js';
-import app from '../styles/app.js';
 import button from '../styles/button.js';
-import notice from '../styles/notice.js';
-import { EmailStatus } from '../modules/events.js';
+import { SessionStatus } from '../modules/events.js';
 import api from '../modules/api.js';
 import './app-waiting.js';
-import { setUser } from '../modules/user.js';
+import AppKeys from '../modules/keys.js';
+
 
 
 
@@ -37,23 +35,30 @@ import { setUser } from '../modules/user.js';
 */
 class AppEmailVerify extends LitElement {
   static get styles() {
-    return [app, button, notice];
+    return [ button];
   }
   static get properties() {
     return {
       email: {type: String},
-      waiting: {type: Boolean},
-      pending: {type: Boolean}
+      waiting: {type: Boolean}
     };
   }
   constructor() {
     super();
     this.email = '';
-    this.pending = false;
   }
-
+  connectedCallback() {
+    super.connectedCallback();
+    if (this.keys !== undefined) this.keys.connect();
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.keys.disconnect();
+  }
   firstUpdated() {
     this.input = this.shadowRoot.querySelector('#email');
+    this.target = this.shadowRoot.querySelector('#page');
+    this.keys = new AppKeys(this.target, 'Enter');
   }
 
   render() {
@@ -93,39 +98,33 @@ class AppEmailVerify extends LitElement {
 
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <header><img src="../images/mb-logo.svg" height="64px"></header>
-      
-      <section class="intro">
-        <p>Welcome back to <strong>Melinda's Backups Football Results Picking Competition</strong>.  This 
-        appears to be your first visit to the site since we re-opened with this new version of software.
-        We have renamed it <em>Football Mobile</em> because it has been designed so you can use it on 
-        your mobile phone if you wish. Sadly, with no forum available, you will be have to provide your 
-        email address and later your password but, with your permission, we can remember you
-        so you won't have to.</p>
+      <app-page @key-pressed=${this._sendData} id="page">
+        
+        <section class="intro">
+          <p>If you still have the same e-mail address since the last time you registered and played with us,
+          enter it below.  However, if you are a new visitor or you have changed your e-mail address since
+          you last played in the competition, please enter it here and then please request Membership.</p>
 
-        <p>If you still have the same e-mail address since the last time you registered and played with us,
-        enter it below.  However, if you are new to Melinda's Backups or you have changed your e-mail address since
-        you last played in the competition, please enter it here and then please request Membership.</p>
-
-        <p>New members please note that this Competiion is for Melinda's Backups only, and once we have verified your
-        email address we will ask you for a short note to explain to the Membership Committee why you should be admitted to the membership. You will then have to wait for approval.</p>     
-        <fancy-input
-          label="E-Mail"
-          .message=${this.email.length > 0 && this.email.indexOf('@') > 0 ? 
-            (this.pending?'E-mail not approved yet' :'Email Not Known') : 'Required'}
-          autofocus
-          autocomplete="off"
-          required
-          type="email"
-          name="email"
-          id="email"
-          .value="${this.email}"
-          @value-changed="${this._emChanged}"></fancy-input>  
-      </section>
-      <section class="action">          
-        <send-button @click=${this._sendData}>Verify</send-button>
-        <button cancel @click=${this._newMember}>Request Membership</button>
-      </section>
+          <p>New members please note that this Competiion is for Members only, and once we have verified your
+          email address we will ask you for a short note to explain to the Membership Committee why you should be admitted. 
+          You will then have to wait for approval while they review your application.</p>     
+          <fancy-input
+            label="E-Mail"
+            .message=${this.email.length > 0 && this.email.indexOf('@') > 0 ? 'Email Not Known' : 'Required'}
+            autofocus
+            autocomplete="off"
+            required
+            type="email"
+            name="email"
+            id="email"
+            .value="${this.email}"
+            @value-changed="${this._emChanged}"></fancy-input>  
+        </section>
+        <section slot="action">          
+          <button @click=${this._sendData}>Verify</button>
+          <button cancel @click=${this._newMember}>Request Membership</button>
+        </section>
+      </app-page>
     `;
   }
   _emChanged(e) {
@@ -135,25 +134,20 @@ class AppEmailVerify extends LitElement {
 
   _newMember(e) {
     e.stopPropagation();
-    if (!this.input.invalid) this.dispatchEvent(new EmailStatus({type:'membershipreq',email:this.email}));
+    if (!this.input.invalid) this.dispatchEvent(new SessionStatus({type:'membershipreq',email:this.email}));
   }
 
   async _sendData() {
     if (!this.input.invalid) {
       this.waiting = true;
-      const response = await api('session/verifyemail',{email:this.email});
+      const response = await api('session/requestpin',{email:this.email});
       this.waiting = false;
-      if (response.state === 'found') {
-          if (response.user.waiting_email != 0 && response.user.email !== this.email) {
-            this.pending = true;
-            this.input.invalid = true;
-          } else {
-            setUser(response.user);
-            this.dispatchEvent(new EmailStatus({type: 'matched', email: this.email}));
-          }
+      if (response.data.found) {
+        this.dispatchEvent(new SessionStatus({type: response.data.password? 'markpass': 'await', email: this.email}));
+        this.email = '';
       } else {
         this.input.invalid = true;
-      }
+      } 
     } 
 
   }
