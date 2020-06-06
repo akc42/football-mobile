@@ -39,4 +39,5 @@ export default css`
   }
   button:active {
     box-shadow: none;
+  }
 `;

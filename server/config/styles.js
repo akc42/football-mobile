@@ -21,9 +21,11 @@
 (function() {
   'use strict';
   const debug = require('debug')('football:api:styles');
+  const dbOpen = require('../utils/database');
 
-  module.exports = async function(db) {
+  module.exports = async function() {
     debug('got a styles request');
+    const db = await dbOpen();
     await db.exec('BEGIN TRANSACTION')
     const s = await db.prepare('SELECT style FROM styles WHERE name = ?');
     const {style: app_primary_color} = await s.get('app-primary-color');
@@ -57,7 +59,8 @@
       default_icon_size: default_icon_size,
       email_input_length: email_input_length
     }; 
-    await db.exec('COMMIT');   
+    await db.exec('COMMIT');
+    await db.close(); 
     debug('got styles');
     return styles;
   };

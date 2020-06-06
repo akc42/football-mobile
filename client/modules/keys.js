@@ -19,19 +19,42 @@
 */
 
 /*
-    `keys` is a module that provides keyboard support by normalising key handling amongst browsers and providing
-    a simple interface that can be used by the application.  Each keyboard usage request the user create a new instance of the AppKeys class
-    passing the key target in to the constructor.  This module will add and event handler for itself to that key target for
-    the keydown event.  On that event it will parse the key combinations pressed and fire a "key-pressed" event on the target.
+    `keys` is a module that provides keyboard support by normalising key
+    handling amongst browsers and providing a simple interface that can be used
+    by the application.  Each keyboard usage request the user create a new
+    instance of the AppKeys class passing the key target in to the constructor.
+    This module will add and event handler for itself to that key target for the
+    keydown event.  On that event it will parse the key combinations pressed and
+    fire a "key-pressed" event on the target.
 
-    To allow a using module the freedom to connect and disconnect to the dom, we provide two methods to be called during the
-    disconnectCallback and connectCallback to disconnect and reconnect to this event (it is assumed that the constructor will
-    probably be called in the firstUpdated function, called after the first connectedCallback, so it will initially connect in the
-    constructor)
+    To allow a using module the freedom to connect and disconnect to the dom, we
+    provide two methods to be called during the disconnectCallback and
+    connectCallback to disconnect and reconnect to this event (it is assumed
+    that the constructor will probably be called in the firstUpdated function and initialy connected there, but thereafter
+    called in the connected callback.  Here is a possible example
 
+
+  connectedCallback() {
+    super.connectedCallback();
+    if (this.keys !== undefined) this.keys.connect();
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.keys.disconnect();
+  }
+  firstUpdated() {
+    this.target = this.shadowRoot.querySelector('#keyreceive');
+    this.keys = new AppKeys(this.target, 'Enter');  //replace 'Enter' with space separated string of keys
+  }
+  Then on the dom element in the Render function
+  <div id="keyreceive" @keys-pressed=${this._processKeys}>Contents</div>
+
+  NOTE: I considered making this a mixin to avoid some of this verbosity, but decided in 
+  the end the extra was worth it for the flexibility of having several key handlers on the same page.
 */
 /*
-      Initial constants are taken from iron-a11y-keys behavior with the following licence
+      Initial constants are taken from iron-a11y-keys behavior with the following licence.  This same licences applies to those portions.
+
       Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
       This code may only be used under the BSD style license found at
       http://polymer.github.io/LICENSE.txt The complete set of authors may be found at
@@ -48,6 +71,7 @@
  * Values from:
  * https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent.keyCode#Value_of_keyCode
  */
+import {KeyPressed} from './events.js';
 
 const KEY_CODE = {
   8: 'backspace',
@@ -209,7 +233,7 @@ export default class AppKeys {
         if (binding.key in MODIFIER_KEYS) {
           //we only wanted the modifiers so if our key IS the modifier we wanted
           if (MODIFIER_KEYS[binding.key] === validKey) {
-            if (!this.target.dispatchEvent(new CustomEvent('keys-pressed', {cancelable: true, detail: binding}))) {
+            if (!this.target.dispatchEvent(new KeyPressed(binding))) {
               e.preventDefault();
               return;
             }
@@ -217,7 +241,7 @@ export default class AppKeys {
         }
       }
       if (binding.key === validKey) {
-        if (!this.target.dispatchEvent(new CustomEvent('keys-pressed', {cancelable: true, detail: binding}))) {
+        if (!this.target.dispatchEvent(new KeyPressed(binding))) {
           e.preventDefault();
           return;
         }

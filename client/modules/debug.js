@@ -35,10 +35,10 @@ config().then(conf => {
 
 export default function(t) {
   if (typeof t !== 'string' || t.length === 0) {
-    console.error('Debug requires topic which is a non zero length string which is not "ALL"',t, 'Recieved')
+    console.error('Debug requires topic which is a non zero length string which is not "ALL"',t, 'Received');
     throw new Error('Debug requires a non zero length string which is not "ALL"'); 
   }
-  const topic = t;
+  const topic = `:${t}:`;
 
   return function(message) {
     if (debugEnabled && (topics === 'ALL' || topics.indexOf(topic) >=0) && (limitedUser === 0 || user.uid === limitedUser)) { 

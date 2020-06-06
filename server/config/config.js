@@ -23,9 +23,12 @@
 
   const debug = require('debug')('football:api:config');
   const versionPromise = require('../version');
+  const dbOpen = require('../utils/database');
 
-  module.exports = async function(db) {
+  module.exports = async function() {
+      const db = await dbOpen();
       await db.exec('BEGIN TRANSACTION')
+      debug('About to Read Settings Values');
       const s = await db.prepare('SELECT value FROM settings WHERE name = ?');
       const { value: dcid } = await s.get('default_competition');
       const { value: pointsMap } = await s.get('pointsmap');
@@ -39,6 +42,9 @@
       const { value: cookieVisitName } = await s.get('cookie_visit_name');
       const { value: mainMenuIcon } = await s.get('main_menu_icon');
       const { value: webmaster } = await s.get('webmaster');
+      const {value: siteLogo} = await s.get('site_logo');
+      const { value: verifyExpires} = await s.get('verify_expires');
+      const { value: firstTimeMessage } = await s.get(('first_time_message'));
       await s.finalize();
       const extras = {};
       const rowc = await db.get(`SELECT cid, administrator FROM competition ORDER BY cid DESC LIMIT 1`);
@@ -60,6 +66,7 @@
         extras.drid = 0;
       }
       await db.exec('COMMIT');
+      await db.close();
       const { version, year } = await versionPromise;
       const config = {
         dcid:dcid,
@@ -76,9 +83,13 @@
         cookieVisitName: cookieVisitName,
         mainMenuIcon: mainMenuIcon,
         webmaster: webmaster,
+        siteLogo: siteLogo,
+        verifyExpires:verifyExpires,
+        firstTimeMessage: firstTimeMessage,
         ...extras
       };
       debug('Success config');
+      
       return config;
 
   };

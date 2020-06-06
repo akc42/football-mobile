@@ -38,6 +38,21 @@
 
 */
 
+export class ApiError extends Event {
+  static eventType = 'api-error';
+
+  /*
+     The following are the fields provided by this event
+
+     reason: reason for error
+
+  */
+
+  constructor(reason) {
+    super('api-error',{composed: true, bubbles: true});
+    this.reason = reason;
+  }
+};
 
 export class AuthChanged extends Event {
   static eventType = 'auth-changed';
@@ -55,20 +70,6 @@ export class AuthChanged extends Event {
   }
 };
 
-export class ConsentAccept extends Event {
-  static eventType = 'consent-accept';
-
-  /*
-     The following are the fields provided by this event
-
-     none
-
-  */
-
-  constructor() {
-    super('consent-accept',{composed: true, bubbles: true});
-  }
-};
 export class FormError extends Event {
   static eventType = 'form-error';
 
@@ -81,6 +82,22 @@ export class FormError extends Event {
 
   constructor() {
     super('form-error',{composed: true, bubbles: true});
+  }
+};
+
+export class KeyPressed extends Event {
+  static eventType = 'key-pressed';
+
+  /*
+     The following are the fields provided by this event
+
+     keys: The code string of the key pressed. (but event.key when one is pressed)
+
+  */
+
+  constructor(keys) {
+    super('key-pressed',{composed: true, bubbles: true});
+    this.key = keys;
   }
 };
 
@@ -265,18 +282,18 @@ export class RouteChanged extends Event {
   }
 };
 
-export class EmailStatus extends Event {
-  static eventType = 'email-status';
+export class SessionStatus extends Event {
+  static eventType = 'session-status';
 
   /*
      The following are the fields provided by this event
 
-     status: We have an update releted to our view of users email address
+     status: We have an update releted to our progress through the session process
 
   */
 
   constructor(status) {
-    super('email-status',{composed: true, bubbles: true});
+    super('session-status',{composed: true, bubbles: true});
     this.status = status;
   }
 };

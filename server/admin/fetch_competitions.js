@@ -24,13 +24,16 @@
 
 (function () {
   'use strict';
+  const dbOpen = require('../utils/database');
 
-  module.exports = async (user,params,db,responder) => {
+  module.exports = async (user,params,responder) => {
+    const db = await dbOpen();
     await db.exec('BEGIN TRANSACTION');
     const competitions = await db.all(`SELECT cid, name, open FROM competition ORDER BY cid DESC`);
     responder.addSection('competitions', competitions);
     const {timestamp} = await db.get(`SELECT MAX(update_date) as timestamp FROM competition`);
     responder.addSection('timestamp', timestamp);
     await db.exec('COMMIT'); //trivially faster to do this 
+    await db.close();
   };
 })();

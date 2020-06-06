@@ -23,14 +23,12 @@
 (function() {
   'use strict';
   const debug = require('debug')('football:server');
-  const debugdb = require('debug')('football:db');
   const debugapi = require('debug')('football:api');
   const path = require('path');
   require('dotenv').config({path: path.resolve(__dirname,'db-init','football.env')});
   
   const fs = require('fs').promises;
-  const sqlite3 = require('sqlite3');
-  const { open } = require('sqlite');
+
   const includeAll = require('include-all');
   const bodyParser = require('body-parser');
   const Router = require('router');
@@ -42,24 +40,16 @@
   const logger = require('./utils/logger');
   const Responder = require('./utils/responder');
   const versionPromise = require('./version');
-  if (process.env.DB_DEBUG !== undefined) {
-    sqlite3.verbose();
-  }
+  const errorLogger = require('./session/log');
+
+  const dbOpen = require('./utils/database');
+
+
+
   
   const cookieConfig = {};
 
 
-  async function dbOpen() {
-    debugdb('Open Database Called');
-    const db = await open({
-      filename: path.resolve(__dirname,process.env.FOOTBALL_DB_DIR,process.env.FOOTBALL_DB),
-      mode: sqlite3.OPEN_READWRITE,
-      driver: sqlite3.Database
-    })
-    await db.exec('PRAGMA foreign_keys = ON;');
-    return db;
-  }  
-  
   function loadServers(webdir, relPath) {
     return includeAll({
       dirname: path.resolve(webdir, relPath),
@@ -72,7 +62,13 @@
     res.statusCode = 403;
     res.end();
   }
-
+  function header(res) {
+    res.writeHead(200, {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'X-Accel-Buffering': 'no'
+    });
+  }
   function finalErr (err, res, req) {
     logger('error', `Final Error at url ${req.originalUrl} with error ${err.stack}`);
   }
@@ -80,28 +76,26 @@
   function generateCookie(user, usage) {
     const date = new Date();
     const type = usage || 'play';
+    const expiry = user.remember !== 0;
     if (type !== 'logoff') {
-      date.setTime(date.getTime() + ((type === 'play'? cookieConfig.cookieExpires: cookieConfig.cookieShortExpires)  * 60 * 60 * 1000));
+      date.setTime(date.getTime() + (cookieConfig.cookieExpires * 60 * 60 * 1000));
       const payload = {
         exp: Math.round(date.getTime()/1000),
         user: user,
         usage: type
       };
-      debug('generated cookie for uid ', user.uid,' expires ', date.toGMTString());
-      return `MBBALL=${jwt.encode(payload, cookieConfig.cookieKey)}; expires=${date.toGMTString()}; Path=/`;
+      debug('generated cookie for uid ', user.uid, ' expires ', expiry ? date.toGMTString() : 0);
+      return `${cookieConfig.cookieName}=${jwt.encode(payload, cookieConfig.cookieKey)}; expires=${expiry ? date.toGMTString(): 0}; Path=/`;
     } else {
-      return 'MBBALL=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/';
+      return `${cookieConfig.cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
     }
 
   }
 
   let server;
+  let db;
 
   async function startUp (http, serverDestroy,Router, finalhandler, Responder, logger, dbOpen) {
-    let db;
-    let dbRollbackOnFailure = false;
-    let dbBroken = '';
-    let dcid = 0;
     try {
       /*
         start off a process to find the version of the app, and the copyright year
@@ -110,61 +104,41 @@
       //try and open the database, so that we can see if it us upto date
       db = await dbOpen();
       const { value: dbversion } = await db.get('SELECT value FROM settings WHERE name = "version"');
-      const version = parseInt(process.env.FOOTBALL_DB_VERSION,10);
-      debugdb('database is at version ', dbversion, ' we require ', version);
-      if (dbversion !== version) {
-        if (dbversion > version) throw new Error('Setting Version in Database too high');
+      const footVersion = parseInt(process.env.FOOTBALL_DB_VERSION,10);
+      debug('database is at version ', dbversion, ' we require ', footVersion);
+      if (dbversion !== footVersion) {
+        if (dbversion > footVersion) throw new Error('Setting Version in Database too high');
         await db.exec('PRAGMA foreign_keys = OFF;')
         await db.exec('BEGIN EXCLUSIVE');
-        dbRollbackOnFailure = true;
-        for(let i = dbversion; i < version; i++) {
+ 
+        for(let i = dbversion; i < footVersion; i++) {
           const update = await fs.readFile(
-            path.resolve(__dirname, 'db-init',`update_${i}.sql`), 
+            path.resolve(process.env.FOOTBALL_DB_DIR,`update_${i}.sql`), 
             { encoding: 'utf8' }
           );
-          debugdb('About to update database from version ',i);
+          debug('About to update database from version ',i);
           await db.exec(update);
         }
-        debugdb('Completed Updates');
+        debug('Completed Updates');
         await db.exec('COMMIT');
-        dbRollbackOnFailure = false;
+
         await db.exec('VACUUM');
         await db.exec('PRAGMA foreign_keys = ON;')
         debug('Committed Updates, ready to go')
       }
-    } catch (e) {
-      if (e.code === 'SQLITE_CANTOPEN') {
-        debugdb('could not open database as it did not exist - so now going to create it');
-        await require('./dbcreate')();
-      } else {
-        dbBroken = `${e} Failed to set up database`;
-      };
-      if (dbRollbackOnFailure) db.exec('ROLLBACK');
-    } finally {
-      if (db) db.close();
-    }
-    let dbIsOpen;
-    try {
-      if (dbBroken.length > 0) throw new Error(dbBroken);
-      dbIsOpen = false;
-      db = await dbOpen();
-      dbIsOpen = true; 
       await db.exec('BEGIN TRANSACTION');
       const s = await db.prepare('SELECT value FROM settings WHERE name = ?');
       const { value: serverPort } = await s.get('server_port');
       const { value: cookieName } = await s.get('cookie_name');
       const { value: cookieKey } = await s.get('cookie_key');
       const { value: cookieExpires } = await s.get('cookie_expires');
-      const { value: cookieShortExpires } = await s.get('cookie_short_expires');
       const { value: cookieVisitName } = await s.get('cookie_visit_name');
       await s.finalize();
       await db.exec('COMMIT');
       await db.close();
-      dbIsOpen = false;
       cookieConfig.cookeName = cookieName;
       cookieConfig.cookieKey = cookieKey;
       cookieConfig.cookieExpires = cookieExpires;
-      cookieConfig.cookieShortExpires = cookieShortExpires;
 
       const routerOpts = {mergeParams: true};
       const router = Router(routerOpts);  //create a router
@@ -184,12 +158,8 @@
       api.get('/deletecookie', (req,res) => {
         debugapi('Received Delete Cookie request')
         const cookie = `${cookieVisitName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
-        res.writeHead(200, {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-          'X-Accel-Buffering': 'no',
-          'Set-Cookie': cookie
-        });
+        res.setHeader('Set-cookie', cookie);
+        header(res);
         res.end('DONE');
       });
       /*
@@ -206,21 +176,14 @@
         debugapi(`Set up /api/config/${config} route`);
         conf.get(`/${config}`, async (req,res) => {
           debugapi(`Received /api/config/${config} request`);
-          let db;
           try {
-            res.writeHead(200, {
-              'Content-Type': 'application/json',
-              'Cache-Control': 'no-cache',
-              'X-Accel-Buffering': 'no'
-            });
-            db = await dbOpen();
-            const response = await confs[config](db);
-            res.end(JSON.stringify(response));
+            header(res)
+            const response = await confs[config]();
+            res.end(JSON.stringify({...response, status: true}));
           } catch (e) {
-            forbidden(req, res, e.toString());
-          } finally {
-            if (db) db.close();
-          }
+            res.end(JSON.stringify({status: false}));
+            errorLogger(req.headers,{topic:`config/${config}`, message: e});
+          } 
         });
       }
  
@@ -239,11 +202,13 @@
         reg.get(`/${regapi}/:token`, async (req,res) => {  //so we declare a route for this file
           debugapi(`Received /api/reg/${regapi} request`);
           try {
-            const payload = jwt.decode(req.params.token, cookieKey);
-            const usage = await regapis[regapi] (payload,dbOpen);  //then call it
+            const payload = jwt.decode(req.token, cookieKey);
+            const success = await regapis[regapi] (payload);  //then call it
+            if (success) { //we signal problem with the passed in link with a simple boolean response
+              res.setHeader('Set-Cookie', generateCookie(payload.user, payload.usage)); //refresh cookie to the new value 
+            }
             res.writeHead(302, {
               'Location': '/index.html',
-              'Set-Cookie': generateCookie(payload.user,usage),
               'Content-Type': 'text/html',
               'Cache-Control': 'no-cache',
               'X-Accel-Buffering': 'no' 
@@ -252,9 +217,32 @@
           } catch(e) {
             forbidden(req, res, e.toString());
           }
-
-        })
+        });
       }
+
+      /*
+         Beyond here, if the user doesn't have the visit cookie set, this is most likely a spoofed attempt, so
+         we need to check it.  From a users perspective we will have silently ignored his request, from our perspective
+         we just log it with ip address.
+       */
+
+      debug('Setting up to check Visit Cookie')
+      api.use((req, res, next) => {
+        debugapi('checking for Visit Cookie')
+        const cookies = req.headers.cookie;
+        if (!cookies) {
+          logger('auth', `Attempt to access ${req.url} without a Visit Cookie`, req.headers['x-forwarded-for']);
+        } else {
+          const mbvisited = new RegExp(`^(.*; +)?${cookieVisitName}=([^;]+)(.*)?$`);
+          const matches = cookies.match(mbvisited);
+          if (matches) {
+            debugapi('Visit Cookie found');
+            next();
+          } else {
+            logger('auth', `Attempt to access ${req.url} without a Visit Cookie`, req.headers['x-forwarded-for']);
+          }
+        }
+      });
 
       /*
         The next set of routes are from the session directory.  These are routes 
@@ -276,22 +264,13 @@
         debugapi(`Setting up /api/session/${session} route`);
         ses.post(`/${session}`, async (req, res) => {
           debugapi(`Received /api/session/${session} request`);
-          let db;
           try {
-            res.writeHead(200, {
-              'Content-Type': 'application/json',
-              'Cache-Control': 'no-cache',
-              'X-Accel-Buffering': 'no'
-            });
-            const responder = new Responder(res);
-            db = await dbOpen()
-            await sessions[session](req.headers,req.body,db, responder);
-            responder.end();
+            const data = await sessions[session](req.headers,req.body);
+            header(res);
+            res.end(JSON.stringify({status:true, data: data }));
           } catch (e) {
             forbidden(req, res, e.toString());
-          } finally {
-            if (db) await db.close();
-          }
+          } 
         });
       }
       /*
@@ -307,7 +286,7 @@
           forbidden(req, res, 'No Cookie');
           return;
         }
-        const mbball = new RegExp(`^(.*; +)?${cookieConfig.cookieName}=([^;]+)(.*)?$`);
+        const mbball = new RegExp(`^(.*; +)?${cookieName}=([^;]+)(.*)?$`);
         const matches = cookies.match(mbball);
         if (matches) {
           debugapi('Cookie found')
@@ -332,12 +311,8 @@
      debug('Set up to validate user');
       api.post('validate_user',(req,res) => {
         debugapi('we got a validate user, respond with uid',req.user.uid,' usage', req.usage);
-        res.writeHead(200, {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-          'X-Accel-Buffering': 'no'
-        });
-        res.end(JSON.stringify({user:req.user,usage:req.usage}));
+        header(res);
+        res.end(JSON.stringify({user:req.user,usage:req.usage, status: true}));
       });
       /*
         Beyond here we are only allowed if our cookie specified a usage of play, so we need some middleware to detect it
@@ -360,22 +335,17 @@
         debugapi(`Setting up /api/${adm} route`);
         api.post(`/${adm}`, async (req,res) => {
           debugapi(`Received /api/${adm} request`);
-          let db;
+          const responder = new Responder(res);
           try {
-            res.writeHead(200, {
-              'Content-Type': 'application/json',
-              'Cache-Control': 'no-cache',
-              'X-Accel-Buffering': 'no'
-            });
-            const responder = new Responder(res);
-            db = await dbOpen();
-            await apis[adm](req.user,req.body,dbOpen,responder);
-            responder.end();  //responder doesn't mind multiple ends, so we do it here just incase.
+            header(res);
+            await apis[adm](req.user,req.body,responder);
+            responder.addSection('status', true);
+            
           } catch(e) {
-            forbidden(req, res, e.toString());
-          } finally {
-            await db.close();
+            responder.addSection('status', false);
+            errorLogger(req.headers, { topic: `admin/${adm}`, message: e });
           }
+          responder.end();
         })
       }
       /*
@@ -392,44 +362,32 @@
         debugapi(`Setting up /api/:cid/${c} route`);
         cid.post(`/${c}`, async (req, res) => {
           debugapi(`Received /api/:cid/${c} request, cid=`,req.params.cid);
-          let db;
+          const responder = new Responder(res);
           try {
-            res.writeHead(200, {
-              'Content-Type': 'application/json',
-              'Cache-Control': 'no-cache',
-              'X-Accel-Buffering': 'no'
-            });
-            const responder = new Responder(res);
-            db = await dbOpen();
-            await cids[c](req.user, req.params.cid, req.body, db, responder);
-            responder.end();  //responder doesn't mind multiple ends, so we do it here just incase.
+            header(res);
+            await cids[c](req.user, req.params.cid, req.body, responder);
+            responder.addSection('status', true);
           } catch (e) {
-            forbidden(req, res, e.toString());
-          } finally {
-            if (db) await db.close();
+            responder.addSection('status', false);
+            errorLogger(req.headers, { topic: `cid/${c}`, message: e });
           }
-        })
+          responder.end(); 
+        }); 
       }
       for (const r in cidrids) {
         debugapi(`Setting up /api/:cid/:rid/${r} route`);
         cidrid.post(`/${r}`, async (req, res) => {
           debugapi(`Received /api/:cid/:rid/${r} request, cid= ${req.params.cid} rid= ${req.params.rid}`);
-          let db
+          const responder = new Responder(res);
           try {
-            res.writeHead(200, {
-              'Content-Type': 'application/json',
-              'Cache-Control': 'no-cache',
-              'X-Accel-Buffering': 'no'
-            });
-            const responder = new Responder(res);
-            db = await dbOpen();
-            await cidrids[r](req.user, req.params.cid, req.params.rid, req.body, db, responder);
-            responder.end();  //responder doesn't mind multiple ends, so we do it here just incase.
+            header(res);
+            await cidrids[r](req.user, req.params.cid, req.params.rid, req.body, responder);
+            responder.addSection('status', true);
           } catch (e) {
-            forbidden(req, res, e.toString());
-          } finally {
-            if (db) await db.close();
+            responder.addSection('status', false);
+            errorLogger(req.headers, { topic: `cid/${c}`, message: e });
           }
+          responder.end();  
         })
       }
       debug('Creating Web Server');
@@ -442,7 +400,6 @@
       logger('app', `Release ${version} of Football Web Server Operational on Port:${serverPort} using node ${process.version}`);
     } catch(e) {
       logger('error', 'Initialisation Failed with error ' + e.toString());
-      if (dbIsOpen) await db.close();
       await close();
     }
   }
@@ -460,6 +417,14 @@
       } catch (err) {
         logger('error', `Trying to close caused error:${err}`);
       }
+    }
+    if (db) {
+      try {
+        await db.close();
+      } catch(e) {
+        //do nothing - it probably wasn't open
+      }
+      db = null;
     }
     process.exit(0);
   }

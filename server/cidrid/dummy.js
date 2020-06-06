@@ -25,7 +25,7 @@
 (function () {
   'use strict';
 
-  module.exports = async (user,cid, rid, params,dbOpen,responder) => {
+  module.exports = async (user,cid, rid, params,responder) => {
 
   };
 })();
