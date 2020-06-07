@@ -19,134 +19,164 @@
 */
 import { LitElement, html } from '../libs/lit-element.js';
 
-
+import {SessionStatus} from '../modules/events.js';
+import {setUser} from '../modules/user.js';
+import './app-form.js';
 import './fancy-input.js';
 import './send-button.js';
-import app from '../styles/app.js';
+import './app-waiting.js';
+import './app-checkbox.js';
+import AppKeys from '../modules/keys.js';
 import button from '../styles/button.js';
-import notice from '../styles/notice.js';
+import page from '../styles/app-page.js';
+
 /*
      <app-logon>: Collects, username, password and notes forgotten password requests
 */
 class AppLogon extends LitElement {
   static get styles() {
-    return [app, button, notice];
+    return [page,button];
   }
   static get properties() {
     return {
       email: {type: String},
       password: {type: String},
-      visited: {type: Boolean}
+      remember: {type: Boolean},
+      profile: {type: Boolean},
+      waiting: {type: Boolean}
     };
   }
   constructor() {
     super();
     this.email = '';
     this.password = '';
-    this.visited = false;
-
-
+    this.remember = false;
+    this.profile = false;
+    this.waiting = false;
   }
   connectedCallback() {
-
     super.connectedCallback();
+    if (this.keys !== undefined) this.keys.connect();
+    this.doneFirst = false;
   }
   disconnectedCallback() {
     super.disconnectedCallback();
+    this.keys.disconnect();
     this.password = '';
   }
-  update(changed) {
-    super.update(changed);
-  }
   firstUpdated() {
+    this.target = this.shadowRoot.querySelector('#page');
+    this.keys = new AppKeys(this.target, 'Enter'); 
+    this.emInput = this.shadowRoot.querySelector('#email')
+    this.pwInput = this.shadowRoot.querySelector('#pw');
+    this.doLogon = this.shadowRoot.querySelector('#logon');
   }
-  updated(changed) {
-    super.updated(changed);
-  }
+
   render() {
     return html`
       <style>
-        #email {
+
+        #email,#pw {
           width: var(--email-input-length);
         }
-        p {
-          font-size: 1.3em;
+        #forgotten {
+          font-size:60%;
+          margin: 20px;
         }
-        @media (max-height: 1300px) {
-          p {
-            font-size:1em;
-          }
-
-        }
-        @media (max-height: 1000px) {
-          p {
-            font-size: 0.7em;
-          }
-        }
-
-        @media (max-height: 700px) {
-          p {
-            font-size: 0.5em;
-          }
-        }
-
-        @media (max-height: 600px) {
-          p {
-            font-size: 0.45em;
-          }
-        }
-
-
 
       </style>
-      <header><img src="../images/mb-logo.svg" height="64px"></header>
-      
-        <section class="intro">
-
+      <app-waiting ?waiting=${this.waiting}></app-waiting>
+      <app-page id="page" @keys-pressed=${this._submitLogon}>
+        <h1>Log On</h1>
+        <app-form 
+          id="logon" 
+          action="/api/session/logon" 
+          class="inputs" 
+          @form-response=${this._formResponse}>
+          <input type="hidden" name="usage" value=${this.profile ? 'profile': 'play'}/>
+          <fancy-input
+            label="E-Mail"
+            .message=${this.email.length > 0 ? 'Email Or Password Incorrect' : 'Required'}
+            autofocus
+            autocomplete="off"
+            required
+            type="email"
+            name="email"
+            id="email"
+            .value="${this.email}"
+            @value-changed="${this._emChanged}"
+            @blur=${this._doneFirst}></fancy-input>  
+            <fancy-input              
+              label="Password"
+              message="Required"
+              required
+              type="password"
+              name="password"
+              id="pw"
+              .value="${this.password}"
+              @value-changed="${this._pwChanged}"
+              @blur=${this._doneFirst}></fancy-input>
+            <div id="forgotten" @click=${this._forgotten}>Forgotten Password</div>
+            <app-checkbox ?value=${this.remember} @value-changed=${this._rememberChanged}>Remember Me</app-checkbox> 
+        </app-form>
+        <section slot="action">          
+          <send-button @click=${this._sendData}>Log On</send-button>
         </section>
-     
-       <app-form id="logon" action="/api/session/logon" class="inputs" @keys-pressed="${this._sendData}">
-        <fancy-input
-          label="E-Mail"
-          .message=${this.email.length > 0 ? 'Email Not Known' : 'Required'}
-          autofocus
-          autocomplete="off"
-          required
-          type="email"
-          name="email"
-          id="email"
-          .value="${this.email}"
-          @value-changed="${this._emChanged}"></fancy-input>  
-          <fancy-input              
-            label="Password"
-            message="Password Incorrect"
-            type="password"
-            name="password"
-            id="pw"
-            .value="${this.password}"
-            @value-changed="${this._pwChanged}"></fancy-input>
-          <div id="forgotten" @click=${this._forgotten}>Forgotten Password</div>
-          <app-checkbox 
-      </app-form>
-      <section class="action">          
-        <send-button @click=${this._sendData}>Log On</send-button>
-      </section>
+      </app-page>
     `;
+  }
+  _doneFirst() {
+    this.doneFirst = true;
   }
   _emChanged() {
     this.email = e.changed;
   }
-  _forgotten(e) {
-    api('session/forgotten')
+  async _forgotten(e) {
+    if (!this.input.invalid) {
+      this.waiting = true;
+      const response = await api('session/requestpin',{email:this.email});
+      this.waiting = false;
+      if (response.data.found) {
+        const type = response.data.password ? (response.data.remember ? 'markrem': 'markpass'): 'await';
+        this.dispatchEvent(new SessionStatus({type: type, email: this.email}));
+        this.email = '';
+      } else {
+        this.input.invalid = true;
+      } 
+    } 
   }
-  _newMember(e) {
-
+  _formResponse(e) {
+    e.stopPropagation();
+    if (e.response) {
+      this.waiting = false;
+      if (e.response.data.found) {
+        setUser(response.user);
+        const type = response.data.password? (response.data.remember? 'markrem': 'markpass'): 'await'
+        this.dispatchEvent(new SessionStatus({type: type, email: this.email}));
+        this.email = '';
+        this.dispatchEvent(new AuthChanged(true));
+      } else {
+        this.emInput.invalid = true;
+        this.pwInput.invalid = true;
+        this.emInput.focus();
+      } 
+    }
   }
   _pwChanged(e) {
     this.password = e.changed;
   }
-  _sendData() {
-
+  _rememberChanged(e) {
+    this.remember = e.changed;
+  }
+  _submitLogon() {
+    if (!this.waiting) {
+      const result = this.target.submit();
+      if (result) {
+        this.waiting = true;
+        this.emInput.invalid = false;
+        this.pwInput.invalid = false;
+      }
+    }
   }
 }
 customElements.define('app-logon', AppLogon);

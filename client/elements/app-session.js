@@ -52,7 +52,6 @@ class AppSession extends LitElement {
     this.state = ''
     this.authorised = false;
     this.waiting = false;
-
     this._logOff = this._logOff.bind(this);
     this.email = '';
     config().then(conf => {
@@ -65,32 +64,39 @@ class AppSession extends LitElement {
     super.connectedCallback();
     window.addEventListener('logoff-request', this._logOff);
     this.addEventListener('session-status', this._reset);
-    if (this.consentOverlay !== undefined) this.state = 'consent';
+    this.authorised = false;
   }
   disconnectedCallback() {
     super.disconnectedCallback();
     window.removeEventListener('logoff-request', this._logOff);
     this.removeEventListener('session-status', this._reset);
-    this.authorised = false;
+    this.authorised = null;
   }
   update(changed) {
     if (changed.has('authorised')) {
-      if (!this.authorised) this.state='consent';
+      if (!this.authorised) {
+        this.state = 'consent';
+      } 
       this.dispatchEvent(new AuthChanged(this.authorised));
-
     }
     super.update(changed);
   }
   updated(changed) {
     if (changed.has('state')) {
       debug(`state-changed to ${this.state}`);
-      this.waiting = true;
+      this.waiting = true;   
       switch(this.state) {
         case 'consent':
           config().then(() => { //only using this to wait until config has been read, since this is the first state
             const mbvisited = new RegExp(`^(.*; +)?${this.cookieVisitName}=([^;]+)(.*)?$`);
             if (mbvisited.test(document.cookie)) {
-              this.state = 'validate';
+              if (window.location.hash !== '') {
+                this.state = window.location.hash.substring(1);
+                history.pushState('', document.title, window.location.pathname
+                  + window.location.search); //clear out our hash.
+              } else {
+                this.state = 'validate';
+              }
             } else {
               import('./app-consent.js').then(this.waiting = false);
             }
@@ -113,40 +119,42 @@ class AppSession extends LitElement {
             const matches = document.cookie.match(mbvisited);
             if (!matches || matches.length < 3 || typeof matches[2] !== 'string') this.state = 'forbidden';
             this.state = matches[2];
+            debug(`State set from cookie is  ${this.state}`);
           }
-          break;
-        case'emailverify':
-          import ('./app-email-verify.js').then(this.waiting = false);
           break;
         case 'await':
           this.waiting = true;
           import('./app-await.js').then(this.waiting = false);
+        case 'emailverify':
+          import('./app-email-verify.js').then(this.waiting = false);
+          break;
+        case 'linkexpired':
+          import('./app-expired.js').then(this.waiting = false);
+          break;
+        case 'logoff':
+          document.cookie = `${this.cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
+          this.state = 'consent';
+          break;
         case 'member':
           import ('./stand-in.js').then(this.waiting=false);
-          break;
-        case 'requestpin':
-          import('./app-request-pin.js').then(this.waiting=false);
           break;
         case 'markpass':
           this._makeVisitCookie('logon'); //we discovered this user has a password, so next visit he should log on.
           this.state = 'await';
           break;
+        case 'pinpassrem':
         case 'pinpass':
+        case 'logonrem':
         case 'logon':
           import('./app-logon.js').then(this.waiting = false);
           break;
-        case 'logoff':
-            document.cookie = `${this.cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
-            this.state = 'consent';
+        case 'requestpin':
+          import('./app-request-pin.js').then(this.waiting = false);
           break;
         default:
       } 
     }
     super.updated(changed);
-  }
-  firstUpdated() {
-    this.consentOverlay = this.shadowRoot.querySelector('#consent');
-    if (this.state === '') this.state = 'consent';
   }
 
   render() {
@@ -163,15 +171,17 @@ class AppSession extends LitElement {
       <app-waiting ?waiting=${this.waiting}></app-waiting>
       ${cache(this.authorised? '' : html`
         ${cache({
-          consent: html`<app-consent @session-status=${this._consent}>Loading Consent Form</app-consent>`,
+          consent: html`<app-consent @session-status=${this._consent}></app-consent>`,
           validate: html`<div>Validating</div>`,
-          emailverify: html`<app-email-verify @session-status=${this._processEmail}>Loading Email Verify</app-email-verify>`,
-          member: html`<stand-in standinfor="app-member"></stand-in>`,
-          requestpin: html`<app-request-pin @session-status=${this._processEmail}></app-request-pin>`,
+          await: html`<app-await .email=${this.email}></app-await>`,
+          emailverify: html`<app-email-verify @session-status=${this._processEmail}></app-email-verify>`,
+          linkexpired: html`<app-expired @session-status=${this._processExpire}></app-expired>`,
           logon: html`<app-logon .email=${this.email}></app-logon>`,
+          logonrem: html`<app-logon remember .email=${this.email}></app-logon>`,
+          member: html`<stand-in standinfor="app-member"></stand-in>`,
           pinpass: html`<app-logon .email=${this.email} profile ></app-logon>`,
-          emailupdate: html`<app-logon profile ?visited=${this.visited}></app-logon>`,
-          await: html`<app-await .email=${this.email}></app-await>`
+          pinpassrem: html`<app-logon remember .email=${this.email} profile ></app-logon>`,
+          requestpin: html`<app-request-pin @session-status=${this._processEmail}></app-request-pin>`
 
         }[this.state])}
       `)}
@@ -200,6 +210,10 @@ class AppSession extends LitElement {
       case 'membershipreq':
           this.state = 'member';
         break;
+      case 'markrem':
+        this._makeVisitCookie('logonrem'); //we have a password and they want us to remember them so mark (fall through this time);
+        this.state = 'await';
+        break;
       case 'markpass':
         this._makeVisitCookie('logon');  //we have a password in the database, so next time we can logon (fall throu this time)
       case 'await':
@@ -207,6 +221,16 @@ class AppSession extends LitElement {
         break;
       default:
         
+    }
+  }
+  _processExpire(e) {
+    e.stopPropagation();
+
+    if (e.status.type === 'verify') {
+      this.state = 'emailverify';
+    } else if (e.status.type === 'logon') {
+      this._makeVisitCookie('logon');
+      this.state = 'logon';
     }
   }
   _reset() {

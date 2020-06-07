@@ -50,12 +50,12 @@ class AppConsent extends LitElement {
   }
   connectedCallback() {
     super.connectedCallback();
+    document.body.addEventListener('key-pressed', this._accept);
     if (this.keys === undefined) {
       this.keys = new AppKeys(document.body, 'Enter');
     } else {
       this.keys.connect();
     }
-    document.body.addEventListener('key-pressed', this._accept);
   }
   disconnectedCallback() {
     super.disconnectedCallback();

@@ -85,7 +85,7 @@ class AppError extends LitElement {
       const message = `Client Error:
 ${e.error.stack}
 has occured`;
-      api('/session/log', { message: message});
+      api('/session/log', {type:'Error', message: message});
       this.dispatchEvent(new SessionStatus({type:'error'}));
       this.anError = true;
   }

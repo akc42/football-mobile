@@ -177,9 +177,12 @@
         conf.get(`/${config}`, async (req,res) => {
           debugapi(`Received /api/config/${config} request`);
           try {
+            res.setHeader('Trailer', 'API-Status');
             header(res)
             const response = await confs[config]();
-            res.end(JSON.stringify({...response, status: true}));
+            res.write(JSON.stringify({ ...response, status: true }));
+            res.addTrailers({'API-Status': 'OK'})
+            res.end();
           } catch (e) {
             res.end(JSON.stringify({status: false}));
             errorLogger(req.headers,{topic:`config/${config}`, message: e});
@@ -201,22 +204,35 @@
         debugapi(`Setting up /api/reg/${regapi} route`);
         reg.get(`/${regapi}/:token`, async (req,res) => {  //so we declare a route for this file
           debugapi(`Received /api/reg/${regapi} request`);
+          let location ='/';
           try {
-            const payload = jwt.decode(req.token, cookieKey);
-            const success = await regapis[regapi] (payload);  //then call it
-            if (success) { //we signal problem with the passed in link with a simple boolean response
-              res.setHeader('Set-Cookie', generateCookie(payload.user, payload.usage)); //refresh cookie to the new value 
+            const payload = jwt.decode(req.params.token, cookieKey);
+            debugapi(`In /api/reg/${regapi} we have decoded the token`);
+            const newPayload = await regapis[regapi] (payload);  //then call it
+            if (newPayload) { //we signal problem with the passed in link with a null of undefined response
+              debugapi(`In /api/reg/${regapi} we have got a new payload`);
+              res.setHeader('Set-Cookie', generateCookie(newPayload.user, newPayload.usage)); //refresh cookie to the new value 
+            } else {
+              debugapi(`In /api/reg/${regapi} failed to get new payload`);
+              location = '/#linkexpired';
             }
-            res.writeHead(302, {
-              'Location': '/index.html',
-              'Content-Type': 'text/html',
-              'Cache-Control': 'no-cache',
-              'X-Accel-Buffering': 'no' 
-            });
-            res.end();
           } catch(e) {
-            forbidden(req, res, e.toString());
+            /*
+              most likely reason we get here is token had expired.  We want to tell the user politely so we will
+              just set the visit cookie to say the pin expired, and the client can deal with it
+            */ 
+            debugapi(`In /api/reg/${regapi} failed to decode token, add #linkexpired to return path`);
+            location = '/#linkexpired';
           }
+          debugapi(`In /api/reg/${regapi} set 302 header for ${location}`);
+          res.writeHead(302, {
+            'Location': location,
+            'Content-Type': 'text/html',
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no'
+          });
+          res.end();
+          debugapi('Send end');
         });
       }
 
@@ -266,6 +282,9 @@
           debugapi(`Received /api/session/${session} request`);
           try {
             const data = await sessions[session](req.headers,req.body);
+            if(data.token !== undefined) {
+              res.setHeader('Set-Cookie', generateCookie(payload.user,payload.usage)); //get ourselves a cookie
+            }
             header(res);
             res.end(JSON.stringify({status:true, data: data }));
           } catch (e) {

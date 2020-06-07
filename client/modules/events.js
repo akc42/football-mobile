@@ -85,6 +85,23 @@ export class FormError extends Event {
   }
 };
 
+
+export class FormResponse extends Event {
+  static eventType = 'form-response';
+
+  /*
+     The following are the fields provided by this event
+
+     response: The response from the api call.
+
+  */
+
+  constructor(response) {
+    super('form-response',{composed: true, bubbles: true});
+    this.response = response;
+  }
+};
+
 export class KeyPressed extends Event {
   static eventType = 'key-pressed';
 

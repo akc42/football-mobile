@@ -26,7 +26,8 @@ export default function api(url, params, signal) {
     credentials: 'same-origin',
     method: 'post',
     headers: new Headers({
-      'content-type': 'application/json'
+      'content-type': 'application/json',
+      'TE': 'trailers'
     }),
     body: JSON.stringify(params)
   };

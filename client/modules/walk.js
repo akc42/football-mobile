@@ -1,20 +1,23 @@
 /**
-    @licence
-    Copyright (c) 2019 Alan Chandler, all rights reserved
+@licence
+    Copyright (c) 2020 Alan Chandler, all rights reserved
 
-    This file is part of PASv5, an implementation of the Patient Administration
-    System used to support Accuvision's Laser Eye Clinics.
+    This file is part of Football Mobile.
 
-    PASv5 is licenced to Accuvision (and its successors in interest) free of royality payments
-    and in perpetuity in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
-    implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Accuvision
-    may modify, or employ an outside party to modify, any of the software provided that
-    this modified software is only used as part of Accuvision's internal business processes.
+    Football Mobile is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-    The software may be run on either Accuvision's own computers or on external computing
-    facilities provided by a third party, provided that the software remains soley for use
-    by Accuvision (or by potential or existing customers in interacting with Accuvision).
+    Football Mobile is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 
 function _walk(node,criteria, slot) {
   if (node.assignedSlot === null || node.assignedSlot === slot) {

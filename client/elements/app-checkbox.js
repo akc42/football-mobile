@@ -42,7 +42,9 @@
 import { LitElement, html } from '../libs/lit-element.js';
 
 import './material-icon.js';
-import style from '../syles/checkbox.js';
+import style from '../styles/checkbox.js';
+
+import { ValueChanged } from '../modules/events.js';
 
 /**
  * Define key codes to help with handling keyboard events.
@@ -51,14 +53,14 @@ const KEYCODE = {
   SPACE: 32,
 };
 
-class PasCheckbox extends LitElement {
+class AppCheckbox extends LitElement {
   static get styles() {
     return [style];
   }
   static get properties() {
     return {
       name: { type: String }, //if not undefined will be used in a form
-      value: { type: Boolean }, //by useing value rather than checked we can use it pas-form
+      value: { type: Boolean }, //by using value rather than checked we can use it pas-form
       disabled: { type: Boolean, reflects: true },
       readonly: { type: Boolean }
     };
@@ -123,11 +125,11 @@ class PasCheckbox extends LitElement {
   _toggleChecked() {
     if (this.disabled || this.readonly) return;
     this.value = !this.value;
-    this.dispatchEvent(new CustomEvent('value-changed'));
+    this.dispatchEvent(new ValueChanged(this.value));
   }
 }
 
-customElements.define('pas-checkbox', PasCheckbox);
+customElements.define('app-checkbox', AppCheckbox);
 
 
 

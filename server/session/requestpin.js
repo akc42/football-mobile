@@ -37,7 +37,7 @@
     );
     if (result !== undefined) {
       let pin;
-      const user = { ...result, password: !!result.password, verification_key: !!result.verification_key }
+      const user = { ...result, password: !!result.password, verification_key: !!result.verification_key, remember: result.remember !== 0}
       pin = ('000000' + (Math.floor(Math.random() * 999999)).toString()).slice(-6); //make a new pin 
       user.verification_key = await new Promise((accept, reject) => {
         bcrypt.hash(pin, 10, (err, result) => {
@@ -53,7 +53,12 @@
       await s.finalize();
       const now = new Date();
       //silently do nothing if rateLimit is exceeded
-      if ((user.verifcation_sent + rateLimit) < (now.getTime()/1000)) {
+      const vsent = new Date()
+      debug(
+        'verification_sent rate end @ ', (user.verification_sent + rateLimit), 
+        ' rate limit = ', rateLimit, 
+        ' now is ', Math.floor((now.getTime() / 1000)));
+      if ((user.verification_sent + rateLimit) < Math.floor((now.getTime()/1000))) {
         //not doing this too fast since last time
         const payload = {
           exp: new Date().setTime(now.getTime() + (verifyExpires * 60 * 60 * 1000 )),
@@ -69,7 +74,7 @@
         <a href="mailto:${webmaster}">${webmaster}</a> that you were not expecting it.</p>
         <p>Click on the link <a href="${siteBaseref}/api/reg/pin/${token}">${siteBaseref}/api/reg/pin/${token}</a> to log on
         and access your profile. There you may reset your passwords or make other changes to your account.</p>
-        <p>This link will only work <strong>once</strong>, nor will it work after <strong>${verifyExpires} hours</strong> from
+        <p>This link will only work <strong>once</strong>, and it will <strong>not</strong> work after <strong>${verifyExpires} hours</strong> from
         the time you requested it.</p>
         <p>Regards</p>`;
         const mail = await mailPromise;
@@ -77,16 +82,16 @@
         debug('set body about to try and send email');
         await mail.send('Your temporary password', user.email);
         debug('email send, now update database with verification key');
-        await db.exec('UPDATE participant SET verification_key = ?, verification_sent = CURRENT_TIMESTAMP WHERE uid = ?', user.verification_key, user.uid);
+        await db.exec(`UPDATE participant SET verification_key = ?, verification_sent = (strftime('%s','now')) WHERE uid = ?`, user.verification_key, user.uid);
       } else {
         debug('rate limit exceeded, so we silently don\'t send another email, but do update the database');
-        await db.exec('UPDATE participant SET verification_sent = CURRENT_TIMESTAMP WHERE uid = ?', user.uid);
+        await db.exec(`UPDATE participant SET verification_sent = (strftime('%s','now')) WHERE uid = ?`, user.uid);
       }  
     
       await db.exec('COMMIT');
       await db.close();
       debug('success');
-      return {found: true, password: user.password};
+      return {found: true, password: user.password, remember: user.remember};
     }
     await db.close();
     debug('record not found');

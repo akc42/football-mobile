@@ -25,10 +25,10 @@
 
 */
 
-import { LitElement, html } from '../lit/lit-element.js';
-
+import { LitElement, html } from '../libs/lit-element.js';
+import api from '../modules/api.js';
 import walk from '../modules/walk.js';
-import {LocationAltered, LogoffRequest, FormError } from '../modules/events.js';
+import {LocationAltered, LogoffRequest, FormError, FormResponse } from '../modules/events.js';
 
 class AppForm extends LitElement  {
   render() {
@@ -65,7 +65,7 @@ class AppForm extends LitElement  {
     });
     return result;
   }
-  submit() {
+   submit() {
     const result = this.validate();
     if (result) {
       this._params = {};
@@ -77,24 +77,7 @@ class AppForm extends LitElement  {
         }
         return false;
       });
-      fetch(this.action,{
-        credentials: 'same-origin',
-        method: 'post',
-        headers: new Headers({
-          'content-type': 'application/json'
-        }),
-        body: JSON.stringify(this._params)
-      }).then(response => {
-        if (response.status !== 200) {
-          window.dispatchEvent(new LogoffRequest());
-          //put us back to home
-          window.history.pushState({}, null, '/');
-          window.dispatchEvent(new LocationAltered());
-          this.dispatchEvent(new FormError());
-        } else {
-          response.json().then(response => this.dispatchEvent(new CustomEvent('pas-form-response',{detail: response})));
-        }
-      });
+      api(this.action, this.params).then(response => this.dispatchEvent(new FormResponse(response)));
     }
     return result;
   }

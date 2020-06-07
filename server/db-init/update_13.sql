@@ -26,7 +26,7 @@ CREATE TABLE participant (
     global_admin boolean DEFAULT 0 NOT NULL, -- Set true if user is global admin (automatically allows approve membership)
     unlikely boolean DEFAULT 0 NOT NULL, --Set true if this user is unlikely to ever return.  I won't prevent then, but we can use it to check all expected users have re-registerd
     verification_key character varying, --bcrypt hash of random number sent to user in a jwt, so we can verify it when it comes back.(it holds both, email and password values because they cannot occur at same time) 
-    verification_sent bigint DEFAULT CURRENT_TIMESTAMP NOT NULL, --time verification sent (so can rate limit and expire old ones).
+    verification_sent bigint DEFAULT (strftime('%s','now')) NOT NULL, --time verification sent (so can rate limit and expire old ones).
     waiting_approval boolean DEFAULT false NOT NULL, --awaiting membership approval
     remember boolean DEFAULT false NOT NULL --user has agreed to allow cookies to remember their log on
 );

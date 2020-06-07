@@ -29,9 +29,42 @@
 
     To allow a using module the freedom to connect and disconnect to the dom, we
     provide two methods to be called during the disconnectCallback and
-    connectCallback to disconnect and reconnect to this event (it is assumed
-    that the constructor will probably be called in the firstUpdated function and initialy connected there, but thereafter
-    called in the connected callback.  Here is a possible example
+    connectCallback to disconnect and reconnect to this event
+
+    There are two models of using this, the first, shown below allows an element to add
+    the keys event to document body.  This is good for pages that are swapped in and
+    out by a paging mechanism so that only one page is in the dom at a given time This is
+    good if only one handler is needed for the entire page.
+
+    NOTE: If you take this approach limit the keys to non function keys as the main app, with its main 
+    menu may add a handler for the function keys and both menus, and any actions you choose would run at the same time.
+
+    constructor() {
+      super();
+      ...
+      this._keyPressed = this._keyPressed.bind(this);
+    }
+    connectedCallback() {
+      super.connectedCallback();
+      document.body.addEventListener('key-pressed', this._keyPressed);
+      if (this.keys === undefined) {
+        this.keys = new AppKeys(document.body, 'Enter Esc'); //list the keys you want to identify
+      } else {
+        this.keys.connect();
+      }
+    }
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      this.keys.disconnect();
+      document.body.removeEventListener('key-pressed', this._keyPressed);
+    }
+    _keyPressed(e) {
+      TO BE ADDED
+    }
+
+    The second way of using this, better for when you don't want to react unless a particular area of the page has focus, or
+    if there are different areas of the page needing the respond depending which area
+    has focus.  This is to create the AppKeys object in the firstUpdated function.  Here is a possible example (just one area)
 
 
   connectedCallback() {
@@ -47,10 +80,12 @@
     this.keys = new AppKeys(this.target, 'Enter');  //replace 'Enter' with space separated string of keys
   }
   Then on the dom element in the Render function
-  <div id="keyreceive" @keys-pressed=${this._processKeys}>Contents</div>
+  <div id="keyreceive" @keys-pressed=${this._keyPressed}>Contents</div>
+
+  NOTE: There is no need to bind this._keyPressed to this (as in the first example).  Lit manages it.
 
   NOTE: I considered making this a mixin to avoid some of this verbosity, but decided in 
-  the end the extra was worth it for the flexibility of having several key handlers on the same page.
+  the end the extra was worth it for the flexibility of the different use cases.
 */
 /*
       Initial constants are taken from iron-a11y-keys behavior with the following licence.  This same licences applies to those portions.

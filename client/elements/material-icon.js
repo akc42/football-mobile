@@ -18,7 +18,7 @@
     along with Football-Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { LitElement, html } from './libs/lit-element.js';
+import { LitElement, html } from '../libs/lit-element.js';
 
 const link = document.createElement('link');
 link.rel = 'stylesheet';
