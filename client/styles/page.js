@@ -24,16 +24,10 @@ import { css } from '../libs/lit-element.js';
 
 export default css`
   :host {
-    background-color: white;
-    padding: 20px;
-    margin: 0;
+        height: 100%;
+        display:flex;
+        flex-direction:column;
+        align-items: center;
   }
-  @media (min-width: 500px) {
-    :host {
-      margin: 10px auto 20px auto;
-      padding:10px;
-      border-radius: 10px;
-      box-shadow: 0px 0px 38px -2px rgba(0, 0, 0, 0.5);
-    }
-  }
+
 `;

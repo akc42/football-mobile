@@ -24,7 +24,7 @@
   const logger = require('../utils/logger');
   const cyrb53 = require('../utils/cyrb53');
   const chalk = require('chalk');
-  module.exports = async (headers,params) => { 
+  module.exports = async (params,headers) => { 
     const message = `${chalk.black.bgCyan(params.topic)} ${params.message}`;
     logger('log', message, cyrb53(headers['x-forwarded-for']).toString(16));
     return true;

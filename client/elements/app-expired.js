@@ -22,6 +22,8 @@ import { LitElement, html } from '../libs/lit-element.js';
 
 import './fancy-input.js';
 import button from '../styles/button.js';
+import page from '../styles/page.js';
+
 import { SessionStatus } from '../modules/events.js';
 import api from '../modules/api.js';
 import './app-waiting.js';
@@ -35,7 +37,7 @@ import AppKeys from '../modules/keys.js';
 */
 class AppExpired extends LitElement {
   static get styles() {
-    return [ button];
+    return [ button,page];
   }
   static get properties() {
     return {

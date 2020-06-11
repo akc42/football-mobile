@@ -20,7 +20,7 @@
 import { LitElement, html } from '../libs/lit-element.js';
 import {classMap} from '../libs/class-map.js';
 import {cache} from '../libs/cache.js';
-import config from '../modules/config.js'; 
+import global from '../modules/globals.js'; 
 import {switchPath} from '../modules/utils.js';
 import './app-error.js';
 import './app-overlay.js';
@@ -39,12 +39,9 @@ class MainApp extends LitElement {
   static get properties() {
     return {
       authorised: {type: Boolean},
-      version: {type: String},
-      copyrightYear: {type: String},
+      ready: {type:Boolean},
+
       cid: {type: Number},
-      user: {type: Object},
-      globalAdmin: {type:Boolean},
-      adminExperience: {type: Boolean},
       competitions: {type: Array},  //array of {name,cid} 
       lastCompTime: {type: Number},
       rounds: {type: Array},  //array of {name,rid}
@@ -54,30 +51,21 @@ class MainApp extends LitElement {
       lcid: {type: Number}, //cid of latest competition
       luid: {type: Number}, //admin of latest competition
       drid: {type: Number},
-      menuIcon: {type: String},
-      webmaster: {type: String},
-      server: {type: Boolean},
-      serverError: {type: Boolean} //we received an error
+       serverError: {type: Boolean} //we received an error
     };
   }
   constructor() {
     super();
-    this.server = false;
+    this.ready = false;
     this.serverError = false;
     this.authorised = false;
-    this.version = 'v4.0.0';
-    this.copyrightYear = '2020'
     this.cid = 0;
-    this.user = {uid:0, name:'', approve: false, admin: false}
     this.rid = 0;
     this.competitions=[];
     this.lastCompTime=0;
     this.rounds = [];
     this.lastRoundTime = 0;
-    this.dcid = 0;
     this.drid = 0;
-    this.menuIcon = 'menu';
-    this.webmaster = 'webmaster@example.com';
     window.fetch('/api/config/styles', { method: 'get' }).then(response => {
       if (response.status === 200) return response.json();
       return {};
@@ -86,21 +74,11 @@ class MainApp extends LitElement {
         this.style.setProperty('--' + key.replace(/_/g,'-'), styles[key]);
       }
     });
-    config().then(config => {
-      this.server = config.server;
-      if (this.server) {
-        this.version = config.version;
-        this.copyrightYear = config.copyrightYear;
-        this.dcid = config.dcid;
-        this.drid = config.drid;
-        this.lcid = config.lcid;
-        this.luid = config.luid;
-        if (this.cid === 0) this.cid = this.dcid; //we use dcid if cid not been set yet, else we leave it
-        if (this.rid === 0) this.rid = this.drid;
-        this.menuIcon = config.mainMenuIcon;
-        this.webmaster = config.webmaster;
-        //and the rest
-      }
+    global.ready.then(() => {
+      this.ready = true;
+      this.cid = global.dcid; //we use dcid if cid not been set yet, else we leave it
+      this.rid = global.drid; 
+      this.requestUpdate();  //just make sure that any new global values on the display are shown  
     });
     this.serverError = false;
     this._keyPressed = this._keyPressed.bind(this);
@@ -159,7 +137,7 @@ class MainApp extends LitElement {
     super.updated(changed);
   }
   render() {
-    const admin = (this.luid !== 0 && (this.luid === this.user.uid) || this.user.admin) ;
+    const admin = (global.luid !== 0 && (global.luid === global.user.uid) || global.user.global_admin) ;
     return html`  
       <style>
         :host {
@@ -167,6 +145,7 @@ class MainApp extends LitElement {
           height: 100vh;
           display: flex;
           flex-direction: column-reverse;
+          justify-content:flex-start;
         }
         #mainmenu {
           display:flex;
@@ -189,10 +168,8 @@ class MainApp extends LitElement {
         section {
           height: calc(100vh - var(--app-header-size, 64px));
           overflow-y:auto;
-        }
-        .flexing {
           display: flex;
-          flex-direction: column;
+          flex-direction: row;
         }
 
         .iconreplace {
@@ -226,16 +203,6 @@ class MainApp extends LitElement {
             flex-direction: column;
           }
         }
-        #title {
-          font-weight: bold;
-          font-size: 12px;
-          color:black;
-          background-color: white;
-          align-self: center;
-        }
-        #apologies {
-          padding: 30px;
-        }
 
       </style>
 
@@ -246,7 +213,7 @@ class MainApp extends LitElement {
           <div role="menuitem" @click=${this._competitionsMenu}>Competitions</div>
           ${cache((admin || this.user.approve) ? html`
             ${cache(admin ? html`
-              ${cache(this.user.admin ? html`
+              ${cache(this.user.global_admin ? html`
                 <div id="createcomp" role="menuitem" @click=${this._selectPage}>Create Competition</div>
                 <div role="menuitem" @click=${this._changeDcomp}>Default Competition</div>
               `: '')}
@@ -262,7 +229,7 @@ class MainApp extends LitElement {
           ${cache(this.competitions.filter(competition => competition.open || this.globalAdmin ||  //Only a few can see hidden competitions
               (admin && competition.cid === this.lcid)).map(competition => 
             html`<div role="menuitem" data-cid=${competition.cid} @click=${this._competitionSelected}>${competition.name}${cache(
-                competition.cid === this.dcid ? html`<material-icon>home</material-icon>` : html`<div class="iconreplace"></div>`
+                competition.cid === global.dcid ? html`<material-icon>home</material-icon>` : html`<div class="iconreplace"></div>`
             )}${cache(
               competition.cid === this.cid ? html`<material-icon>check_box</material-icon>` : html`<div class="iconreplace"></div>`
             )}</div>
@@ -277,26 +244,24 @@ class MainApp extends LitElement {
         `:'')}
       <header>
         ${cache(this.authorised? html`
-        <material-icon @click=${this._menu}>${this.menuIcon}</material-icon>        
+        <material-icon @click=${this._menu}>${global.mainMenuIcon}</material-icon>        
         `:html`<div class="iconreplace"></div>` )}
         <div id="logo">Football Logo</div>
         <div id="appinfo">
           <div id="version">${this.version}</div>
-          <div id="copy">&copy; 2008-${this.copyrightYear} Alan Chandler</div>
+          <div id="copy">&copy; 2008-${global.copyrightYear} Alan Chandler</div>
         </div>
       </header>
-      <section class="${classMap({flexing: !this.authorised || this.serverError})}">
-        <app-error webmaster="${this.webmaster}" @session-status=${this._errorChanged} ></app-error>
+      <section>
+        <app-error @session-status=${this._errorChanged} ></app-error>
         ${cache(this.serverError? '' : html`     
           <app-session id="session" @auth-changed=${this._authChanged}></app-session>
           ${cache(this.authorised ? html`
             <app-pages
-              .user=${this.user}
               .cid=${this.cid}
               .rid=${this.rid}
               @rid-changed=${this._ridChanged}
-              .dcid=${this.dcid}
-              @dcid-changed=${this._dcidChanged}
+              @dcid-changed=${this._globalChanged}
               @competitions-changed=${this._refreshComp}
               @rounds-changed=${this._refreshRound}></app-pages>      
           `:'' )}
@@ -323,14 +288,17 @@ class MainApp extends LitElement {
   _competitionSelected(e) {
     const selected = parseInt(e.currentTarget.dataset.cid,10);
     if (this.editingDcid) {
-      this.dcid = selected;
+      api(`/${selected}/dcid`).then(response => {
+          global.dcid = response.dcid;
+          this.requestUpdate();
+      });
     } else {
       this.cid = selected;
     }
     this.editingDcid = false;
   }
-  _dcidChanged(e) {
-    this.dcid = e.changed;
+  _globalChanged() {
+    this.requestUpdate();
   }
   _editRound(e){
 

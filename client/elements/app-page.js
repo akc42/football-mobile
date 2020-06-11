@@ -18,32 +18,22 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
-import app from '../styles/app.js';
 
-import notice from '../styles/app-page.js';
-import config from '../modules/config.js';
+
+import style from '../styles/app-page.js';
+import global from '../modules/globals.js';
 /*
      <app-page>
 */
 class AppPage extends LitElement {
   static get styles() {
-    return [app,notice];
+    return [style];
   }
-  static get properties() {
-    return {
-      siteLogo: {type: String}
-    };
-  }
-  constructor() {
-    super();
-    this.siteLogo = '/appimages/site-logo.png';
-    config().then(conf => this.siteLogo = conf.siteLogo);
-  }
-
   render() {
     return html`
-      <header><img src="${this.siteLogo}" height="64px"></header>
-      <slot></slot>
+      <header><img src="${global.siteLogo}" height="64px"></header>
+      <slot class="container"></slot>
+  
       <slot class="action" name="action"></slot>
     `;
   }

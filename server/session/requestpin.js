@@ -28,7 +28,7 @@
   const jwt = require('jwt-simple');
   const dbOpen = require('../utils/database');
 
-  module.exports = async function(headers, params) {
+  module.exports = async function(params) {
     const db = await dbOpen();
     await db.exec('BEGIN TRANSACTION');
     const result = await db.get(

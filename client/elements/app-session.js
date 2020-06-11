@@ -21,10 +21,10 @@
 import { LitElement, html } from '../libs/lit-element.js';
 import { cache } from '../libs/cache.js';
 import api from '../modules/api.js';
-import { setUser } from '../modules/user.js';
+import global from '../modules/globals.js';
 import { AuthChanged, ApiError } from '../modules/events.js';
 import Debug from '../modules/debug.js';
-import config from '../modules/config.js';
+
 
 const debug = Debug('session');
 
@@ -54,10 +54,6 @@ class AppSession extends LitElement {
     this.waiting = false;
     this._logOff = this._logOff.bind(this);
     this.email = '';
-    config().then(conf => {
-      this.cookieVisitName = conf.cookieVisitName;
-      this.cookieName = conf.cookieName;
-    });
     this._reset = this._reset.bind(this);
   }
   connectedCallback() {
@@ -87,8 +83,8 @@ class AppSession extends LitElement {
       this.waiting = true;   
       switch(this.state) {
         case 'consent':
-          config().then(() => { //only using this to wait until config has been read, since this is the first state
-            const mbvisited = new RegExp(`^(.*; +)?${this.cookieVisitName}=([^;]+)(.*)?$`);
+          global.ready.then(() => { //only using this to wait until globals has been read, since this is the first state
+            const mbvisited = new RegExp(`^(.*; +)?${global.cookieVisitName}=([^;]+)(.*)?$`);
             if (mbvisited.test(document.cookie)) {
               if (window.location.hash !== '') {
                 this.state = window.location.hash.substring(1);
@@ -104,18 +100,20 @@ class AppSession extends LitElement {
           break;
         case 'validate':
           //we can't get here without first having gone through consent
-          const mbball = new RegExp(`^(.*; +)?${this.cookieName}=([^;]+)(.*)?$`);
+          const mbball = new RegExp(`^(.*; +)?${global.cookieName}=([^;]+)(.*)?$`);
           if (mbball.test(document.cookie)) {
             performance.mark('start_user_validate');
-            api('validate_user', {}).then(response => {
+            api('session/validate_user', {}).then(response => {
+              performance.mark('end_user_validate');
+              performance.measure('user_validate','start_user_validate','end_user_validate');
               if (response.usage !== undefined) { //api request didn't fail
-                setUser(response.user);              
-                if (response.usage === 'play') this.authorised = true;
+                global.user = response.user;              
+                this.authorised = true;
                 this.state = response.usage;
               }
             });
           } else {
-            const mbvisited = new RegExp(`^(.*; +)?${this.cookieVisitName}=([^;]+)(.*)?$`);
+            const mbvisited = new RegExp(`^(.*; +)?${global.cookieVisitName}=([^;]+)(.*)?$`);
             const matches = document.cookie.match(mbvisited);
             if (!matches || matches.length < 3 || typeof matches[2] !== 'string') this.state = 'forbidden';
             this.state = matches[2];
@@ -160,13 +158,11 @@ class AppSession extends LitElement {
   render() {
     return html`
       <style>
-      :host {
-        display:flex;
-        flex-direction: column;
-        flex: 1;
-      }
+        :host {
+          display: block;
+          flex:1;
+        }
       </style>
-
       <app-overlay id="inuse"></app-overlay>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
       ${cache(this.authorised? '' : html`
@@ -178,30 +174,27 @@ class AppSession extends LitElement {
           linkexpired: html`<app-expired @session-status=${this._processExpire}></app-expired>`,
           logon: html`<app-logon .email=${this.email}></app-logon>`,
           logonrem: html`<app-logon remember .email=${this.email}></app-logon>`,
-          member: html`<stand-in standinfor="app-member"></stand-in>`,
+          member: html`<app-member-req .step=${1} @session-status=${this._processEmail}></app-member-req>`,
+          memberappove: html`<app-member-req .step=${2} @session-status=${this._processEmail}></app-member-req>`,
+          memberpin: html`<app-member-req .step=${3} @session-status=${this._processEmail}></app-member-req>`,
           pinpass: html`<app-logon .email=${this.email} profile ></app-logon>`,
           pinpassrem: html`<app-logon remember .email=${this.email} profile ></app-logon>`,
           requestpin: html`<app-request-pin @session-status=${this._processEmail}></app-request-pin>`
-
         }[this.state])}
       `)}
     `;
   }
   _consent() {
-    this._makeVisitCookie('emailverify'); //next state if we don't actually have a cookie
+    this._makeVisitCookie('emailverify'); //next state if we don't actually have a normal cookie
     this.state = 'validate'; //this makes us go check the cookie
   }
-  _fetchLogon() {
-    import('./app-logon.js').then()
-  }
-
   _logOff(e) {
     this.state = 'logoff';
   }
   _makeVisitCookie(value) {
     const expiryDate = new Date();
     expiryDate.setTime(expiryDate.getTime() + (90 * 24 * 60 * 60 * 100))
-    document.cookie = `${this.cookieVisitName}=${value}; expires=${expiryDate.toGMTString()}; Path=/`; 
+    document.cookie = `${global.cookieVisitName}=${value}; expires=${expiryDate.toGMTString()}; Path=/`; 
   }
   _processEmail(e) {
     e.stopPropagation();

@@ -20,6 +20,7 @@ import { LitElement } from '../libs/lit-element.js';
 
 import domHost from '../modules/host.js';
 import Route from '../modules/route.js';
+import global from '../modules/globals.js';
 import {PageTitle, PageData, PageClosed, PageClose, RouteChanged} from '../modules/events.js';
 
 export default class PageManager extends  LitElement {
@@ -70,6 +71,7 @@ export default class PageManager extends  LitElement {
           }
         } else {
           this.page = this.homePage();
+          this.loadPage(this.page); //if this is the first time through we may not have 
         }
       } else {
         this.page = null;

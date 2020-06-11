@@ -22,31 +22,44 @@
 import {css} from '../libs/lit-element.js';
 
 export default  css`
-  :host {
+  :host{
+    height:100%;
     display: flex;
     flex-direction:column;
-    justify-content: flex-start;
     max-width: 600px;
-    flex: 1;
+    justify-content: start;
+    padding:10px;
   }
   header {
-    height: var(--app-header-size);
+    height: 64px;
     margin: 0 auto;
     padding: 0;
   }
-
-
   .action {
     display: flex;
     width:100%;
     flex-direction:row;
+    flex-wrap: wrap;
     justify-content: space-evenly;
+    margin-top:auto;
   }
 
+  @media (min-width: 500px) {
 
-  @media (max-width: 500px) {
+    .action {
+      margin-top: 10px;
+    }
     :host {
-      justify-content: space-between;
+      min-width:600px;
+      height: auto;
+    }
+  }
+  @media (min-width: 501px) {
+    :host {
+
+      border-radius: 10px;
+      box-shadow: 0px 0px 38px -2px rgba(0, 0, 0, 0.5);
+
     }
   }
 

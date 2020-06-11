@@ -23,25 +23,22 @@ import { html } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
 import {connectUrl, disconnectUrl} from '../modules/location.js';
-import config from '../modules/config.js';
 
 import PageManager from './page-manager.js';
 import './fm-summary.js';
 
-const PageTitles = {
-  home: 'Summary'
-};
+import page from '../styles/page.js';
 
 export class AppPages extends PageManager {
-
-  static get titles() {
-    return PageTitles;
+  static get styles() {
+    return [page];
   }
+
 
   constructor() {
     super();
     this.last = 0;
-    config().then(config => PageTitles.home = config.APP_TITLE);
+
     Promise.all([
       import('./fm-comment-dialog.js')
     ]).then(() => {

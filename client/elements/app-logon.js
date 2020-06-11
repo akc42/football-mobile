@@ -20,7 +20,7 @@
 import { LitElement, html } from '../libs/lit-element.js';
 
 import {SessionStatus} from '../modules/events.js';
-import {setUser} from '../modules/user.js';
+import {setUser} from '../modules/globals.js';
 import './app-form.js';
 import './fancy-input.js';
 import './send-button.js';

@@ -21,15 +21,15 @@ import { LitElement, html } from '../libs/lit-element.js';
 
 
 import './fancy-input.js';
-import './send-button.js';
-import app from '../styles/app.js';
+import page from '../styles/page.js';
 import button from '../styles/button.js';
-import notice from '../styles/notice.js';
+
 import { EmailStatus } from '../modules/events.js';
 import api from '../modules/api.js';
 import user from '../modules/user/js';
 import './app-waiting.js';
-
+import './app-page.js';
+import global from '../modules/globals.js';
 
 
 /*
@@ -37,7 +37,7 @@ import './app-waiting.js';
 */
 class AppRequestPin extends LitElement {
   static get styles() {
-    return [app, button, notice];
+    return [button,page];
   }
   render() {
     return html`
@@ -76,22 +76,17 @@ class AppRequestPin extends LitElement {
 
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <header><img src="../images/mb-logo.svg" height="64px"></header>
-      
-      <section class="intro">
-        <h2>${user.name}</h2>
-        <p>We are going to send you (via email) a link which will temporarily (for the next 12 hours) automatically 
-        log you on to this web site, to enable you to reset your password.  The email address we will
-        use is <em>${user.email}</em>. Please only continue if this e-mail address is yours.</p>
-        <p> Unfortunately if you have already changed your e-mail address and this address will not allow you to
-        receive the link, then you will have to cancel this action to return to the previous page, where you can enter your new email address and request membership instead
-        .</p>     
-
-      </section>
-      <section class="action">          
-        <button @click=${this._sendLink}>Send Me the Link</button>
-        <button cancel @click=${this._cancel}>Cancel</button>
-      </section>
+      <app-page>
+          <h2>${user.name}</h2>
+          <p>We are going to send you (via email) a link which will temporarily (for the next ${global.verifyExpires} hours) automatically 
+          log you on to this web site, to enable you to reset your password.  The email address we will
+          use is <em>${user.email}</em>. Please only continue if this e-mail address is yours.</p>
+          <p> Unfortunately if you have already changed your e-mail address and this address will not allow you to
+          receive the link, then you will have to cancel this action to return to the previous page, where
+          you can enter your new email address and request membership instead.</p>                   
+        <button slot="action" @click=${this._sendLink}>Send Me the Link</button>
+        <button slot="action" cancel @click=${this._cancel}>Cancel</button> 
+      </app-page>
     `;
   }
   _cancel() {

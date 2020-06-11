@@ -18,30 +18,27 @@
     along with Foorball Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
-import config from '../modules/config.js';
+import global from '../modules/globals.js';
 
 import './app-page.js';
+import page from '../styles/page.js';
 
 /*
      <app-await>
 */
 class AppAwait extends LitElement {
   static get styles() {
-    return [];
+    return [page];
   }
   static get properties() {
     return {
-      email: {type: String},
-      verifyExpires: {type: Number}
+      email: {type: String}
     };
   }
   constructor() {
     super();
     this.email = '';
-    this.verifyExpires = null;
-    config().then(conf => {
-      this.verifyExpires = conf.verifyExpires;
-    });
+
   }
 
   render() {
@@ -57,7 +54,7 @@ class AppAwait extends LitElement {
         <h1>Please Check Your Email</h1>
         <section class="intro">
           <p>You have been sent an email (to ${this.email}) which contains a link.  This link is a special one, in that once used
-          it cannot be used again.  Also, as added protection, it has to be used within ${this.verifyExpires} hours from when it was
+          it cannot be used again.  Also, as added protection, it has to be used within ${global.verifyExpires} hours from when it was
           requested.</p>
           <p>If you do not receive it, or are unable to use it within the alotted time, just request another one using the same
           mechanism that you used last time.  Be aware that only the last link sent will work</p>

@@ -23,28 +23,23 @@ import {unsafeHTML} from '../libs/unsafe-html.js';
 import './app-page.js';
 
 import button from '../styles/button.js';
+import page from '../styles/page.js';
+
 import AppKeys from '../modules/keys.js';
 import {SessionStatus} from '../modules/events.js';
-import config from '../modules/config.js';
+import global from '../modules/globals.js';
 
 /*
      <app-consent>: Standard for on privacy notice about cookies.
 */
 class AppConsent extends LitElement {
   static get styles() {
-    return [button];
+    return [button, page];
   }
-  static get properties () {
-    return {
-      firstTimeMessage: {type: String}
-    };
-  }
+
   constructor() {
     super();
-    this.firstTimeMessage = `Welcome to the <strong>Football Mobile Results Picking Competition</strong>.This appears to be your first visit to the site.You will be have to provide your email address and later your password but, with your permission, we can remember you so you won't have to keep entering it.`;
-    config().then(conf => {
-      this.firstTimeMessage = conf.firstTimeMessage;
-    });
+    global.ready.then(() => this.requestUpdate());
     this._accept = this._accept.bind(this);
 
   }
@@ -76,7 +71,7 @@ class AppConsent extends LitElement {
       <app-page>
         <h1>Your Privacy</h1>
         <section class="intro">
-          <p>${unsafeHTML(this.firstTimeMessage)}</p>
+          <p>${unsafeHTML(global.firstTimeMessage)}</p>
 
           <p> We use cookies on this site for two purposes:-</p>
           <ol>

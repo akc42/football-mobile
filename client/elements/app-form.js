@@ -28,7 +28,7 @@
 import { LitElement, html } from '../libs/lit-element.js';
 import api from '../modules/api.js';
 import walk from '../modules/walk.js';
-import {LocationAltered, LogoffRequest, FormError, FormResponse } from '../modules/events.js';
+import {FormResponse } from '../modules/events.js';
 
 class AppForm extends LitElement  {
   render() {
