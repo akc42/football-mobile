@@ -19,11 +19,11 @@
 */
 import { LitElement, html } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
-
+import {SessionStatus, AuthChanged, LocationAltered } from "../modules/events.js";
 import './app-page.js';
-import { SessionStatus } from '../modules/events.js';
 import api from '../modules/api.js';
 import button from '../styles/button.js';
+import page from '../styles/page.js';
 
 
 /*
@@ -31,70 +31,112 @@ import button from '../styles/button.js';
 */
 class AppError extends LitElement {
   static get styles() {
-    return [button];
+    return [button,page];
   }
   static get properties() {
     return {
       webmaster: {type: String},
-      anError: {type: Boolean}
+      anError: {type: Boolean},
+      forbidden: {type: Boolean},
     };
   }
 
   constructor() {
     super();
     this.webmaster = '';
-    this.anError = false
+    this.anError = false;
+    this.forbidden = false;
     this._clientError = this._clientError.bind(this);
     this._serverError = this._serverError.bind(this);
+    this._promiseRejection = this._promiseRejection.bind(this);
   }
   connectedCallback() {
     super.connectedCallback();
     window.addEventListener('error', this._clientError);
     window.addEventListener('api-error', this._serverError);
-
+    window.addEventListener('unhandledrejection', this._promiseRejection);
+    this.forbidden = false;
   }
   disconnectedCallback() {
     super.disconnectedCallback();
     window.removeEventListener('error', this._clientError);
-    window.removeEventListener('api-error', this._reset);
+    window.removeEventListener('api-error', this._serverError);
+    window.removeEventListener('unhandledrejection', this._promiseRejection);
+
   }
   render() {
     return html`
       <style>
-        @media (max-width: 400px) {
-          :host {
-            font-size: 1.3em;
-          }
+
+        .forbidden {
+          color: red;
+          font-weight: bold;
         }
+
       </style>
       ${cache(this.anError?html`
         <app-page>
-          <h1>Something Went Wrong</h1>
-          <section class="intro">
-            <p>We are sorry but something has gone wrong with the operation of the site.  The problem has been logged 
-            with the server and it will be dealt with soon.</p>
-            <p>Nevertheless, you may wish to e-mail the web master (<a href="mailto:${this.webmaster}">${this.webmaster}</a>) to let
-            them know that there has been an issue.</p> 
-          </section>
-          <button slot="action" @click=${this._reset}>Restart</button>
+          ${cache(this.forbidden ? html`
+            <h1>Forbidden</h1>
+            <p class="forbidden">You have tried to access a forbidden area.</p>
+
+          `:html`
+            <h1>Something Went Wrong</h1>
+            <section class="intro">
+              <p>We are sorry but something has gone wrong with the operation of the site.  The problem has been logged
+              with the server and it will be dealt with soon.</p>
+              <p>Nevertheless, you may wish to e-mail the web master (<a href="mailto:${this.webmaster}">${this.webmaster}</a>) to let
+              them know that there has been an issue.</p> 
+            </section>
+            <button slot="action" @click=${this._reset}>Restart</button>
+          `)}
+
+          
         </app-page>
       `: '')}
     `;
   }
   _clientError(e) {
-      const message = `Client Error:
+    if (this.anError) return;
+    e.preventDefault();
+    const message = `Client Error:
 ${e.error.stack}
 has occured`;
-      api('/session/log', {type:'Error', message: message});
-      this.dispatchEvent(new SessionStatus({type:'error'}));
+    api('/session/log', {type:'Error', message: message});
+    this.dispatchEvent(new SessionStatus({type:'error'}));
+    this.anError = true;
+  }
+  _promiseRejection(e) {
+    if (this.anError) return;
+    e.preventDefault();
+    const possibleError = e.reason;
+
+    if (possibleError.type === 'api-error') {
+      this._serverError(possibleError)
+    } else {
+      const message = `Client Error: Uncaught Promise Rejection with reason ${e.reason} has occured`;
+      api('/session/log', { type: 'Error', message: message });
+      this.dispatchEvent(new SessionStatus({ type: 'error' }));
       this.anError = true;
+    }
   }
   _reset() {
     this.anError = false;
+    this.forbidden = false;
     this.dispatchEvent(new SessionStatus({type:'reset'}));
   }
   _serverError(e) {
-    if (e.status === 'error');
+    if (this.anError) return;
+    e.preventDefault();
+    //put us back to home
+    window.history.pushState({}, null, '/');
+    window.dispatchEvent(new LocationAltered());
+    if (e.reason === 403) {
+      //unauthorised so log off
+      window.dispatchEvent(new AuthChanged(false));
+      this.forbidden=true;
+
+    }
     this.dispatchEvent(new SessionStatus({type: 'error'}));
     this.anError = true;
   }

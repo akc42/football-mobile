@@ -19,39 +19,30 @@
 */
 
 
-import { ApiError, LogoffRequest, LocationAltered } from "./events.js";
+import { ApiError } from "./events.js";
 
-export default function api(url, params, signal) {
+export default async function api(url, params, signal) {
   const options = {
     credentials: 'same-origin',
     method: 'post',
     headers: new Headers({
-      'content-type': 'application/json',
-      'TE': 'trailers'
+      'content-type': 'application/json'
     }),
     body: JSON.stringify(params)
   };
   if (signal) options.signal = signal;
-  return window.fetch('/api/' + url, options).then(response => {
-    if (!response.ok ) {
-      //put us back to home
-      window.history.pushState({}, null, '/');
-      window.dispatchEvent(new LocationAltered());
-      if (response.status === 403) {
-        //unauthorised so log off, but then do no more
-        window.dispatchEvent(new LogoffRequest());
-      } 
-      return {status: false, reason: `fetch returned response code ${response.status}`};
-    } else {
-      return response.json();
-    }
-  }).then(response => {
-    if (!response.status) {
-      console.warn('api call failed with', response.reason);
-      window.dispatchEvent(new ApiError());
-      delete response.reason;
-    }
-    delete response.status;
-    return response;
-  });
+  let text;
+  try {
+    const response = await window.fetch('/api/' + url, options);
+    if (!response.ok) throw new ApiError(response.status); 
+    text = await response.text();
+    return JSON.parse(text);
+  } catch (err) {
+    if (err.type === 'api-error') throw err; //just 
+      //we failed to parse the json - the actual code should be in the text near the end;
+    throw new ApiError(parseInt(text.substr(-6,3),10));    
+
+  }
+  
+
 }

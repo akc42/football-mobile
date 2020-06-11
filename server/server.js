@@ -40,8 +40,6 @@
   const logger = require('./utils/logger');
   const Responder = require('./utils/responder');
   const versionPromise = require('./version');
-  const errorLogger = require('./session/log');
-
   const dbOpen = require('./utils/database');
 
 
@@ -60,15 +58,17 @@
     debug('In "forbidden"');
     logger('auth', `${message} with request url of ${req.originalUrl}`, req.headers['x-forwarded-for']);
     res.statusCode = 403;
-    res.end();
+    res.end('---403---'); //definitely not json, so should cause api to throw even if attempt to send status code is to no avail
+
   }
-  function header(res) {
-    res.writeHead(200, {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache',
-      'X-Accel-Buffering': 'no'
-    });
+  function errored(req,res,message) {
+    debug('In "Errored"');
+    logger('error', `${message} with request url of ${req.originalUrl}`, req.headers['x-forwarded-for']);
+    res.statusCode = 500;
+    res.end('---500---'); //definitely not json, so should cause api to throw even if attempt to send status code is to no avail.
+
   }
+
   function finalErr (err, res, req) {
     logger('error', `Final Error at url ${req.originalUrl} with error ${err.stack}`);
   }
@@ -127,6 +127,14 @@
         debug('Committed Updates, ready to go')
       }
       await db.exec('BEGIN TRANSACTION');
+      /*
+        just a little helper, to clear out expired verification keys.  In production we would expect restarts to be infrequent
+        but in a cron job, we could just tell pm2 to restart it once a month or something
+      */
+      await db.exec(`UPDATE Participant SET verification_key = NULL WHERE verification_key IS NOT NULL 
+        AND verification_sent < (strftime('%s', 'now') - (
+        SELECT value FROM Settings WHERE name = 'verify_expires' ));`);
+
       const s = await db.prepare('SELECT value FROM settings WHERE name = ?');
       const { value: serverPort } = await s.get('server_port');
       const { value: cookieName } = await s.get('cookie_name');
@@ -155,13 +163,14 @@
         Just a little helper utility for development - not normally needed
       */
      debug('setup delete visit cookie helper')
-      api.get('/deletecookie', (req,res) => {
+      api.get('/delete_cookie', (req,res) => {
         debugapi('Received Delete Cookie request')
         const cookie = `${cookieVisitName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
         res.setHeader('Set-cookie', cookie);
-        header(res);
+        done(res);
         res.end('DONE');
       });
+
       /*
         Our first set of calls are almost related to the static files.  They are a few api calls to retrieve configuration items
         and as such will be get requests and will have no requirements for ony other parameters.  They are of the form
@@ -177,15 +186,10 @@
         conf.get(`/${config}`, async (req,res) => {
           debugapi(`Received /api/config/${config} request`);
           try {
-            res.setHeader('Trailer', 'API-Status');
-            header(res)
             const response = await confs[config]();
-            res.write(JSON.stringify({ ...response, status: true }));
-            res.addTrailers({'API-Status': 'OK'})
-            res.end();
+            res.end(JSON.stringify(response));
           } catch (e) {
-            res.end(JSON.stringify({status: false}));
-            errorLogger(req.headers,{topic:`config/${config}`, message: e});
+            errored(req, res, `config/${config} failed with ${e}`);
           } 
         });
       }
@@ -225,12 +229,9 @@
             location = '/#linkexpired';
           }
           debugapi(`In /api/reg/${regapi} set 302 header for ${location}`);
-          res.writeHead(302, {
-            'Location': location,
-            'Content-Type': 'text/html',
-            'Cache-Control': 'no-cache',
-            'X-Accel-Buffering': 'no'
-          });
+          res.statusCode = 302;
+          res.setHeader('Location',location);
+          res.setHeader('Content-Type','text/html');
           res.end();
           debugapi('Send end');
         });
@@ -247,7 +248,7 @@
         debugapi('checking for Visit Cookie')
         const cookies = req.headers.cookie;
         if (!cookies) {
-          logger('auth', `Attempt to access ${req.url} without a Visit Cookie`, req.headers['x-forwarded-for']);
+          forbidden(req,res,'No cookies in request');
         } else {
           const mbvisited = new RegExp(`^(.*; +)?${cookieVisitName}=([^;]+)(.*)?$`);
           const matches = cookies.match(mbvisited);
@@ -255,7 +256,7 @@
             debugapi('Visit Cookie found');
             next();
           } else {
-            logger('auth', `Attempt to access ${req.url} without a Visit Cookie`, req.headers['x-forwarded-for']);
+            forbidden(req,res,'no Visit Cookie Found');
           }
         }
       });
@@ -281,14 +282,13 @@
         ses.post(`/${session}`, async (req, res) => {
           debugapi(`Received /api/session/${session} request`);
           try {
-            const data = await sessions[session](req.headers,req.body);
-            if(data.token !== undefined) {
-              res.setHeader('Set-Cookie', generateCookie(payload.user,payload.usage)); //get ourselves a cookie
+            const data = await sessions[session](req.body, req.headers);
+            if(data.usage!== undefined) {
+              res.setHeader('Set-Cookie', generateCookie(data.user,data.usage)); //get ourselves a cookie
             }
-            header(res);
-            res.end(JSON.stringify({status:true, data: data }));
+            res.end(JSON.stringify(data));
           } catch (e) {
-            forbidden(req, res, e.toString());
+            errored(req, res, e.toString());
           } 
         });
       }
@@ -323,28 +323,7 @@
           forbidden(req, res, 'Invalid Cookie');
         }
       });
-      /*
-        at this point in the chain we can now add validate user.  We have got a valid cookie
-        with possible different uses.  validate user wants to know what they are.
-      */
-     debug('Set up to validate user');
-      api.post('validate_user',(req,res) => {
-        debugapi('we got a validate user, respond with uid',req.user.uid,' usage', req.usage);
-        header(res);
-        res.end(JSON.stringify({user:req.user,usage:req.usage, status: true}));
-      });
-      /*
-        Beyond here we are only allowed if our cookie specified a usage of play, so we need some middleware to detect it
-      */
-      debug('Set up to check cookie usage');
-      api.use((req,res,next) => {
-        debugapi('checking cookie usage')
-        if (req.usage === 'play') {
-          next();
-        } else {
-          forbidden(req,res, `Incorrect Usage in Cookie of ${req.usage}`);
-        }
-      });
+
       /*
           we now need to process the admin type api calls
       */
@@ -354,19 +333,27 @@
         debugapi(`Setting up /api/${adm} route`);
         api.post(`/${adm}`, async (req,res) => {
           debugapi(`Received /api/${adm} request`);
-          const responder = new Responder(res);
           try {
-            header(res);
+            const responder = new Responder(res);
             await apis[adm](req.user,req.body,responder);
-            responder.addSection('status', true);
-            
+            responder.end();            
           } catch(e) {
-            responder.addSection('status', false);
-            errorLogger(req.headers, { topic: `admin/${adm}`, message: e });
+            errored(req,res,e.toString());
           }
-          responder.end();
         })
       }
+      /*
+        Beyond here we are only allowed if our cookie specified a usage of play, so we need some middleware to detect it
+      */
+      debug('Set up to check cookie usage');
+      api.use((req, res, next) => {
+        debugapi('checking cookie usage')
+        if (req.usage === 'play') {
+          next();
+        } else {
+          forbidden(req, res, `Incorrect Usage in Cookie of ${req.usage}`);
+        }
+      });
       /*
         Quite a lot of the api calls will feature the cid (competition id) and rid(round id) as parameters to them
         although not strictly necessary, I am going to create two separate api sets for /api/:cid/xxx and /api/:cid/:rid/xxx
@@ -381,37 +368,37 @@
         debugapi(`Setting up /api/:cid/${c} route`);
         cid.post(`/${c}`, async (req, res) => {
           debugapi(`Received /api/:cid/${c} request, cid=`,req.params.cid);
-          const responder = new Responder(res);
           try {
-            header(res);
+            const responder = new Responder(res);
             await cids[c](req.user, req.params.cid, req.body, responder);
-            responder.addSection('status', true);
+            responder.end(); 
           } catch (e) {
-            responder.addSection('status', false);
-            errorLogger(req.headers, { topic: `cid/${c}`, message: e });
-          }
-          responder.end(); 
+            errored(req,res,e.toString());
+          } 
         }); 
       }
       for (const r in cidrids) {
         debugapi(`Setting up /api/:cid/:rid/${r} route`);
         cidrid.post(`/${r}`, async (req, res) => {
           debugapi(`Received /api/:cid/:rid/${r} request, cid= ${req.params.cid} rid= ${req.params.rid}`);
-          const responder = new Responder(res);
           try {
-            header(res);
+            const responder = new Responder(res);
             await cidrids[r](req.user, req.params.cid, req.params.rid, req.body, responder);
-            responder.addSection('status', true);
+            responder.end();
           } catch (e) {
-            responder.addSection('status', false);
-            errorLogger(req.headers, { topic: `cid/${c}`, message: e });
+            errored(req,res,e.toString());
           }
-          responder.end();  
         })
       }
       debug('Creating Web Server');
       server = http.createServer((req,res) => {
-        router(req,res,finalhandler(req,res, {onerror: finalErr}))
+        //standard values (although status code might get changed and other headers added);
+        res.satusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Cache-Control', 'no-cache');
+        const done = finalhandler(req,res,{onerr:finalErr});
+        router(req,res,done);
+        
       });
       server.listen(serverPort, '0.0.0.0');
       serverDestroy(server);
