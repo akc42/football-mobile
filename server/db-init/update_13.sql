@@ -1,3 +1,21 @@
+-- @licence
+--  Copyright (c) 2020 Alan Chandler, all rights reserved
+
+--  This file is part of Football Mobile.
+
+--  Football Mobile is free software: you can redistribute it and/or modify
+--  it under the terms of the GNU General Public License as published by
+--  the Free Software Foundation, either version 3 of the License, or
+--  (at your option) any later version.
+
+--  Football Mobile is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+--  GNU General Public License for more details.
+
+--  You should have received a copy of the GNU General Public License
+--  along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
+
 -- NOTE - there are a number of settings in this file that should not be left as they are.  Please view the database.sql file for a list.
 
 CREATE TABLE old_participant (
@@ -25,8 +43,13 @@ CREATE TABLE participant (
     member_approve boolean DEFAULT 0 NOT NULL,--Set true if user may approve membership
     global_admin boolean DEFAULT 0 NOT NULL, -- Set true if user is global admin (automatically allows approve membership)
     unlikely boolean DEFAULT 0 NOT NULL, --Set true if this user is unlikely to ever return.  I won't prevent then, but we can use it to check all expected users have re-registerd
-    verification_key character varying, --bcrypt hash of random number sent to user in a jwt, so we can verify it when it comes back.(it holds both, email and password values because they cannot occur at same time) 
-    verification_sent bigint DEFAULT (strftime('%s','now')) NOT NULL, --time verification sent (so can rate limit and expire old ones).
+    verification_key character varying, --This is one of the following 
+    -- 1.) The reason requested in membership (if waiting_approval is true), 
+    -- 2.) The bcryted hash of the random pin created when sending verification emails, for lost password, membership verify emails, and email changes. 
+    --     (in the case of e-mail changes the new e-mail will be added to the token sent to the verifier so its not necessary to store it here).
+    verification_sent bigint DEFAULT (strftime('%s','now')) NOT NULL, -- for the cases related to verification_key
+    -- 1.) The time the user entered the reason for approval and requested it (after verifying email)
+    -- 2.)  The time verification sent (so can rate limit and expire old ones). 
     waiting_approval boolean DEFAULT false NOT NULL, --awaiting membership approval
     remember boolean DEFAULT false NOT NULL --user has agreed to allow cookies to remember their log on
 );
