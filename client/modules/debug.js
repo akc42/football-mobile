@@ -18,16 +18,15 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import api from './api.js';
-import config from './config.js';
-import user from './user.js';
+import global from './globals.js';
 
 let topics = '';
 let debugEnabled = false;
 let limitedUser = 0;
-config().then(conf => {
-  if (conf.server && conf.clientLog.length > 0) {
-    limitedUser = conf.clientLogUid;
-    topics = conf.clientLog;
+global.ready.then(() => {
+  if (global.server && global.clientLog.length > 0) {
+    limitedUser = global.clientLogUid;
+    topics = global.clientLog;
     debugEnabled = true;
   }
 
@@ -41,7 +40,7 @@ export default function(t) {
   const topic = `:${t}:`;
 
   return function(message) {
-    if (debugEnabled && (topics === 'ALL' || topics.indexOf(topic) >=0) && (limitedUser === 0 || user.uid === limitedUser)) { 
+    if (debugEnabled && (topics === 'ALL' || topics.indexOf(topic) >=0) && (limitedUser === 0 || global.user.uid === limitedUser)) { 
       api('session/log',{topic:topic, message: message}); //no interest in reply
     }
   }
