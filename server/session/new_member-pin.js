@@ -21,7 +21,7 @@
 (function() {
   'use strict';
 
-  const debug = require('debug')('football:api:verify');
+  const debug = require('debug')('football:api:memberpin');
   const Mailer  = require('../utils/mail');
   const mailPromise = Mailer();
   const bcrypt = require('bcrypt');
@@ -32,8 +32,8 @@
     const db = await dbOpen();
     await db.exec('BEGIN TRANSACTION');
     const result = await db.get(
-      'SELECT * FROM participant WHERE email = ? ;',
-      params.email
+      'SELECT * FROM participant WHERE uid = ? ;',
+      params.uid
     );
     if (result !== undefined) {
       let pin;
@@ -55,10 +55,10 @@
       //silently do nothing if rateLimit is exceeded
       const vsent = new Date()
       debug(
-        'verification_sent rate end @ ', (user.verification_sent + rateLimit), 
-        ' rate limit = ', rateLimit, 
+        'verification_sent rate end @ ', user.verification_sent + (rateLimit * 60),
+        ' rate limit = ', rateLimit,
         ' now is ', Math.floor((now.getTime() / 1000)));
-      if ((user.verification_sent + rateLimit) < Math.floor((now.getTime()/1000))) {
+      if ((user.verification_sent + (rateLimit * 60)) < Math.floor((now.getTime() / 1000))) {
         //not doing this too fast since last time
         const payload = {
           exp: new Date().setTime(now.getTime() + (verifyExpires * 60 * 60 * 1000 )),
@@ -69,18 +69,17 @@
         debug('found user', user.uid,'so about to send pin', pin, 'with expiry in', verifyExpires,'hours');
         const token = jwt.encode(payload, cookieKey);
         debug('made token', token);
-        const html = `<h3>Hi ${user.name}</h3><p>Someone requested a short term password to log on to <a href="${siteBaseref}">${siteBaseref}</a>. They
-        requestd for it to be sent to this email address. If it was not you, you can safely ignore this email but might like to inform 
-        <a href="mailto:${webmaster}">${webmaster}</a> that you were not expecting it.</p>
-        <p>Click on the link <a href="${siteBaseref}/api/reg/pin/${token}">${siteBaseref}/api/reg/pin/${token}</a> to log on
-        and access your profile. There you may reset your passwords or make other changes to your account.</p>
+        const html = `<h3>Good News</h3><p>Your membership request to join <a href="${siteBaseref}">${siteBaseref}</a> has been approved.</p> 
+        <p>If it was not you, you can safely ignore this email but might like to inform <a href="mailto:${webmaster}">${webmaster}</a> that you were not expecting it.</p>
+        <p>Click on the link <a href="${siteBaseref}/api/pin/${token}">${siteBaseref}/api/reg/pin/${token}</a> to log on
+        and set up your profile. There you may set up your display name and password, or make other changes to your account.</p>
         <p>This link will only work <strong>once</strong>, and it will <strong>not</strong> work after <strong>${verifyExpires} hours</strong> from
-        the time you requested it.</p>
+        the time it was first sent to you.</p>
         <p>Regards</p>`;
         const mail = await mailPromise;
-        mail.setHtmlBody('Temporary Password', html);
+        mail.setHtmlBody('Membership Approval', html);
         debug('set body about to try and send email');
-        await mail.send('Your temporary password', user.email);
+        await mail.send(`${siteBaseref} Membership Approval`, user.email);
         debug('email send, now update database with verification key');
         await db.exec(`UPDATE participant SET verification_key = ?, verification_sent = (strftime('%s','now')) WHERE uid = ?`, user.verification_key, user.uid);
       } else {

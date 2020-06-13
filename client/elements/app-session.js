@@ -108,21 +108,37 @@ class AppSession extends LitElement {
               performance.measure('user_validate','start_user_validate','end_user_validate');
               if (response.usage !== undefined) { //api request didn't fail
                 global.user = response.user;              
-                this.authorised = true;
+                if (response.usage.substring(0,6) === 'member') {
+                  //we are in the membership cycle, so set visit cookie as this cookie is only a session thing
+                  this._makeVisitCookie('memberapprove:' + response.user.uid);
+                }
                 this.state = response.usage;
               }
             });
           } else {
             const mbvisited = new RegExp(`^(.*; +)?${global.cookieVisitName}=([^;]+)(.*)?$`);
             const matches = document.cookie.match(mbvisited);
-            if (!matches || matches.length < 3 || typeof matches[2] !== 'string') this.state = 'forbidden';
-            this.state = matches[2];
+            if (!matches || matches.length < 3 || typeof matches[2] !== 'string') {
+              this.state = 'forbidden';
+            } else {
+              const index = matches[2].indexOf(':');
+              if (index > 0) {
+                this.state = matches[2].substring(0,index);
+                global.user = {uid: parseInt(matches[2].substring(index),10)}
+              } else {
+                this.state = matches[2];
+              }  
+            }
             debug(`State set from cookie is  ${this.state}`);
+            
           }
           break;
         case 'await':
-          this.waiting = true;
           import('./app-await.js').then(this.waiting = false);
+          break;
+        case 'cancelmem':
+          import('./app-cancel-mem.js').then(this.waiting = false);
+          break;
         case 'emailverify':
           import('./app-email-verify.js').then(this.waiting = false);
           break;
@@ -134,7 +150,9 @@ class AppSession extends LitElement {
           this.state = 'consent';
           break;
         case 'member':
-          import ('./stand-in.js').then(this.waiting=false);
+        case 'memberapprove':
+        case 'memberpin':
+          import ('./app-member.js').then(this.waiting=false);
           break;
         case 'markpass':
           this._makeVisitCookie('logon'); //we discovered this user has a password, so next visit he should log on.
@@ -174,12 +192,13 @@ class AppSession extends LitElement {
           linkexpired: html`<app-expired @session-status=${this._processExpire}></app-expired>`,
           logon: html`<app-logon .email=${this.email}></app-logon>`,
           logonrem: html`<app-logon remember .email=${this.email}></app-logon>`,
-          member: html`<app-member-req .step=${1} @session-status=${this._processEmail}></app-member-req>`,
-          memberappove: html`<app-member-req .step=${2} @session-status=${this._processEmail}></app-member-req>`,
-          memberpin: html`<app-member-req .step=${3} @session-status=${this._processEmail}></app-member-req>`,
+          member: html`<app-member .step=${1} .email=${this.email} @session-status=${this._processEmail}></app-member>`,
+          memberapprove: html`<app-member .step=${2} @session-status=${this._processEmail}></app-member>`,
+          memberpin: html`<app-member .step=${3} @session-status=${this._processEmail}></app-member>`,
           pinpass: html`<app-logon .email=${this.email} profile ></app-logon>`,
           pinpassrem: html`<app-logon remember .email=${this.email} profile ></app-logon>`,
-          requestpin: html`<app-request-pin @session-status=${this._processEmail}></app-request-pin>`
+          requestpin: html`<app-request-pin @session-status=${this._processEmail}></app-request-pin>`,
+          cancelmem: html`<app-cancel-mem @session-status=${this._processEmail}></app-cancel-mem>`
         }[this.state])}
       `)}
     `;
@@ -193,7 +212,7 @@ class AppSession extends LitElement {
   }
   _makeVisitCookie(value) {
     const expiryDate = new Date();
-    expiryDate.setTime(expiryDate.getTime() + (90 * 24 * 60 * 60 * 100))
+    expiryDate.setTime(expiryDate.getTime() + (90 * 24 * 60 * 60 * 1000))
     document.cookie = `${global.cookieVisitName}=${value}; expires=${expiryDate.toGMTString()}; Path=/`; 
   }
   _processEmail(e) {
@@ -201,6 +220,7 @@ class AppSession extends LitElement {
     this.email = e.status.email;
     switch(e.status.type) {
       case 'membershipreq':
+          this._makeVisitCookie('member');
           this.state = 'member';
         break;
       case 'markrem':
@@ -211,6 +231,20 @@ class AppSession extends LitElement {
         this._makeVisitCookie('logon');  //we have a password in the database, so next time we can logon (fall throu this time)
       case 'await':
         this.state = 'await';
+        break;
+      case 'verify':
+        this._makeVisitCookie('emailverify');
+        this.state = 'validate';
+        break;
+      case 'memberpin':
+        this._makeVisitCookie('memberpin');
+        this.state = 'memberpin';
+        break;
+      case 'cancelmem':
+        this.state = 'cancelmem';
+        break;
+      case 'cancel':
+        this.state = 'consent'; //just pretend we are re-entering the site.
         break;
       default:
         

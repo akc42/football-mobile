@@ -62,5 +62,6 @@ module.exports = async ()=> {
     }      
   }
   await db.exec('PRAGMA foreign_keys = ON;');
+  await db.exec('PRAGMA busy_timeout = ' + process.env.FOOTBALL_DB_BUSY)
   return db;
 }

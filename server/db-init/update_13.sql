@@ -43,14 +43,10 @@ CREATE TABLE participant (
     member_approve boolean DEFAULT 0 NOT NULL,--Set true if user may approve membership
     global_admin boolean DEFAULT 0 NOT NULL, -- Set true if user is global admin (automatically allows approve membership)
     unlikely boolean DEFAULT 0 NOT NULL, --Set true if this user is unlikely to ever return.  I won't prevent then, but we can use it to check all expected users have re-registerd
-    verification_key character varying, --This is one of the following 
-    -- 1.) The reason requested in membership (if waiting_approval is true), 
-    -- 2.) The bcryted hash of the random pin created when sending verification emails, for lost password, membership verify emails, and email changes. 
-    --     (in the case of e-mail changes the new e-mail will be added to the token sent to the verifier so its not necessary to store it here).
-    verification_sent bigint DEFAULT (strftime('%s','now')) NOT NULL, -- for the cases related to verification_key
-    -- 1.) The time the user entered the reason for approval and requested it (after verifying email)
-    -- 2.)  The time verification sent (so can rate limit and expire old ones). 
+    verification_key character varying, -- The bcryted hash of the random pin created when sending verification emails, for lost password, membership verify emails, and email changes. 
+    verification_sent bigint DEFAULT (strftime('%s','now')) NOT NULL, -- The time verification sent (so can rate limit and expire old ones). 
     waiting_approval boolean DEFAULT false NOT NULL, --awaiting membership approval
+    reason character varying, --the text the user has supplied to endorse their membership or the reason the unlikely flag is set
     remember boolean DEFAULT false NOT NULL --user has agreed to allow cookies to remember their log on
 );
 CREATE UNIQUE INDEX part_email_idx ON participant(email);
@@ -290,8 +286,8 @@ INSERT INTO settings (name,value) VALUES('server_port', 2040); --port the api se
 INSERT INTO settings (name,value) VALUES('cookie_name', 'MBBall'); --name used for our main cookie
 INSERT INTO settings (name,value) VALUES('cookie_key', 'newCookieKey'); --key used to encrypt/decrypt cookie token
 INSERT INTO settings (name,value) VALUES('cookie_expires', 720); --hours until expire for standard logged on token
-INSERT INTO settings (name,value) VALUES('verify_expires', 12); --hours until expire for verification tokens.
-INSERT INTO settings (name,value) VALUES('rate_limit', 60); --seconds that must elapse by verification emails
+INSERT INTO settings (name,value) VALUES('verify_expires', 24); --hours until expire for verification tokens.
+INSERT INTO settings (name,value) VALUES('rate_limit', 30); --minutes that must elapse by verification emails
 INSERT INTO settings (name,value) VALUES('email_from', 'admin@example.com') --email address that mail comes from (do not reply)
 INSERT INTO settings (name,value) VALUES('mail_footer','<p>Some footer html</p>'); --mail footer
 INSERT INTO settings (name,value) VALUES('mail_wordwrap',130); --word wrap column in html to text conversion

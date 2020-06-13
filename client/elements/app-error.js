@@ -24,7 +24,7 @@ import './app-page.js';
 import api from '../modules/api.js';
 import button from '../styles/button.js';
 import page from '../styles/page.js';
-
+import global from '../modules/globals.js';
 
 /*
      <app-consent>: Standard for on privacy notice about cookies.
@@ -35,7 +35,6 @@ class AppError extends LitElement {
   }
   static get properties() {
     return {
-      webmaster: {type: String},
       anError: {type: Boolean},
       forbidden: {type: Boolean},
     };
@@ -43,7 +42,7 @@ class AppError extends LitElement {
 
   constructor() {
     super();
-    this.webmaster = '';
+
     this.anError = false;
     this.forbidden = false;
     this._clientError = this._clientError.bind(this);
@@ -85,7 +84,7 @@ class AppError extends LitElement {
             <section class="intro">
               <p>We are sorry but something has gone wrong with the operation of the site.  The problem has been logged
               with the server and it will be dealt with soon.</p>
-              <p>Nevertheless, you may wish to e-mail the web master (<a href="mailto:${this.webmaster}">${this.webmaster}</a>) to let
+              <p>Nevertheless, you may wish to e-mail the web master (<a href="mailto:${global.webmaster}">${global.webmaster}</a>) to let
               them know that there has been an issue.</p> 
             </section>
             <button slot="action" @click=${this._reset}>Restart</button>

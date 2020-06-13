@@ -18,7 +18,6 @@
     along with Football-Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
-import {classMap} from '../libs/class-map.js';
 import {cache} from '../libs/cache.js';
 import global from '../modules/globals.js'; 
 import {switchPath} from '../modules/utils.js';
@@ -28,6 +27,7 @@ import './app-pages.js';
 import './app-session.js';
 import { SessionStatus } from '../modules/events.js';
 import AppKeys from '../modules/keys.js';
+import api from '../modules/api.js';
 
 
 

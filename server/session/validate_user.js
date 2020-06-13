@@ -40,9 +40,9 @@
   }
   const cookiePromise = getCookieInfo();
 
-  module.exports = async function(params) {
+  module.exports = async function(params, headers) {
     debug('checking cookie');
-    const cookies = req.headers.cookie;
+    const cookies = headers.cookie;
     if (cookies) {
       const cookieInfo = await cookiePromise; //it should aready be done, avoiding db request every call
       const mbball = new RegExp(`^(.*; +)?${cookieInfo.cookieName}=([^;]+)(.*)?$`);

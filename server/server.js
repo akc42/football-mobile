@@ -41,7 +41,7 @@
   const Responder = require('./utils/responder');
   const versionPromise = require('./version');
   const dbOpen = require('./utils/database');
-
+  const bcrypt = require('bcrypt');
 
 
   
@@ -84,7 +84,7 @@
         user: user,
         usage: type
       };
-      debug('generated cookie for uid ', user.uid, ' expires ', expiry ? date.toGMTString() : 0);
+      debug('generated cookie', cookieConfig.cookieName ,'for uid ', user.uid, ' expires ', expiry ? date.toGMTString() : 0);
       return `${cookieConfig.cookieName}=${jwt.encode(payload, cookieConfig.cookieKey)}; expires=${expiry ? date.toGMTString(): 0}; Path=/`;
     } else {
       return `${cookieConfig.cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
@@ -95,7 +95,7 @@
   let server;
   let db;
 
-  async function startUp (http, serverDestroy,Router, finalhandler, Responder, logger, dbOpen) {
+  async function startUp (http, serverDestroy,Router, finalhandler, Responder, logger, dbOpen, bcrypt) {
     try {
       /*
         start off a process to find the version of the app, and the copyright year
@@ -131,9 +131,9 @@
         just a little helper, to clear out expired verification keys.  In production we would expect restarts to be infrequent
         but in a cron job, we could just tell pm2 to restart it once a month or something
       */
-      await db.exec(`UPDATE Participant SET verification_key = NULL WHERE verification_key IS NOT NULL 
-        AND verification_sent < (strftime('%s', 'now') - (
-        SELECT value FROM Settings WHERE name = 'verify_expires' ));`);
+      await db.exec(`UPDATE Participant SET verification_key = NULL WHERE verification_key IS NOT NULL
+        AND verification_sent < (strftime('%s', 'now') - ( 60 * 60 * (
+        SELECT value FROM Settings WHERE name = 'verify_expires' )));`);
 
       const s = await db.prepare('SELECT value FROM settings WHERE name = ?');
       const { value: serverPort } = await s.get('server_port');
@@ -144,7 +144,7 @@
       await s.finalize();
       await db.exec('COMMIT');
       await db.close();
-      cookieConfig.cookeName = cookieName;
+      cookieConfig.cookieName = cookieName;
       cookieConfig.cookieKey = cookieKey;
       cookieConfig.cookieExpires = cookieExpires;
 
@@ -152,7 +152,6 @@
       const router = Router(routerOpts);  //create a router
       const api = Router(routerOpts);
       const conf = Router();
-      const reg = Router(routerOpts);
       const ses = Router(routerOpts);
       const cid = Router(routerOpts);
       const cidrid = Router(routerOpts);
@@ -167,7 +166,6 @@
         debugapi('Received Delete Cookie request')
         const cookie = `${cookieVisitName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
         res.setHeader('Set-cookie', cookie);
-        done(res);
         res.end('DONE');
       });
 
@@ -195,48 +193,61 @@
       }
  
       /*
-        we follow by building routes which are supported by files in the reg directory.  These are the api calls which
-        a made from links we will have sent the user by e-mail.  As such they are get requests which will be of a form
-        /api/reg/xxxx/:token where xxx is the filename in the directory and :token will be a jwt which has been encoded for 
-        us to identify the user.  Successfull processing of this request  will result in a 302 response (temporary redirect)
-        to /index.html 
+        the next is a single route used by the e-mail tokens that are sent users.  this will decode the token and if valid
+        will generate a cookie based on the usage field.  
       */
-      debug('Setting up Registration Apis')
-      api.use('/reg/', reg);
-      const regapis = loadServers(__dirname, 'reg');
-      for (const regapi in regapis ) {
-        debugapi(`Setting up /api/reg/${regapi} route`);
-        reg.get(`/${regapi}/:token`, async (req,res) => {  //so we declare a route for this file
-          debugapi(`Received /api/reg/${regapi} request`);
-          let location ='/';
-          try {
-            const payload = jwt.decode(req.params.token, cookieKey);
-            debugapi(`In /api/reg/${regapi} we have decoded the token`);
-            const newPayload = await regapis[regapi] (payload);  //then call it
-            if (newPayload) { //we signal problem with the passed in link with a null of undefined response
-              debugapi(`In /api/reg/${regapi} we have got a new payload`);
-              res.setHeader('Set-Cookie', generateCookie(newPayload.user, newPayload.usage)); //refresh cookie to the new value 
-            } else {
-              debugapi(`In /api/reg/${regapi} failed to get new payload`);
+      debug('Setting up Pin check api')
+      api.get('/pin/:token', async (req,res) => {
+        debugapi(`Received /api/pin/ request`);
+        let location = '/';
+        try {
+          const payload = jwt.decode(req.params.token, cookieKey);
+          debugapi('/api/pin payload uid', payload.user, 'pin', payload.pin);
+          const db = await dbOpen();
+          await db.exec('BEGIN TRANSACTION');
+          const result = await db.get('SELECT * FROM participant WHERE uid = ?;', payload.user);
+          if (result !== undefined) {
+            debugapi('/api/pin found the user');
+            const correct = await new Promise((accept, reject) =>
+              bcrypt.compare(payload.pin, result.verification_key, (err, result) => {
+                if (err) { reject(err); } else accept(result);
+              }));
+            if (correct) {
+              debugapi('/api/pin pin is correct, so update verification_key to NULL');
+              //we got the expected result so we can reset the verification key and return the usage in the payload (which will determine next step)
+              await db.run('UPDATE participant SET verification_key = NULL WHERE uid = ?', payload.user);
+              debugapi('/api/pin setting up cookie for user',payload.user, ' with usage', payload.usage);
+              res.setHeader('Set-Cookie', generateCookie(
+                { ...result, 
+                  password: !!result.password, 
+                  verification_key: false 
+                } ,payload.usage));
+            }else{
+              debugapi('/api/pin password incorrect, add #linkexpired to return path');
               location = '/#linkexpired';
-            }
-          } catch(e) {
-            /*
-              most likely reason we get here is token had expired.  We want to tell the user politely so we will
-              just set the visit cookie to say the pin expired, and the client can deal with it
-            */ 
-            debugapi(`In /api/reg/${regapi} failed to decode token, add #linkexpired to return path`);
+            }            
+          } else {
+            debugapi('/api/pin user not found, add #linkexpired to return path')
             location = '/#linkexpired';
           }
-          debugapi(`In /api/reg/${regapi} set 302 header for ${location}`);
-          res.statusCode = 302;
-          res.setHeader('Location',location);
-          res.setHeader('Content-Type','text/html');
-          res.end();
-          debugapi('Send end');
-        });
-      }
+          await db.exec('COMMIT');
+          await db.close();
 
+        } catch (e) {
+          /*
+            most likely reason we get here is token had expired.  We want to tell the user politely so we will
+            just set the visit cookie to say the pin expired, and the client can deal with it
+          */
+          debugapi(`In /api/pin failed to decode token, add #linkexpired to return path`);
+          location = '/#linkexpired';
+        }
+        debugapi(`In /api/pin set 302 header for ${location}`);
+        res.statusCode = 302;
+        res.setHeader('Location', location);
+        res.setHeader('Content-Type', 'text/html');
+        res.end();
+        debugapi('/api/pin sent end');
+      });
       /*
          Beyond here, if the user doesn't have the visit cookie set, this is most likely a spoofed attempt, so
          we need to check it.  From a users perspective we will have silently ignored his request, from our perspective
@@ -437,7 +448,7 @@
   if (!module.parent) {
     //running as a script, so call startUp
     debug('Startup as main script');
-    startUp(http, serverDestroy, Router, finalhandler, Responder, logger, dbOpen);
+    startUp(http, serverDestroy, Router, finalhandler, Responder, logger, dbOpen, bcrypt);
     process.on('SIGINT',close);
   }
   module.exports = {

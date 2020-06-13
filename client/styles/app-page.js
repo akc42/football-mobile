@@ -50,17 +50,14 @@ export default  css`
       margin-top: 10px;
     }
     :host {
-      min-width:600px;
+      margin: 40px auto 40px auto;
       height: auto;
-    }
-  }
-  @media (min-width: 501px) {
-    :host {
-
       border-radius: 10px;
       box-shadow: 0px 0px 38px -2px rgba(0, 0, 0, 0.5);
-
+      padding: 20px;
     }
+  }
+
   }
 
 `;

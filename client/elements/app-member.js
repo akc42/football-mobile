@@ -18,6 +18,8 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
+import { classMap } from '../libs/class-map.js';
+import { cache } from '../libs/cache.js';
 
 
 import './fancy-input.js';
@@ -34,13 +36,14 @@ import global from '../modules/globals.js';
 /*
      <app-email-verify>: Collects, Email Address and Verifies against our participant database.
 */
-class AppEmailVerify extends LitElement {
+class AppMember extends LitElement {
   static get styles() {
     return [ button, page];
   }
   static get properties() {
     return {
       email: {type: String},
+      known: {type: Boolean}, //email is already a participant
       reason: {type: String},
       waiting: {type: Boolean},
       step:{type: Number}
@@ -51,6 +54,7 @@ class AppEmailVerify extends LitElement {
     this.email = '';
     this.waiting = false;
     this.step = 1;
+    this.known = false;
   }
   connectedCallback() {
     super.connectedCallback();
@@ -61,7 +65,8 @@ class AppEmailVerify extends LitElement {
     this.keys.disconnect();
   }
   firstUpdated() {
-    this.input = this.shadowRoot.querySelector('#email');
+    this.einput = this.shadowRoot.querySelector('#email');
+    this.rinput = this.shadowRoot.querySelector('#reason');
     this.target = this.shadowRoot.querySelector('#page');
     this.keys = new AppKeys(this.target, 'Enter');
   }
@@ -69,33 +74,55 @@ class AppEmailVerify extends LitElement {
   render() {
     return html`
       <style>
+        h1 {
+          font-size: 1.0em;
+        }
         #email {
           width: var(--email-input-length);
         }
-        p {
-          font-size: 1.3em;
+        p,li {
+          font-size: 1.3rem;
+        }
+        ol {
+          margin-block-start:0.5rem;
+          margin-block-end:0.3rem;
+
+        }
+
+        ol li {
+          padding-inline-start: 0.5rem;
+        }
+        .step {
+          background-color: lemonchiffon;
         }
         @media (max-height: 1300px) {
-          p {
-            font-size:1.3em;
+          p,li {
+            font-size:1.0rem;
           }
+
 
         }
         @media (max-height: 1000px) {
-          p {
-            font-size: 1.0em;
+          p,li {
+            font-size: 0.75rem;
           }
-        }
+          ol {
+            padding-inline-start:20px;
+          }
+         }
 
         @media (max-height: 700px) {
-          p {
-            font-size: 0.9em;
+          p,li {
+            font-size: 0.6rem;
           }
         }
 
         @media (max-height: 600px) {
-          p {
-            font-size: 0.7em;
+          p, li {
+            font-size: 0.5rem;
+          }
+          ol {
+            padding-inline-start:10px;
           }
         }
 
@@ -112,11 +139,11 @@ class AppEmailVerify extends LitElement {
           <li class=${classMap({step: this.step === 1})}><p>We need to verify your email address.  When your enter you e-mail
           address and click on the "Verify Email" button we will send a link to that e-mail address which when you click on it,
           it will bring you back here to conduct step 2.</p>
-
           ${cache(this.step === 1 ? html`
+            <p>If you requested membership by mistake, just click the "Cancel" button and we return you to the previous page.</p>
             <fancy-input
               label="E-Mail"
-              .message=${this.email.length > 0 && this.email.indexOf('@') > 0 ? 'Email Not Known' : 'Required'}
+              .message=${this.known? 'Email aready a member': (this.email.length > 0 && this.email.indexOf('@') > 0 ? 'Email ' : 'Required')}
               autofocus
               autocomplete="off"
               required
@@ -129,6 +156,7 @@ class AppEmailVerify extends LitElement {
             <li class=${classMap({step: this.step === 2})}><p>Membership has to be approved by a member of the membership committee.  In this
             step you enter a reason for becoming a member and click on the Request Approval button.</p>
             ${cache(this.step === 2 ? html`
+              <p>If you wish to cancel your membership request just click on the "Cancel Membership Request" button.  If you need time to think about your request just close the browser for now and you will return here  when you revisit the site.</p>
              <fancy-input
               label="Reason"
               .message=${'Reason Required'}
@@ -141,19 +169,17 @@ class AppEmailVerify extends LitElement {
               .value="${this.reason}"
               @value-changed="${this._reasonChanged}"></fancy-input>` : '')}           
             </li>
-            <li class="${classMap({step: this.step === 3})}"><p>You await a decision by the membership committee.  When approved you will be
-            sent an e-mail telling you have been approved and with another link (which will expires in ${global.verifyExpires} hours of it having
-            been sent).  If, you 
-            received the link but were unable to act upon it with sufficient time, just click the "Resend Link" button.</p></li>
-
+            <li class="${classMap({step: this.step === 3})}"><p>You wait for the membership committee to approve your request.  When approved you will be
+            sent an e-mail telling you have been approved.</p>
+            ${cache(this.step === 3 ? html`<p>This email will contain another link (which will expire in ${global.verifyExpires} hours of it having
+            been sent). If, you received the link but were unable to act upon it with sufficient time, just click the "Resend Link" button.</p>
+            <p>Requesting the link before you have been approved will have no effect, so just close the browser for now and wait.</p>`:'')}</li>
             </ol>
-
-
                   
           ${cache((this.step > 0 && this.step < 4) ? 
             html`<button slot="action" @click=${this._sendData}>${
               this.step === 1 ? 'Verify Email' : (this.step === 2 ? 'Request Approval': 'Resend Link')}</button>`:``)}
-          <button slot="action" cancel @click=${this._cancel}>Cancel</button>
+          <button slot="action" cancel @click=${this._cancel}>Cancel${this.step > 1 ? ' Membership Request':''}</button>
         
       </app-page>
     `;
@@ -161,39 +187,55 @@ class AppEmailVerify extends LitElement {
 
   _cancel(e) {
     e.stopPropagation();
-    if (!this.input.invalid) this.dispatchEvent(new SessionStatus({type:'verify',email:this.email}));
+    if (this.step > 1) {
+      this.dispatchEvent(new SessionStatus({ type: 'cancelmem', email: this.email }));
+    } else {
+      this.dispatchEvent(new SessionStatus({type:'verify',email:this.email}));
+    }
   }
   _emChanged(e) {
     this.email = e.changed;
-    this.pending = false;
+    this.known = false;
   }
   _reasonChanged(e) {
     this.reason = e.changed;
   }
   async _sendData() {
-    if (!this.input.invalid) {
-      this.waiting = true;
-      const response = await api('session/requestpin',{email:this.email});
-      this.waiting = false;
-      if (response.data.found) {
-        const type = response.data.password? (response.data.remember? 'markrem': 'markpass'): 'await';
-        this.dispatchEvent(new SessionStatus({type: type, email: this.email}));
-        this.email = '';
-      } else {
-        this.input.invalid = true;
-      } 
-    } 
+    this.waiting = true;
+    switch (this.step) {
+      case 1:
+          if (!this.einput.invalid) {
+            const data = await api('session/email_verify',{ email: this.email });
+            if (data.known) {
+              this.known = true;
+              this.einput.invalid = true;
+            } else {
+              this.dispatchEvent(new SessionStatus({ type: 'await', email: this.email }));
+            }
+          }
+        break;
+      case 2:
+        if (!this.rinput.invalid) {
+          const data = await api('session/ask_approve',{uid: global.user.uid});
+          if (data) {
+            global.user = data.user;
+            this.dispatchEvent(new SessionStatus({type: 'memberpin',email: data.user.email}));
+          } else {
+            this.dispatchEvent(new SessionStatus({type: 'verify', email: ''}));
+          }
+        }
+        break;
+      case 3:
+        const data = await api('session/new_member_pin', { uid: global.user.uid });
+        if (data) {
+          this.dispatchEvent(new SessionStatus({ type: 'await', email: '' }));
+        }
+        break;
+      default:
+    }
+    this.waiting = false;
+  }
 
-  }
-  async _throwError403(e) {
-    const response = await api('return_403');
-    console.log('403 response =',response);
-  }
-  async _throwError500(e) {
-    const response = await api('return_500');
-    console.log('500 response =', response);
-  }
-  
 
 }
-customElements.define('app-email-verify', AppEmailVerify);
+customElements.define('app-member', AppMember);

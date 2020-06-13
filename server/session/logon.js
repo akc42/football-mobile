@@ -39,18 +39,17 @@
       debug('found the user')
       const user = { ...result, password: !!result.password, verification_key: !!result.verification_key, remember: result.remember !== 0}
 
-      const password = await new Promise((accept, reject) => {
-        bcrypt.hash(params.password,10,(err,result) => {
+      const correct = await new Promise((accept, reject) => 
+        bcrypt.compare(params.password,result.password,(err,result) => {
           if (err) {reject(err);} else accept(result);
-        });
-      }); 
+      })); 
 
       let usage; 
-      if (result.password === password) {
+      if (correct) {
         debug('user password correct for user ', user.uid);
         user.remember = params.remember;
 
-        await db.exec(`UPDATE participant SET last_logon = (strftime('%s','now')), verification_key = NULL, remember = ? WHERE uid = ?`,
+        await db.run(`UPDATE participant SET last_logon = (strftime('%s','now')), verification_key = NULL, remember = ? WHERE uid = ?`,
                   params.remember,user.uid);
         debug('updated user with remember = ', params.remember);
         usage = params.usage;

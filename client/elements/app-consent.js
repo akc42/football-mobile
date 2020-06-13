@@ -62,11 +62,54 @@ class AppConsent extends LitElement {
   render() {
     return html`
       <style>
-        @media (max-width: 400px) {
-          :host {
-            font-size: 0.7em;
+
+        h1 {
+          font-size: 1.0em;
+        }
+        p,li {
+          font-size: 1.3rem;
+        }
+        ol {
+          margin-block-start:0.5rem;
+          margin-block-end:0.3rem;
+
+        }
+
+        ol li {
+          padding-inline-start: 0.5rem;
+        }
+        @media (max-height: 1300px) {
+          p,li {
+            font-size:1.0rem;
+          }
+
+
+        }
+        @media (max-height: 1000px) {
+          p,li {
+            font-size: 0.75rem;
+          }
+          ol {
+            padding-inline-start:20px;
+          }
+         }
+
+        @media (max-height: 700px) {
+          p,li {
+            font-size: 0.6rem;
           }
         }
+
+        @media (max-height: 600px) {
+          p, li {
+            font-size: 0.5rem;
+          }
+          ol {
+            padding-inline-start:10px;
+          }
+        }
+
+
       </style>
       <app-page>
         <h1>Your Privacy</h1>
