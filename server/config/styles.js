@@ -21,46 +21,29 @@
 (function() {
   'use strict';
   const debug = require('debug')('football:api:styles');
-  const dbOpen = require('../utils/database');
+  const db = require('../utils/database');
 
   module.exports = async function() {
     debug('got a styles request');
-    const db = await dbOpen();
-    await db.exec('BEGIN TRANSACTION')
-    const s = await db.prepare('SELECT style FROM styles WHERE name = ?');
-    const {style: app_primary_color} = await s.get('app-primary-color');
-    const {style: app_accent_color} = await s.get('app-accent-color');
-    const {style: app_text_color} = await s.get('app-text-color');
-    const {style: app_reverse_text_color} = await s.get('app-reverse-text-color');
-    const {style: app_header_color} = await s.get('app-header-color');
-    const {style: app_spinner_color} = await s.get('app-spinner-color');
-    const {style: app_button_color} = await s.get('app-button-color');
-    const { style: button_text_color } = await s.get('button-text-color');
-    const {style: app_cancel_button_color} = await s.get('app-cancel-button-color');
-    const { style: cancel_button_text_color } = await s.get('cancel-button-text-color');
-    const {style: primary_color_filter} = await s.get('primary-color-filter');
-    const {style: app_header_size } = await s.get('app-header-size');
-    const { style: default_icon_size} = await s.get('default-icon-size');
-    const { style: email_input_length } = await s.get('email-input-length');
-    await s.finalize();
-    const styles = {
-      app_primary_color:app_primary_color,
-      app_accent_color:app_accent_color,
-      app_text_color:app_text_color,
-      app_reverse_text_color:app_reverse_text_color,
-      app_header_color:app_header_color,
-      app_spinner_color:app_spinner_color,
-      app_button_color:app_button_color,
-      button_text_color: button_text_color,
-      app_cancel_button_color:app_cancel_button_color,
-      cancel_button_text_color: cancel_button_text_color,
-      primary_color_filter:primary_color_filter,
-      app_header_size:app_header_size,
-      default_icon_size: default_icon_size,
-      email_input_length: email_input_length
-    }; 
-    await db.exec('COMMIT');
-    await db.close(); 
+    const styles = {};
+    const s = db.prepare('SELECT style FROM styles WHERE name = ?').pluck();
+    db.transaction(() => {
+      styles.app_primary_color = s.get('app-primary-color');
+      styles.app_accent_color = s.get('app-accent-color');
+      styles.app_text_color = s.get('app-text-color');
+      styles.app_reverse_text_color = s.get('app-reverse-text-color');
+      styles.app_header_color = s.get('app-header-color');
+      styles.app_spinner_color = s.get('app-spinner-color');
+      styles.app_button_color = s.get('app-button-color');
+      styles.button_text_color = s.get('button-text-color');
+      styles.app_cancel_button_color = s.get('app-cancel-button-color');
+      styles.cancel_button_text_color = s.get('cancel-button-text-color');
+      styles.primary_color_filter = s.get('primary-color-filter');
+      styles.app_header_size = s.get('app-header-size');
+      styles.default_icon_size = s.get('default-icon-size');
+      styles.email_input_length = s.get('email-input-length');
+
+    })();
     debug('got styles');
     return styles;
   };

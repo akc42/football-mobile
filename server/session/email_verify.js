@@ -26,93 +26,85 @@
   const mailPromise = Mailer();
   const bcrypt = require('bcrypt');
   const jwt = require('jwt-simple');
-  const dbOpen = require('../utils/database');
+  const db = require('../utils/database');
 
   module.exports = async function(params) {
-    const db = await dbOpen();
-    await db.exec('BEGIN TRANSACTION');
-    debug('see if we already have user in database with email', params.email);
-    const result = await db.get(
-      'SELECT * FROM participant WHERE email = ? ;',
-      params.email
-    );
-    if (result === undefined || (result.waiting_approval !== 0 && !result.reason)) {
-      debug('no participant, or one being approved - result ', result !== undefined);
-      const s = await db.prepare('SELECT value FROM settings WHERE name = ?');
-      const { value: cookieKey } = await s.get('cookie_key');
-      const { value: webmaster } = await s.get('webmaster');
-      const { value: verifyExpires } = await s.get('verify_expires');
-      const { value: siteBaseref } = await s.get('site_baseref');
-      const { value: rateLimit } = await s.get('rate_limit');
-      await s.finalize();
-      let pin;
-      let user;
-      const now = Math.floor((new Date().getTime() / 1000));
+    const mail = await mailPromise;
+    const pin = ('000000' + (Math.floor(Math.random() * 999999)).toString()).slice(-6); //make a new pin 
+    debug('going to use pin', pin);
+    const hashedPin = await bcrypt.hash(pin, 10);
+    let rateLimitExceeded = false;
+    const checkParticipant = db.prepare('SELECT * FROM participant WHERE email = ?');
+    const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
+    const insertParticipant = db.prepare('INSERT INTO Participant (email,waiting_approval,reason) VALUES( ? ,true,NULL)');
+    const updateParticipant = db.prepare('UPDATE participant SET verification_key = ? , verification_sent = ? WHERE uid = ?');
+    let returnValue = {known:false};
+    let user;  
+    db.transaction(()=>{
+      const result = checkParticipant.get(params.email);
+      if (result === undefined || (result.waiting_approval !== 0 && !result.reason)) {
+        debug('no participant, or one being approved - result ', result !== undefined);
 
-      if (result === undefined) {
-        debug('about to create a new participant')
-        const {lastID} = await db.run('INSERT INTO Participant (email,waiting_approval,reason) VALUES( ? ,true,NULL);', params.email);
-        debug('participant id = ', lastID);
-        user = {
-          uid: lastID, password: false, name: '', last_logon: now, email: params.email,
-          global_admin: 0, unlikely: 0, verification_sent: now - (rateLimit * 61), waiting_approval: 1, reason: null, remember: 0
-        };
-      } else {
-        user = { ...result, password: !!result.password, verification_key: !!result.verification_key};
-        debug('found user as uid = ', user.uid);
-      }
-      pin = ('000000' + (Math.floor(Math.random() * 999999)).toString()).slice(-6); //make a new pin 
-      debug('going to use pin', pin);
-      user.verification_key = await new Promise((accept, reject) => {
-        bcrypt.hash(pin, 10, (err, result) => {
-          if (err) { reject(err); } else accept(result);
-        });
-      });
-      
-      
-      //silently do nothing if rateLimit is exceeded
-      debug(
-        'verification_sent rate end @ ', user.verification_sent + (rateLimit * 60),
-        ' rate limit = ', rateLimit,
-        ' now is ', now );
-      if ((user.verification_sent + (rateLimit * 60)) < now) {
-        //not doing this too fast since last time
-        const payload = {
-          exp: new Date().setTime(now + (verifyExpires * 60 * 60)),
-          user: user.uid,
-          pin: pin,
-          usage: 'memberapprove'
+        const cookieKey = s.get('cookie_key');
+        const webmaster = s.get('webmaster');
+        const verifyExpires = s.get('verify_expires');
+        const siteBaseref = s.get('site_baseref');
+        const rateLimit = s.get('rate_limit');
+        
+              
+        const now = Math.floor((new Date().getTime() / 1000));
+
+        if (result === undefined) {
+          debug('about to create a new participant')
+          const { lastInsertRowid } = insertParticipant.run(params.email);    
+          debug('participant id = ', lastID);
+          user = {
+            uid: lastIinsertRowid, password: false, name: '', last_logon: now, email: params.email,
+            global_admin: 0, unlikely: 0, verification_sent: now, waiting_approval: 1, reason: null, remember: 0
+          };
+        } else {
+          user = { ...result, password: !!result.password, verification_key: !!result.verification_key };
+          debug('found user as uid = ', user.uid);
+          rateLimitExceeded = ((user.verification_sent + (rateLimit * 60)) < now);
+          debug(
+            'verification_sent rate end @ ', user.verification_sent + (rateLimit * 60),
+            ' rate limit = ', rateLimit,
+            ' now is ', now,
+            'exceeded', rateLimitExceeded);
         }
-        debug('with user', user.uid,'so about to send pin', pin, 'with expiry in', verifyExpires,'hours');
-        const token = jwt.encode(payload, cookieKey);
-        debug('made token', token);
-        const html = `<h3>Email Verification</h3><p>Someone using your e-mail address has asked to become a member
-        at <a href="${siteBaseref}">${siteBaseref}</a>. The first step of the process is to verify that e-mail address, and that is what
-        this mail is for. If it was not you, you can safely ignore this email but might like to inform 
-        <a href="mailto:${webmaster}">${webmaster}</a> that you were not expecting it.</p>
-        <p>Click on the link <a href="${siteBaseref}/api/pin/${token}">${siteBaseref}/api/reg/pin/${token}</a> confirm that
-        you requested membership and to move on to second step of the process.</p>
-        <p>This link will only work <strong>once</strong>, and it will <strong>not</strong> work after <strong>${verifyExpires} hours</strong> from
-        the time you requested it.</p>
-        <p>Regards</p>`;
-        const mail = await mailPromise;
-        mail.setHtmlBody('Membership Verification', html);
-        debug('set body about to try and send email');
-        await mail.send('Membership Verification', user.email);
-        debug('email send, now update database with verification_key', user.verification_key, 'and uid', user.uid);
-        await db.run(`UPDATE participant SET verification_key = ? , verification_sent = ? WHERE uid = ?`, user.verification_key, now, user.uid);
+        if (!rateLimitExceeded) {
+          //not doing this too fast since last time
+          const payload = {
+            exp: new Date().setTime(now + (verifyExpires * 60 * 60)),
+            user: user.uid,
+            pin: pin,
+            usage: 'memberapprove'
+          }
+          debug('with user', user.uid, 'so about to send pin', pin, 'with expiry in', verifyExpires, 'hours');
+          const token = jwt.encode(payload, cookieKey);
+          debug('made token', token);
+          const html = `<h3>Email Verification</h3><p>Someone using your e-mail address has asked to become a member
+          at <a href="${siteBaseref}">${siteBaseref}</a>. The first step of the process is to verify that e-mail address, and that is what
+          this mail is for. If it was not you, you can safely ignore this email but might like to inform 
+          <a href="mailto:${webmaster}">${webmaster}</a> that you were not expecting it.</p>
+          <p>Click on the link <a href="${siteBaseref}/api/pin/${token}">${siteBaseref}/api/reg/pin/${token}</a> confirm that
+          you requested membership and to move on to second step of the process.</p>
+          <p>This link will only work <strong>once</strong>, and it will <strong>not</strong> work after <strong>${verifyExpires} hours</strong> from
+          the time you requested it.</p>
+          <p>Regards</p>`;
+          mail.setHtmlBody('Membership Verification', html);
+          updateParticipant.run(hashedPin, now, user.uid); //update user with new hashed pin we just sent
+
+        } else {
+          //silently do nothing if rateLimit is exceeded
+          updateParticipant.run(result.verification_key, now, user.uid); //change the time, but just update with the same key as we already had
+        }
       } else {
-        debug('rate limit exceeded, so we silently don\'t send another email, but do update the database');
-        await db.run(`UPDATE participant SET verification_sent = (strftime('%s','now')) WHERE uid = ?`, user.uid);
-      }  
-    
-      await db.exec('COMMIT');
-      await db.close();
-      debug('success');
-      return {known:false};
-    }
-    await db.close();
-    debug('record not found');
-    return {known: true};
+        returnValue = {known: true};
+      } 
+    })();
+    //outside of the transaction, which needs to remain synchronous.
+    if (!rateLimitExceeded) await mail.send('Membership Verification', user.email);
+    return returnValue;
   };
 })();

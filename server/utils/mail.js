@@ -25,7 +25,7 @@
   const logger = require('./logger');
   const cyrb53 = require('./cyrb53');
 
-  const dbOpen = require('./database');
+  const db = require('./database');
 
   const header1 = `<!DOCTYPE html><html style="font-size: 100%; overflow-y:scroll;-webkit-text-size-adjust:100%;
   -ms-text-size-adjust:100%;"><head style><meta charset="utf-8"><title>`;
@@ -72,23 +72,25 @@
     return false;
   }
 
-  const createMailer = async function () {
-
+  const createMailer = function () {
     debug('Constructing a Mailer');
-    const db = await dbOpen();
-    await db.exec('BEGIN TRANSACTION')
-    const s = await db.prepare('SELECT value FROM settings WHERE name = ?');
+    let mailFooter;
+    let mailSiteUrl;
+    let mailWordwrap;
+    let siteLogo;
+    let mailSignature;
+    let mailFrom;
+    
+    const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
+    db.transaction(() =>{
+      mailFooter = s.get('mail_footer');
+      mailSiteUrl = s.get('site_baseref');
+      mailWordwrap = s.get('mail_wordwrap');
+      siteLogo = s.get('site_logo');
+      mailSignature = s.get('mail_signature');
+      mailFrom = s.get('email_from');
+    })();
 
-    const { value: mailFooter } = await s.get('mail_footer');
-    const { value: mailSiteUrl } = await s.get('site_baseref');
-    const { value: mailWordwrap } = await s.get('mail_wordwrap');
-    const { value: siteLogo } = await s.get('site_logo');
-    const { value: mailSignature } = await s.get('mail_signature');
-    const { value: mailFrom } = await s.get('email_from');
-
-    await s.finalize();
-    await db.exec('COMMIT');
-    await db.close();
 
     function resetMaildata() {
       return { attachments: [], from: mailFrom };

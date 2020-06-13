@@ -18,6 +18,8 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+const db = require('../utils/database');
+
 (function() {
   'use strict';
 
@@ -26,22 +28,22 @@
 
   const dbOpen = require('../utils/database');
 
-  module.exports = async function(params) {
+  module.exports = function(params) {
     debug('request received for ', params.uid);
     let result;
-    const db = await dbOpen();
-    await db.exec('BEGIN TRANSACTION');
-    const row = await db.get('SELECT email, waiting_approval FROM participant WHERE uid = ? ;', params.uid);
-    if (row !== undefined && row.waiting_approval ===  1) {
-      await db.run(`UPDATE participant SET reason = ? WHERE uid = ?`, params.reason, params.uid);
-      debug('updated user with reason');
-      result = {user:{uid:params.uid, email: row.email}, usage: 'memberpin'};
-    } else {
-      debug('user not found or not awaiting approval ', params.uid);
-      result = false
-    }
-    await db.exec('COMMIT');
-    await db.close();
+    const checkParticipant = db.prepare('SELECT email, waiting_approval FROM participant WHERE uid = ? ;');
+    const updateParticipant = db.prepare('UPDATE participant SET reason = ? WHERE uid = ?');
+    db.transaction(() => {
+      const row = checkParticipant.get(params.uid);
+      if (row !== undefined && row.waiting_approval === 1) {
+        updateParticipant.run(params.reason,params.uid);
+        debug('updated user with reason');
+        result = { user: { uid: params.uid, email: row.email }, usage: 'memberpin' };
+      } else {
+        debug('user not found or not awaiting approval ', params.uid);
+        result = false
+      }
+    })();
     return result;
   };
 })();

@@ -24,34 +24,26 @@
   const debug = require('debug')('football:api:validate');
 
   const jwt = require('jwt-simple');
-  const dbOpen = require('../utils/database');
-  
-  //set up to produce a promise that is resolved already when the user first calls us
-  async function getCookieInfo() {
-    const db = await dbOpen();
-    await db.exec('BEGIN TRANSACTION');  
-    const s = await db.prepare('SELECT value FROM settings WHERE name = ?');
-    const { value: cookieKey } = await s.get('cookie_key');
-    const { value: cookieName } = await s.get('cookie_name');
-    await s.finalize();
-    await db.exec('COMMIT');
-    await db.close()
-    return {cookieKey:cookieKey,cookieName:cookieName};
-  }
-  const cookiePromise = getCookieInfo();
+  const db = require('../utils/database');
+  let cookieName;
+  let cookieKey;  
+  db.transaction(() => {
+    const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
+    cookieKey = s.get('cookie_key');
+    cookieName = s.get('cookie_name');
+  })(); 
 
-  module.exports = async function(params, headers) {
+  module.exports = function(params, headers) {
     debug('checking cookie');
     const cookies = headers.cookie;
     if (cookies) {
-      const cookieInfo = await cookiePromise; //it should aready be done, avoiding db request every call
-      const mbball = new RegExp(`^(.*; +)?${cookieInfo.cookieName}=([^;]+)(.*)?$`);
+      const mbball = new RegExp(`^(.*; +)?${cookieName}=([^;]+)(.*)?$`);
       const matches = cookies.match(mbball);
       if (matches) {
         debug('Cookie found')
         const token = matches[2];
         try {
-          const payload = jwt.decode(token, cookieInfo.cookieKey);  //this will throw if the cookie is expired
+          const payload = jwt.decode(token, cookieKey);  //this will throw if the cookie is expired
           debug('Success validate');
           return payload;
         } catch(e) {

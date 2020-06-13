@@ -436,7 +436,7 @@ INSERT INTO settings (name,value) VALUES('cookie_key', 'newCookieKey'); --key us
 INSERT INTO settings (name,value) VALUES('cookie_expires', 720); --hours until expire for standard logged on token
 INSERT INTO settings (name,value) VALUES('verify_expires', 24); --hours until expire for verification tokens.
 INSERT INTO settings (name,value) VALUES('rate_limit', 30); --minutes that must elapse by verification emails
-INSERT INTO settings (name,value) VALUES('email_from', 'admin@example.com') --email address that mail comes from (do not reply)
+INSERT INTO settings (name,value) VALUES('email_from', 'admin@example.com'); --email address that mail comes from (do not reply)
 INSERT INTO settings (name,value) VALUES('mail_footer','<p>Some footer html</p>'); --mail footer
 INSERT INTO settings (name,value) VALUES('mail_wordwrap',130); -- word wrap column in html to text conversion
 INSERT INTO settings (name,value) VALUES('mail_signature', '/appimages/signature.png;Name of Signature'); --email signature if starts with a slash is an image url which maybe followed by a semi-colon and then caption, else html

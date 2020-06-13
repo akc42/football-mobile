@@ -23,71 +23,57 @@
 
   const debug = require('debug')('football:api:config');
   const versionPromise = require('../version');
-  const dbOpen = require('../utils/database');
+  const db = require('../utils/database');
 
   module.exports = async function() {
-      const db = await dbOpen();
-      await db.exec('BEGIN TRANSACTION')
-      debug('About to Read Settings Values');
-      const s = await db.prepare('SELECT value FROM settings WHERE name = ?');
-      const { value: dcid } = await s.get('default_competition');
-      const { value: pointsMap } = await s.get('pointsmap');
-      const { value: underdogMap } = await s.get('underdogmap');
-      const { value: playoffMap } = await s.get('playoffmap');
-      const { value: bonusMap } = await s.get('bonusmap');
-      const { value: defaultBonus } = await s.get('defaultbonus');
-      const { value: clientLog } = await s.get('client_log');
-      const { value: clientLogUid } = await s.get('client_log_uid');
-      const { value: cookieName } = await s.get('cookie_name');
-      const { value: cookieVisitName } = await s.get('cookie_visit_name');
-      const { value: mainMenuIcon } = await s.get('main_menu_icon');
-      const { value: webmaster } = await s.get('webmaster');
-      const {value: siteLogo} = await s.get('site_logo');
-      const { value: verifyExpires} = await s.get('verify_expires');
-      const { value: firstTimeMessage } = await s.get(('first_time_message'));
-      await s.finalize();
-      const extras = {};
-      const rowc = await db.get(`SELECT cid, administrator FROM competition ORDER BY cid DESC LIMIT 1`);
-      if (rowc !== undefined) {
-        debug('rowc found ', rowc);
-        extras.lcid = rowc.cid;
-        extras.luid = rowc.administrator;
-      } else {
-        debug('rowc undefined');
-        extras.lcid = 0;
-        extras.luid = 0;
-      }
-      const rowr = await db.get(`SELECT rid FROM round WHERE cid = ? ORDER BY rid DESC LIMIT 1`, dcid);
-      if (rowr !== undefined) {
-        debug('rowr found', rowr);
-        extras.drid = rowr.rid;
-      } else {
-        debug('rowr undefined');
-        extras.drid = 0;
-      }
-      await db.exec('COMMIT');
-      await db.close();
+      const config = {};
+      const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
+      const topc = db.prepare(`SELECT cid, administrator FROM competition ORDER BY cid DESC LIMIT 1`);
+      const rounds = db.prepare(`SELECT rid FROM round WHERE cid = ? ORDER BY rid DESC LIMIT 1`).pluck();
+      db.transaction(() => {
+        debug('About to Read Settings Values');
+        
+        config.dcid = s.get('default_competition');
+        config.pointsMap = s.get('pointsmap');
+        config.underdogMap = s.get('underdogmap');
+        config.playoffMap = s.get('playoffmap');
+        config.bonusMap = s.get('bonusmap');
+        config.defaultBonus = s.get('defaultbonus');
+        config.clientLog = s.get('client_log');
+        config.clientLogUid = s.get('client_log_uid');
+        config.cookieName = s.get('cookie_name');
+        config.cookieVisitName = s.get('cookie_visit_name');
+        config.mainMenuIcon = s.get('main_menu_icon');
+        config.webmaster = s.get('webmaster');
+        config.siteLogo = s.get('site_logo');
+        config.verifyExpires = s.get('verify_expires');
+        config.firstTimeMessage = s.get(('first_time_message'));
+   
+        
+        const rowc = topc.get();
+        if (rowc !== undefined) {
+          debug('rowc found ', rowc);
+          config.lcid = rowc.cid;
+          config.luid = rowc.administrator;
+        } else {
+          debug('rowc undefined');
+          config.lcid = 0;
+          config.luid = 0;
+        }
+        const rowr = rounds.get(config.dcid);
+        if (rowr !== undefined) {
+          debug('rowr found', rowr);
+          config.drid = rowr.rid;
+        } else {
+          debug('rowr undefined');
+          config.drid = 0;
+        }
+
+      })();
+
       const { version, year } = await versionPromise;
-      const config = {
-        dcid:dcid,
-        pointsMap:pointsMap, 
-        underdogMap:underdogMap, 
-        playoffMap: playoffMap, 
-        bonusMap: bonusMap, 
-        defaultBonus: defaultBonus, 
-        clientLog: clientLog, 
-        clientLogUid: clientLogUid,
-        version: version,
-        copyrightYear: year,
-        cookieName: cookieName,
-        cookieVisitName: cookieVisitName,
-        mainMenuIcon: mainMenuIcon,
-        webmaster: webmaster,
-        siteLogo: siteLogo,
-        verifyExpires:verifyExpires,
-        firstTimeMessage: firstTimeMessage,
-        ...extras
-      };
+      config.version = version;
+      config.copyrightYear = year;
       debug('Success config');
       
       return config;

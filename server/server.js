@@ -26,8 +26,9 @@
   const debugapi = require('debug')('football:api');
   const path = require('path');
   require('dotenv').config({path: path.resolve(__dirname,'db-init','football.env')});
+  const db = require('./utils/database'); //this has to come after environment is set up
   
-  const fs = require('fs').promises;
+  const fs = require('fs');
 
   const includeAll = require('include-all');
   const bodyParser = require('body-parser');
@@ -40,12 +41,11 @@
   const logger = require('./utils/logger');
   const Responder = require('./utils/responder');
   const versionPromise = require('./version');
-  const dbOpen = require('./utils/database');
+  
   const bcrypt = require('bcrypt');
 
-
+  const serverConfig = {};
   
-  const cookieConfig = {};
 
 
   function loadServers(webdir, relPath) {
@@ -75,78 +75,69 @@
 
   function generateCookie(user, usage) {
     const date = new Date();
-    const type = usage || 'play';
     const expiry = user.remember !== 0;
-    if (type !== 'logoff') {
-      date.setTime(date.getTime() + (cookieConfig.cookieExpires * 60 * 60 * 1000));
+    if (usage !== 'logoff') {
+      date.setTime(date.getTime() + (serverConfig.cookieExpires * 60 * 60 * 1000));
       const payload = {
         exp: Math.round(date.getTime()/1000),
         user: user,
-        usage: type
+        usage: usage
       };
-      debug('generated cookie', cookieConfig.cookieName ,'for uid ', user.uid, ' expires ', expiry ? date.toGMTString() : 0);
-      return `${cookieConfig.cookieName}=${jwt.encode(payload, cookieConfig.cookieKey)}; expires=${expiry ? date.toGMTString(): 0}; Path=/`;
+      debug('generated cookie', serverConfig.cookieName ,'for uid ', user.uid, ' expires ', expiry ? date.toGMTString() : 0);
+      return `${serverConfig.cookieName}=${jwt.encode(payload, serverConfig.cookieKey)}; expires=${expiry ? date.toGMTString(): 0}; Path=/`;
     } else {
-      return `${cookieConfig.cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
+      return `${serverConfig.cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
     }
 
   }
 
   let server;
-  let db;
 
-  async function startUp (http, serverDestroy,Router, finalhandler, Responder, logger, dbOpen, bcrypt) {
+  function startUp (http, serverDestroy,Router, finalhandler, Responder, logger, db, bcrypt) {
     try {
       /*
         start off a process to find the version of the app, and the copyright year
       */
 
       //try and open the database, so that we can see if it us upto date
-      db = await dbOpen();
-      const { value: dbversion } = await db.get('SELECT value FROM settings WHERE name = "version"');
-      const footVersion = parseInt(process.env.FOOTBALL_DB_VERSION,10);
-      debug('database is at version ', dbversion, ' we require ', footVersion);
-      if (dbversion !== footVersion) {
-        if (dbversion > footVersion) throw new Error('Setting Version in Database too high');
-        await db.exec('PRAGMA foreign_keys = OFF;')
-        await db.exec('BEGIN EXCLUSIVE');
- 
-        for(let i = dbversion; i < footVersion; i++) {
-          const update = await fs.readFile(
-            path.resolve(process.env.FOOTBALL_DB_DIR,`update_${i}.sql`), 
-            { encoding: 'utf8' }
-          );
-          debug('About to update database from version ',i);
-          await db.exec(update);
-        }
-        debug('Completed Updates');
-        await db.exec('COMMIT');
+      const version = db.prepare(`SELECT value FROM settings WHERE name = 'version'`).pluck();
+      const dbVersion = version.get();
 
-        await db.exec('VACUUM');
-        await db.exec('PRAGMA foreign_keys = ON;')
+      const footVersion = parseInt(process.env.FOOTBALL_DB_VERSION,10);
+      debug('database is at version ', dbVersion, ' we require ', footVersion);
+      if (dbVersion !== footVersion) {
+        if (dbVersion > footVersion) throw new Error('Setting Version in Database too high');
+        db.pragma('foreign_keys = OFF');
+        const upgradeVersions = db.transaction(() => {
+          for (let version = dbVersion; version < footVersion; version++) {
+            const update = fs.readFileSync(path.resolve(process.env.FOOTBALL_DB_DIR, `update_${version}.sql`),{ encoding: 'utf8' });
+            db.exec(update);
+          }
+        });
+        upgradeVersions.exclusive();
+        db.exec('VACUUM');
+        db.pragma('foreign_keys = ON');
+        
         debug('Committed Updates, ready to go')
       }
-      await db.exec('BEGIN TRANSACTION');
       /*
         just a little helper, to clear out expired verification keys.  In production we would expect restarts to be infrequent
         but in a cron job, we could just tell pm2 to restart it once a month or something
       */
-      await db.exec(`UPDATE Participant SET verification_key = NULL WHERE verification_key IS NOT NULL
+
+      db.transaction(() => {
+        const clearkeys = db.prepare(`UPDATE Participant SET verification_key = NULL WHERE verification_key IS NOT NULL
         AND verification_sent < (strftime('%s', 'now') - ( 60 * 60 * (
         SELECT value FROM Settings WHERE name = 'verify_expires' )));`);
+        const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
+        clearkeys.run();
+        serverConfig.serverPort = s.get('server_port');
+        serverConfig.cookieName = s.get('cookie_name');
+        serverConfig.cookieKey = s.get('cookie_key');
+        serverConfig.cookieExpires = s.get('cookie_expires');
+        serverConfig.cookieVisitName = s.get('cookie_visit_name');
+      })();
 
-      const s = await db.prepare('SELECT value FROM settings WHERE name = ?');
-      const { value: serverPort } = await s.get('server_port');
-      const { value: cookieName } = await s.get('cookie_name');
-      const { value: cookieKey } = await s.get('cookie_key');
-      const { value: cookieExpires } = await s.get('cookie_expires');
-      const { value: cookieVisitName } = await s.get('cookie_visit_name');
-      await s.finalize();
-      await db.exec('COMMIT');
-      await db.close();
-      cookieConfig.cookieName = cookieName;
-      cookieConfig.cookieKey = cookieKey;
-      cookieConfig.cookieExpires = cookieExpires;
 
       const routerOpts = {mergeParams: true};
       const router = Router(routerOpts);  //create a router
@@ -164,8 +155,10 @@
      debug('setup delete visit cookie helper')
       api.get('/delete_cookie', (req,res) => {
         debugapi('Received Delete Cookie request')
-        const cookie = `${cookieVisitName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
+        const cookie = `${serverConfig.cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
+        const vcookie = `${serverConfig.cookieVisitName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
         res.setHeader('Set-cookie', cookie);
+        res.setHeader('Set-cookie', vcookie);
         res.end('DONE');
       });
 
@@ -175,7 +168,7 @@
         /api/config/xxxx
 
       */
-     debug('setting up config apis');
+      debug('setting up config apis');
       api.use('/config/', conf);
       
       const confs = loadServers(__dirname, 'config');
@@ -197,42 +190,41 @@
         will generate a cookie based on the usage field.  
       */
       debug('Setting up Pin check api')
-      api.get('/pin/:token', async (req,res) => {
+      api.get('/pin/:token', (req,res) => {
         debugapi(`Received /api/pin/ request`);
         let location = '/';
         try {
           const payload = jwt.decode(req.params.token, cookieKey);
           debugapi('/api/pin payload uid', payload.user, 'pin', payload.pin);
-          const db = await dbOpen();
-          await db.exec('BEGIN TRANSACTION');
-          const result = await db.get('SELECT * FROM participant WHERE uid = ?;', payload.user);
-          if (result !== undefined) {
-            debugapi('/api/pin found the user');
-            const correct = await new Promise((accept, reject) =>
-              bcrypt.compare(payload.pin, result.verification_key, (err, result) => {
-                if (err) { reject(err); } else accept(result);
-              }));
-            if (correct) {
-              debugapi('/api/pin pin is correct, so update verification_key to NULL');
-              //we got the expected result so we can reset the verification key and return the usage in the payload (which will determine next step)
-              await db.run('UPDATE participant SET verification_key = NULL WHERE uid = ?', payload.user);
-              debugapi('/api/pin setting up cookie for user',payload.user, ' with usage', payload.usage);
-              res.setHeader('Set-Cookie', generateCookie(
-                { ...result, 
-                  password: !!result.password, 
-                  verification_key: false 
-                } ,payload.usage));
-            }else{
-              debugapi('/api/pin password incorrect, add #linkexpired to return path');
-              location = '/#linkexpired';
-            }            
-          } else {
-            debugapi('/api/pin user not found, add #linkexpired to return path')
-            location = '/#linkexpired';
-          }
-          await db.exec('COMMIT');
-          await db.close();
 
+          db.transaction(()=>{
+            result = db.prepare('SELECT * FROM participant WHERE uid = ?').run(payload.user);
+            if (result !== undefined) {
+              debugapi('/api/pin found the user');
+              bcrypt.compare(payload.pin, result.verification_key, (err, correct) => {
+                if (err) throw new Error('bcryptError');
+                if (correct) {
+                  debugapi('/api/pin pin is correct, so update verification_key to NULL');
+                  //we got the expected result so we can reset the verification key and return the usage in the payload (which will determine next step)
+                  db.prepare('UPDATE participant SET verification_key = NULL WHERE uid = ?').run(payload.user);
+                  debugapi('/api/pin setting up cookie for user', payload.user, ' with usage', payload.usage);
+                  res.setHeader('Set-Cookie', generateCookie(
+                    {
+                      ...result,
+                      password: !!result.password,
+                      verification_key: false
+                    }, payload.usage));
+                } else {
+                  debugapi('/api/pin password incorrect, add #linkexpired to return path');
+                  location = '/#linkexpired';
+                }
+
+              });
+            } else {
+              debugapi('/api/pin user not found, add #linkexpired to return path')
+              location = '/#linkexpired';
+            }
+          })();
         } catch (e) {
           /*
             most likely reason we get here is token had expired.  We want to tell the user politely so we will
@@ -290,10 +282,10 @@
       //this defines our routes - we require everything to be a post
       for (const session in sessions) {
         debugapi(`Setting up /api/session/${session} route`);
-        ses.post(`/${session}`, async (req, res) => {
+        ses.post(`/${session}`, (req, res) => {
           debugapi(`Received /api/session/${session} request`);
           try {
-            const data = await sessions[session](req.body, req.headers);
+            const data = sessions[session](req.body, req.headers);
             if(data.usage!== undefined) {
               res.setHeader('Set-Cookie', generateCookie(data.user,data.usage)); //get ourselves a cookie
             }
@@ -342,11 +334,11 @@
       const apis = loadServers(__dirname, 'admin');
       for (const adm in apis) {
         debugapi(`Setting up /api/${adm} route`);
-        api.post(`/${adm}`, async (req,res) => {
+        api.post(`/${adm}`, (req,res) => {
           debugapi(`Received /api/${adm} request`);
           try {
             const responder = new Responder(res);
-            await apis[adm](req.user,req.body,responder);
+            apis[adm](req.user,req.body,responder);
             responder.end();            
           } catch(e) {
             errored(req,res,e.toString());
@@ -377,11 +369,11 @@
       const cidrids = loadServers(__dirname, 'cidrid');
       for (const c in cids) {
         debugapi(`Setting up /api/:cid/${c} route`);
-        cid.post(`/${c}`, async (req, res) => {
+        cid.post(`/${c}`, (req, res) => {
           debugapi(`Received /api/:cid/${c} request, cid=`,req.params.cid);
           try {
             const responder = new Responder(res);
-            await cids[c](req.user, req.params.cid, req.body, responder);
+            cids[c](req.user, req.params.cid, req.body, responder);
             responder.end(); 
           } catch (e) {
             errored(req,res,e.toString());
@@ -390,11 +382,11 @@
       }
       for (const r in cidrids) {
         debugapi(`Setting up /api/:cid/:rid/${r} route`);
-        cidrid.post(`/${r}`, async (req, res) => {
+        cidrid.post(`/${r}`, (req, res) => {
           debugapi(`Received /api/:cid/:rid/${r} request, cid= ${req.params.cid} rid= ${req.params.rid}`);
           try {
             const responder = new Responder(res);
-            await cidrids[r](req.user, req.params.cid, req.params.rid, req.body, responder);
+            cidrids[r](req.user, req.params.cid, req.params.rid, req.body, responder);
             responder.end();
           } catch (e) {
             errored(req,res,e.toString());
@@ -411,16 +403,18 @@
         router(req,res,done);
         
       });
-      server.listen(serverPort, '0.0.0.0');
+      server.listen(serverConfig.serverPort, '0.0.0.0');
       serverDestroy(server);
-      const {version} = await versionPromise;
-      logger('app', `Release ${version} of Football Web Server Operational on Port:${serverPort} using node ${process.version}`);
+      versionPromise.then(info => 
+        logger('app', `Release ${info.version} of Football Web Server Operational on Port:${
+            serverConfig.serverPort} using node ${process.version}`));
+
     } catch(e) {
       logger('error', 'Initialisation Failed with error ' + e.toString());
-      await close();
+      close();
     }
   }
-  async function close() {
+  function close() {
   // My process has received a SIGINT signal
 
     if (server) {
@@ -435,20 +429,12 @@
         logger('error', `Trying to close caused error:${err}`);
       }
     }
-    if (db) {
-      try {
-        await db.close();
-      } catch(e) {
-        //do nothing - it probably wasn't open
-      }
-      db = null;
-    }
-    process.exit(0);
+    process.exit(0);  //database catches this and closed automatically
   }
   if (!module.parent) {
     //running as a script, so call startUp
     debug('Startup as main script');
-    startUp(http, serverDestroy, Router, finalhandler, Responder, logger, dbOpen, bcrypt);
+    startUp(http, serverDestroy, Router, finalhandler, Responder, logger, db, bcrypt);
     process.on('SIGINT',close);
   }
   module.exports = {

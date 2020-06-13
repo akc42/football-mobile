@@ -22,12 +22,10 @@
   'use strict';
 
   const debug = require('debug')('football:api:dcid');
-  const dbOpen = require('../utils/database');
+  const db = require('../utils/database');
   
-  module.exports = async function(user, cid, params, responder) {
-    const db = await dbOpen();
-    await db.exec(`UPDATE settings SET value = ? WHERE name = 'default_competition';`,cid);
-    await db.close();
+  module.exports = function(user, cid, params, responder) {
+    db.prepare(`UPDATE settings SET value = ? WHERE name = 'default_competition';`).run(cid);
     responder.addSection('dcid',cid);
     debug('Success dcid');
   };
