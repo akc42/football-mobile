@@ -48,9 +48,9 @@
   
 
 
-  function loadServers(webdir, relPath) {
+  function loadServers(rootdir, relPath) {
     return includeAll({
-      dirname: path.resolve(webdir, relPath),
+      dirname: path.resolve(rootdir, relPath),
       filter: /(.+)\.js$/
     }) || {};
   }
@@ -362,6 +362,19 @@
       cid.use('/:rid/', cidrid);
       const cids = loadServers(__dirname, 'cid');
       const cidrids = loadServers(__dirname, 'cidrid');
+      for (const r in cidrids) {
+        debugapi(`Setting up /api/:cid/:rid/${r} route`);
+        cidrid.post(`/${r}`, (req, res) => {
+          debugapi(`Received /api/:cid/:rid/${r} request, cid= ${req.params.cid} rid= ${req.params.rid}`);
+          try {
+            const responder = new Responder(res);
+            cidrids[r](req.user, req.params.cid, req.params.rid, req.body, responder);
+            responder.end();
+          } catch (e) {
+            errored(req, res, e.toString());
+          }
+        })
+      }
       for (const c in cids) {
         debugapi(`Setting up /api/:cid/${c} route`);
         cid.post(`/${c}`, (req, res) => {
@@ -374,19 +387,6 @@
             errored(req,res,e.toString());
           } 
         }); 
-      }
-      for (const r in cidrids) {
-        debugapi(`Setting up /api/:cid/:rid/${r} route`);
-        cidrid.post(`/${r}`, (req, res) => {
-          debugapi(`Received /api/:cid/:rid/${r} request, cid= ${req.params.cid} rid= ${req.params.rid}`);
-          try {
-            const responder = new Responder(res);
-            cidrids[r](req.user, req.params.cid, req.params.rid, req.body, responder);
-            responder.end();
-          } catch (e) {
-            errored(req,res,e.toString());
-          }
-        })
       }
       debug('Creating Web Server');
       server = http.createServer((req,res) => {
