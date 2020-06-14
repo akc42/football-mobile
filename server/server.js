@@ -154,11 +154,10 @@
       */
      debug('setup delete visit cookie helper')
       api.get('/delete_cookie', (req,res) => {
-        debugapi('Received Delete Cookie request')
+        debugapi('Received Delete Cookie request with names as ', serverConfig.cookieName, ' and ', serverConfig.cookieVisitName);
         const cookie = `${serverConfig.cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
         const vcookie = `${serverConfig.cookieVisitName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
-        res.setHeader('Set-cookie', cookie);
-        res.setHeader('Set-cookie', vcookie);
+        res.setHeader('Set-cookie', [cookie, vcookie]);
         res.end('DONE');
       });
 
@@ -190,47 +189,43 @@
         will generate a cookie based on the usage field.  
       */
       debug('Setting up Pin check api')
-      api.get('/pin/:token', (req,res) => {
-        debugapi(`Received /api/pin/ request`);
+      api.get('/pin/:token', async (req,res) => {
+        debugapi(`Received /api/pin/ request with token`, req.params.token, 'to be decoded by ', serverConfig.cookieKey);;
         let location = '/';
         try {
-          const payload = jwt.decode(req.params.token, cookieKey);
+          const payload = jwt.decode(req.params.token, serverConfig.cookieKey);
           debugapi('/api/pin payload uid', payload.user, 'pin', payload.pin);
-
-          db.transaction(()=>{
-            result = db.prepare('SELECT * FROM participant WHERE uid = ?').run(payload.user);
-            if (result !== undefined) {
-              debugapi('/api/pin found the user');
-              bcrypt.compare(payload.pin, result.verification_key, (err, correct) => {
-                if (err) throw new Error('bcryptError');
-                if (correct) {
-                  debugapi('/api/pin pin is correct, so update verification_key to NULL');
-                  //we got the expected result so we can reset the verification key and return the usage in the payload (which will determine next step)
-                  db.prepare('UPDATE participant SET verification_key = NULL WHERE uid = ?').run(payload.user);
-                  debugapi('/api/pin setting up cookie for user', payload.user, ' with usage', payload.usage);
-                  res.setHeader('Set-Cookie', generateCookie(
-                    {
-                      ...result,
-                      password: !!result.password,
-                      verification_key: false
-                    }, payload.usage));
-                } else {
-                  debugapi('/api/pin password incorrect, add #linkexpired to return path');
-                  location = '/#linkexpired';
-                }
-
-              });
+          const result = db.prepare('SELECT * FROM participant WHERE uid = ?').get(payload.user);
+          if (result !== undefined) {
+            debugapi('/api/pin found the user');
+            const correct = await bcrypt.compare(payload.pin, result.verification_key);
+            if (correct) {
+              debugapi('/api/pin pin is correct, so update verification_key to NULL');
+              //we got the expected result so we can reset the verification key and return the usage in the payload (which will determine next step)
+              db.prepare('UPDATE participant SET verification_key = NULL WHERE uid = ?').run(payload.user);
+              debugapi('/api/pin setting up cookie for user', payload.user, ' with usage', payload.usage);
+              res.setHeader('Set-Cookie', generateCookie(
+                {
+                  ...result,
+                  password: !!result.password,
+                  verification_key: false,
+                  remember: 0, //force a session cookie, so the cookie doesn't persist.
+                }, payload.usage));
             } else {
-              debugapi('/api/pin user not found, add #linkexpired to return path')
+              debugapi('/api/pin password incorrect, add #linkexpired to return path');
               location = '/#linkexpired';
             }
-          })();
+          } else {
+            debugapi('/api/pin user not found, add #linkexpired to return path')
+            location = '/#linkexpired';
+          }
+      
         } catch (e) {
           /*
             most likely reason we get here is token had expired.  We want to tell the user politely so we will
             just set the visit cookie to say the pin expired, and the client can deal with it
           */
-          debugapi(`In /api/pin failed to decode token, add #linkexpired to return path`);
+          debugapi('In /api/pin failed with error',e.toString());
           location = '/#linkexpired';
         }
         debugapi(`In /api/pin set 302 header for ${location}`);
@@ -253,7 +248,7 @@
         if (!cookies) {
           forbidden(req,res,'No cookies in request');
         } else {
-          const mbvisited = new RegExp(`^(.*; +)?${cookieVisitName}=([^;]+)(.*)?$`);
+          const mbvisited = new RegExp(`^(.*; +)?${serverConfig.cookieVisitName}=([^;]+)(.*)?$`);
           const matches = cookies.match(mbvisited);
           if (matches) {
             debugapi('Visit Cookie found');
@@ -282,10 +277,10 @@
       //this defines our routes - we require everything to be a post
       for (const session in sessions) {
         debugapi(`Setting up /api/session/${session} route`);
-        ses.post(`/${session}`, (req, res) => {
+        ses.post(`/${session}`, async (req, res) => {
           debugapi(`Received /api/session/${session} request`);
           try {
-            const data = sessions[session](req.body, req.headers);
+            const data = await sessions[session](req.body, req.headers);
             if(data.usage!== undefined) {
               res.setHeader('Set-Cookie', generateCookie(data.user,data.usage)); //get ourselves a cookie
             }
@@ -351,7 +346,7 @@
       debug('Set up to check cookie usage');
       api.use((req, res, next) => {
         debugapi('checking cookie usage')
-        if (req.usage === 'play') {
+        if (req.usage === 'authorised') {
           next();
         } else {
           forbidden(req, res, `Incorrect Usage in Cookie of ${req.usage}`);

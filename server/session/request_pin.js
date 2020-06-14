@@ -34,7 +34,7 @@
     debug('going to use pin', pin);
     const hashedPin = await bcrypt.hash(pin, 10);
     let rateLimitExceeded = false;
-    const checkParticipant = db.prepare('SELECT * FROM participant WHERE uid = ?');
+    const checkParticipant = db.prepare('SELECT * FROM participant WHERE email = ?');
     const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
 
     const updateParticipant = db.prepare(`UPDATE participant SET verification_key = ?, verification_sent = (strftime('%s','now')) WHERE uid = ?`);
@@ -55,11 +55,12 @@
 
         user = { ...result, password: !!result.password, verification_key: !!result.verification_key };
         debug('found user as uid = ', user.uid);
-        rateLimitExceeded = ((user.verification_sent + (rateLimit * 60)) < now);
+        rateLimitExceeded = (user.verification_key && (user.verification_sent + (rateLimit * 60)) > now);
         debug(
           'verification_sent rate end @ ', user.verification_sent + (rateLimit * 60),
-          ' rate limit = ', rateLimit,
-          ' now is ', now,
+          'rate limit = ', rateLimit,
+          'now is', now,
+          'verification_key', user.verification_key,
           'exceeded', rateLimitExceeded);
 
         if (!rateLimitExceeded) {
@@ -82,11 +83,11 @@
           the time you requested it.</p>
           <p>Regards</p>`;        
           mail.setHtmlBody('Temporary Password', html);
-          updateParticipant.run(hashedPin, now, user.uid); //update user with new hashed pin we just sent
+          updateParticipant.run(hashedPin, user.uid); //update user with new hashed pin we just sent
 
         } else {
           //silently do nothing if rateLimit is exceeded
-          updateParticipant.run(result.verification_key, now, user.uid); //change the time, but just update with the same key as we already had
+          updateParticipant.run(result.verification_key, user.uid); //change the time, but just update with the same key as we already had
         }
         returnValue = { found: true, password: user.password, remember: user.remember };
       }

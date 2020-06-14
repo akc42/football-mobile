@@ -33,6 +33,15 @@ export class AppPages extends PageManager {
   static get styles() {
     return [page];
   }
+  static get properties() {
+    return {
+      name: { type: String },
+      email: { type: String },
+      password: { type: String },
+      replica: { type: String },
+      remember: { type: Boolean }
+    };
+  }
 
 
   constructor() {
@@ -60,6 +69,7 @@ export class AppPages extends PageManager {
 
   render() {
     return html`
+      <app-waiting ?waiting=${this.waiting}></app-waiting>
       ${cache('picks:playoff:newround'.indexOf(this.page) >= 0 ? html`
         <fm-comment-dialog></fm-comment-dialog>
       ` : '')}
@@ -71,8 +81,9 @@ export class AppPages extends PageManager {
         home: html`<fm-summary 
           managed-page
           .route=${this.subRoute}>Summary Loading ...</fm-summary>`,
-        editprofile: html`<fm-profile
-          managed-page>Profile Loading ...</fm-profile>`
+        profile: html`<app-profile
+          managed-page
+          .route=${this.subRoute}>Profile Loading ...</app-profile>`
       }[this.page])}
       </section>
     `;
@@ -82,8 +93,8 @@ export class AppPages extends PageManager {
   }
   loadPage(page) {
     switch (page) {
-      case 'editprofile':
-        import('./fm-profile.js');
+      case 'profile':
+        import('./app-profile.js');
         break;
     }
   }

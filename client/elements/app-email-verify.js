@@ -145,7 +145,7 @@ class AppEmailVerify extends LitElement {
       const data = await api('session/request_pin',{email:this.email});
       this.waiting = false;
       if (data.found) {
-        const type = data.password? (data.remember? 'markrem': 'markpass'): 'await';
+        const type = data.password? (data.remember == 1? 'markrem': 'markpass'): 'await';
         this.dispatchEvent(new SessionStatus({type: type, email: this.email}));
         this.email = '';
       } else {

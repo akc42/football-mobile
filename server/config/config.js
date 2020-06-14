@@ -47,7 +47,8 @@
         config.webmaster = s.get('webmaster');
         config.siteLogo = s.get('site_logo');
         config.verifyExpires = s.get('verify_expires');
-        config.firstTimeMessage = s.get(('first_time_message'));
+        config.firstTimeMessage = s.get('first_time_message');
+        config.minPassLen = s.get('min_pass_len');
    
         
         const rowc = topc.get();

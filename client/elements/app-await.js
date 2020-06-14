@@ -53,8 +53,8 @@ class AppAwait extends LitElement {
       <app-page>
         <h1>Please Check Your Email</h1>
         <section class="intro">
-          <p>You have been sent an email (to ${this.email}) which contains a link.  This link is a special one, in that once used
-          it cannot be used again.  Also, as added protection, it has to be used within ${global.verifyExpires} hours from when it was
+          <p>You have been sent an email (to ${this.email}) which contains a link.  This link is a special one, in that it cannot 
+          be used more than once.  Also, as added protection, it has to be used within ${global.verifyExpires} hours from when it was
           requested.</p>
           <p>If you do not receive it, or are unable to use it within the alotted time, just request another one using the same
           mechanism that you used last time.  Be aware that only the last link sent will work</p>

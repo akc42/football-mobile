@@ -24,6 +24,7 @@ import api from '../modules/api.js';
 import global from '../modules/globals.js';
 import { AuthChanged, ApiError } from '../modules/events.js';
 import Debug from '../modules/debug.js';
+import {switchPath} from '../modules/utils.js;'
 
 
 const debug = Debug('session');
@@ -149,7 +150,10 @@ class AppSession extends LitElement {
           document.cookie = `${this.cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
           this.state = 'consent';
           break;
-        case 'member':
+        case 'logonrem':
+        case 'logon':
+          import('./app-logon.js').then(this.waiting = false);
+          break;        case 'member':
         case 'memberapprove':
         case 'memberpin':
           import ('./app-member.js').then(this.waiting=false);
@@ -158,11 +162,9 @@ class AppSession extends LitElement {
           this._makeVisitCookie('logon'); //we discovered this user has a password, so next visit he should log on.
           this.state = 'await';
           break;
-        case 'pinpassrem':
-        case 'pinpass':
-        case 'logonrem':
-        case 'logon':
-          import('./app-logon.js').then(this.waiting = false);
+        case 'profile':
+          this.auth = true;
+          switchPath('/profile');
           break;
         case 'requestpin':
           import('./app-request-pin.js').then(this.waiting = false);
@@ -195,8 +197,6 @@ class AppSession extends LitElement {
           member: html`<app-member .step=${1} .email=${this.email} @session-status=${this._processEmail}></app-member>`,
           memberapprove: html`<app-member .step=${2} @session-status=${this._processEmail}></app-member>`,
           memberpin: html`<app-member .step=${3} @session-status=${this._processEmail}></app-member>`,
-          pinpass: html`<app-logon .email=${this.email} profile ></app-logon>`,
-          pinpassrem: html`<app-logon remember .email=${this.email} profile ></app-logon>`,
           requestpin: html`<app-request-pin @session-status=${this._processEmail}></app-request-pin>`,
           cancelmem: html`<app-cancel-mem @session-status=${this._processEmail}></app-cancel-mem>`
         }[this.state])}

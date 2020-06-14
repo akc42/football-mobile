@@ -55,11 +55,12 @@
 
         user = { ...result, password: !!result.password, verification_key: !!result.verification_key };
         debug('found user as uid = ', user.uid);
-        rateLimitExceeded = ((user.verification_sent + (rateLimit * 60)) < now);
+        rateLimitExceeded = (user.verification_key && (user.verification_sent + (rateLimit * 60)) > now);
         debug(
-          'verification_sent rate end @ ', user.verification_sent + (rateLimit * 60),
-          ' rate limit = ', rateLimit,
-          ' now is ', now,
+          'verification_sent rate end @', user.verification_sent + (rateLimit * 60),
+          'rate limit =', rateLimit,
+          'now is', now,
+          'verification_key', user.verification_key,
           'exceeded', rateLimitExceeded);
   
         if (!rateLimitExceeded) {

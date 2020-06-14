@@ -57,15 +57,15 @@
         if (result === undefined) {
           debug('about to create a new participant')
           const { lastInsertRowid } = insertParticipant.run(params.email);    
-          debug('participant id = ', lastID);
+          debug('participant id = ', lastInsertRowid);
           user = {
-            uid: lastIinsertRowid, password: false, name: '', last_logon: now, email: params.email,
+            uid: lastInsertRowid, password: false, name: '', last_logon: now, email: params.email,
             global_admin: 0, unlikely: 0, verification_sent: now, waiting_approval: 1, reason: null, remember: 0
           };
         } else {
           user = { ...result, password: !!result.password, verification_key: !!result.verification_key };
           debug('found user as uid = ', user.uid);
-          rateLimitExceeded = ((user.verification_sent + (rateLimit * 60)) < now);
+          rateLimitExceeded = ((user.verification_sent + (rateLimit * 60)) > now);
           debug(
             'verification_sent rate end @ ', user.verification_sent + (rateLimit * 60),
             ' rate limit = ', rateLimit,
@@ -80,7 +80,7 @@
             pin: pin,
             usage: 'memberapprove'
           }
-          debug('with user', user.uid, 'so about to send pin', pin, 'with expiry in', verifyExpires, 'hours');
+          debug('with user', user.uid, 'so about to send pin', pin, 'with expiry in', verifyExpires, 'hours; encoded with key', cookieKey);
           const token = jwt.encode(payload, cookieKey);
           debug('made token', token);
           const html = `<h3>Email Verification</h3><p>Someone using your e-mail address has asked to become a member

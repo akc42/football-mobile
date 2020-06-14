@@ -109,7 +109,7 @@ class MainApp extends LitElement {
         });
         if (this.cid !== 0) {
           //we have a specific competition set, so get its rounds
-          api(`${cid}/fetch_rounds`).then(response => {
+          api('admin/fetch_rounds', { cid: this.cid }).then(response => {
             this.rounds = response.rounds;
             this.lastRoundTime = response.timestamp;
           });
@@ -120,7 +120,7 @@ class MainApp extends LitElement {
       }
     } else if (changed.has('cid') && this.authorised && this.cid !== 0) {
       //we have a specific competition set, so get its rounds
-      api(`${cid}/fetch_rounds`).then(response => {
+      api('admin/fetch_rounds',{cid: this.cid}).then(response => {
         this.rounds = response.rounds;
         this.lastRoundTime = response.timestamp;
       });

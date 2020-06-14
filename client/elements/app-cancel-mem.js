@@ -28,7 +28,7 @@ import { SessionStatus } from '../modules/events.js';
 import api from '../modules/api.js';
 import './app-waiting.js';
 import AppKeys from '../modules/keys.js';
-
+import global from '../modules/globals.js';
 
 
 
@@ -65,6 +65,10 @@ class AppCancelMem extends LitElement {
     this.keys.disconnect();
     document.body.removeEventListener('key-pressed', this._keyPressed);
   }
+  firstUpdated() {
+    this.input = this.shadowRoot.querySelector('#email');
+  }
+
   render() {
     return html`
       <style>
@@ -114,7 +118,7 @@ class AppCancelMem extends LitElement {
           the consent process again if you wish to re-apply</p> 
           <fancy-input
             label="E-Mail"
-            .message=${'Required'}
+            .message=${this.email.length > 0? 'Email Unknown':'Required'}
             autofocus
             autocomplete="off"
             required
@@ -153,9 +157,13 @@ class AppCancelMem extends LitElement {
       this.waiting = true;
       const response = await api('session/cancel_membership_process',{email:this.email});
       this.waiting = false;
-      document.cookie = `${global.cookieVisitName}=; expires = Thu, 01 Jan 1970 00:00:00 GMT"; Path=/`; 
-      document.cookie = `${global.cookieName}=; expires = Thu, 01 Jan 1970 00:00:00 GMT"; Path=/`; 
-      this.dispatchEvent(new SessionStatus({ type: 'cancel' }));
+      if (response.found) {
+        document.cookie = `${global.cookieVisitName}=; expires = Thu, 01 Jan 1970 00:00:00 GMT"; Path=/`; 
+        document.cookie = `${global.cookieName}=; expires = Thu, 01 Jan 1970 00:00:00 GMT"; Path=/`; 
+        this.dispatchEvent(new SessionStatus({ type: 'cancel' }));
+      } else {
+        this.input.invalid = true;
+      }
     } 
 
   }
