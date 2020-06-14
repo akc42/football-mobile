@@ -279,6 +279,7 @@ INSERT INTO settings (name,value) VALUES('cookie_visit_name','MBFMVISIT'); --nam
 INSERT INTO settings (name,value) VALUES('main_menu_icon','menu'); --character from material icon font to use as the main menu.
 INSERT INTO settings (name,value) VALUES('webmaster','webmaster@example.com'); --site webmaster.
 INSERT INTO settings (name,value) VALUES('site_logo','/appimages/site_logo.png'); --url of the site_logo image to be used on info pages and in mail
+INSERT INTO settings (name,value) VALUES('min_pass_len', 6); --minimum password length
 
 --values for server config
 INSERT INTO settings (name,value) VALUES('cache_age',84400);--cache age before invalid (in seconds), 0 is infinite
@@ -309,6 +310,8 @@ INSERT INTO styles (name,style) VALUES('primary-color-filter', 'invert(9%) sepia
 INSERT INTO styles (name,style) VALUES('app-header-size', '64px'); --height of the main header bar
 INSERT INTO styles (name,style) VALUES('default-icon-size', '24px'); --default icon size
 INSERT INTO styles (name,style) VALUES('email-input-length','220px'); --input field width for e-mail input 
+INSERT INTO styles (name,style) VALUES('name-input-length','120px'); --input field width for display input 
+INSERT INTO styles (name,style) VALUES('pw-input-length','100px'); --input field width for password input 
 
 
 
