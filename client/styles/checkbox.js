@@ -41,9 +41,17 @@ export default css`
       box-shadow: 2px 2px 6px 0px rgba(0,0,0,0.5);
       border-radius: 4px;
       cursor: pointer;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background-color: var(--app-cancel-button-color);
+    }
+    #checkmark:focus {
+      outline:none;
     }
     #checkmark[checked] {
-      background-color: var(--app-accent-color,);
+      background-color: var(--app-accent-color,#131335);
+      color: var(--app-reverse-text-color,white);
     }
     #checkmark[disabled], #checkmark[checked][disabled] {
       background: var(--app-disabled-color, lightgrey);

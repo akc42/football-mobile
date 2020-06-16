@@ -1,4 +1,3 @@
-
 /**
 @licence
     Copyright (c) 2020 Alan Chandler, all rights reserved
@@ -18,16 +17,11 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
 import { css } from '../libs/lit-element.js';
 
 export default css`
-  :host {
-    height: 100%;
-    display:flex;
-    flex-direction:column;
-    align-items: stretch;
-    justify-content: flex-start;
+  .consent {
+    align-self: center;
+    font-size: 0.5em;       
   }
 `;
