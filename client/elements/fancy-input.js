@@ -89,12 +89,17 @@ class FancyInput extends LitElement {
       this._placeholder = this.placeholder || this.label;
     }
     if (changed.has('value') && changed.get('value') !== undefined) {
+      this.validate();
       this.dispatchEvent(new ValueChanged(this.value));
+    }
+    if (changed.has('required')) {
+      this.validate();
     }
     super.update();
   }
   firstUpdated() {
     this.input = this.shadowRoot.querySelector('#input');
+    this.validate(); //just make sure we know the current situation
   }
   updated(changed) {
     if (changed.has('combo')) {
@@ -124,8 +129,8 @@ class FancyInput extends LitElement {
           autocomplete=${ifDefined(this.autocomplete)}
           ?autofocus=${this.autofocus}
           form=${ifDefined(this.form)}
-          maxlength=${ifDefined(this.maxlength)}
-          minlength=${ifDefined(this.minlength)}
+          maxlength="${ifDefined(this.maxlength)}"
+          minlength="${ifDefined(this.minlength)}"
           cols=${ifDefined(this.cols)}
           rows=${ifDefined(this.rows)}
           wrap=${ifDefined(this.wrap)}
@@ -145,8 +150,8 @@ class FancyInput extends LitElement {
           form=${ifDefined(this.form)}
           list=${ifDefined(this.list)}
           name=${this.name}
-          maxlength=${ifDefined(this.maxlength)}
-          minlength=${ifDefined(this.minlength)}
+          maxlength="${ifDefined(this.maxlength)}"
+          minlength="${ifDefined(this.minlength)}"
           ?readonly=${this.readonly}
           ?required=${this.required}
           .value=${value}
@@ -170,11 +175,11 @@ class FancyInput extends LitElement {
   }
   validate() {
     if (this.input !== undefined && !this.input.validity.valid) {
-      this.invalid = true;
+        this.invalid = true;
     } else if (typeof this.validator === 'function' ) {
       this.invalid = !this.validator(this.input === undefined ? this.value : this.input.value);
     } else {
-      this.invalid = false;
+      this.invalid = this.minlength !== undefined && this.value.length < this.minlength;
     }
     return !this.invalid;
   }

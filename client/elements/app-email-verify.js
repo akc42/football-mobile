@@ -136,7 +136,7 @@ class AppEmailVerify extends LitElement {
 
   _newMember(e) {
     e.stopPropagation();
-    if (!this.input.invalid) this.dispatchEvent(new SessionStatus({type:'membershipreq',email:this.email}));
+    if (!this.input.invalid) this.dispatchEvent(new SessionStatus({type:'member',email:this.email}));
   }
 
   async _sendData() {

@@ -48,18 +48,10 @@ export class AppPages extends PageManager {
     super();
     this.last = 0;
 
-    Promise.all([
-      import('./fm-comment-dialog.js')
-    ]).then(() => {
-      performance.mark('dialogs_loaded');
-      performance.measure('dialogs-loadtime','pages_attached','dialogs_loaded');
-    });
   }
   connectedCallback() {
     super.connectedCallback();
     connectUrl(route => this.route = route);
-    performance.mark('pages_attached');
-    performance.measure('page-loadtime','pages_loading','pages_attached');
     this.removeAttribute('unresolved');
   }
   disconnectedCallback() {
@@ -69,14 +61,8 @@ export class AppPages extends PageManager {
 
   render() {
     return html`
+
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      ${cache('picks:playoff:newround'.indexOf(this.page) >= 0 ? html`
-        <fm-comment-dialog></fm-comment-dialog>
-      ` : '')}
-      ${cache('competition:round'.indexOf(this.page) >= 0 ? html`
-        <overwrite-dialog></overwrite-dialog>
-      ` : '')}
-      <section role="main">
       ${cache({
         home: html`<fm-summary 
           managed-page
@@ -85,16 +71,21 @@ export class AppPages extends PageManager {
           managed-page
           .route=${this.subRoute}>Profile Loading ...</app-profile>`
       }[this.page])}
-      </section>
+
     `;
   }
   homePage() {
     return 'home';
   }
   loadPage(page) {
+    this.waiting = true;
     switch (page) {
+      case home:
+        this.waiting = false;
+        break;
+        
       case 'profile':
-        import('./app-profile.js');
+        import('./app-profile.js').then(this.waiting = false);
         break;
     }
   }
