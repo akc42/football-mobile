@@ -35,7 +35,7 @@ class AppForm extends LitElement  {
     return html`
       <style>
         :host {
-          display: block;
+          display: contents;
         }
       </style>
       <slot id="mychildren"></slot>

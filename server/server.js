@@ -144,8 +144,10 @@
       const api = Router(routerOpts);
       const conf = Router();
       const ses = Router(routerOpts);
+      const admin = Router(routerOpts);
       const cid = Router(routerOpts);
       const cidrid = Router(routerOpts);
+      
     
       debug('tell router to use api router for /api/ routes');
       router.use('/api/', api);
@@ -201,8 +203,14 @@
             const correct = await bcrypt.compare(payload.pin, result.verification_key);
             if (correct) {
               debugapi('/api/pin pin is correct, so update verification_key to NULL');
-              //we got the expected result so we can reset the verification key and return the usage in the payload (which will determine next step)
-              db.prepare('UPDATE participant SET verification_key = NULL WHERE uid = ?').run(payload.user);
+              /*
+                we got the expected result so we can reset the verification key
+                If the token included an e-mail address, we were verifing a new email, so we update
+                that also.
+                We return the usage in the cookie (which will determine next step)
+              */
+              db.prepare('UPDATE participant SET verification_key = NULL, email = ? WHERE uid = ?')
+                .run(payload.email? payload.email:result.email,payload.user);
               debugapi('/api/pin setting up cookie for user', payload.user, ' with usage', payload.usage);
               res.setHeader('Set-Cookie', generateCookie(
                 {
@@ -303,13 +311,13 @@
           forbidden(req, res, 'No Cookie');
           return;
         }
-        const mbball = new RegExp(`^(.*; +)?${cookieName}=([^;]+)(.*)?$`);
+        const mbball = new RegExp(`^(.*; +)?${serverConfig.cookieName}=([^;]+)(.*)?$`);
         const matches = cookies.match(mbball);
         if (matches) {
           debugapi('Cookie found')
           const token = matches[2];
           try {
-            const payload = jwt.decode(token, cookieKey);  //this will throw if the cookie is expired
+            const payload = jwt.decode(token, serverConfig.cookieKey);  //this will throw if the cookie is expired
             req.user = payload.user;
             req.usage = payload.usage
             res.setHeader('Set-Cookie', generateCookie(payload.user,payload.usage)); //refresh cookie to the new value 
@@ -325,15 +333,16 @@
       /*
           we now need to process the admin type api calls
       */
+      api.use('/admin/',admin);
       debug('Setting up Admin Apis');
-      const apis = loadServers(__dirname, 'admin');
-      for (const adm in apis) {
+      const adms = loadServers(__dirname, 'admin');
+      for (const adm in adms) {
         debugapi(`Setting up /api/${adm} route`);
-        api.post(`/${adm}`, (req,res) => {
+        admin.post(`/${adm}`, (req,res) => {
           debugapi(`Received /api/${adm} request`);
           try {
             const responder = new Responder(res);
-            apis[adm](req.user,req.body,responder);
+            adms[adm](req.user,req.body,responder);
             responder.end();            
           } catch(e) {
             errored(req,res,e.toString());
@@ -362,19 +371,6 @@
       cid.use('/:rid/', cidrid);
       const cids = loadServers(__dirname, 'cid');
       const cidrids = loadServers(__dirname, 'cidrid');
-      for (const r in cidrids) {
-        debugapi(`Setting up /api/:cid/:rid/${r} route`);
-        cidrid.post(`/${r}`, (req, res) => {
-          debugapi(`Received /api/:cid/:rid/${r} request, cid= ${req.params.cid} rid= ${req.params.rid}`);
-          try {
-            const responder = new Responder(res);
-            cidrids[r](req.user, req.params.cid, req.params.rid, req.body, responder);
-            responder.end();
-          } catch (e) {
-            errored(req, res, e.toString());
-          }
-        })
-      }
       for (const c in cids) {
         debugapi(`Setting up /api/:cid/${c} route`);
         cid.post(`/${c}`, (req, res) => {
@@ -388,7 +384,20 @@
           } 
         }); 
       }
-      debug('Creating Web Server');
+      for (const r in cidrids) {
+        debugapi(`Setting up /api/:cid/:rid/${r} route`);
+        cidrid.post(`/${r}`, (req, res) => {
+          debugapi(`Received /api/:cid/:rid/${r} request, cid= ${req.params.cid} rid= ${req.params.rid}`);
+          try {
+            const responder = new Responder(res);
+            cidrids[r](req.user, req.params.cid, req.params.rid, req.body, responder);
+            responder.end();
+          } catch (e) {
+            errored(req, res, e.toString());
+          }
+        })
+      }
+     debug('Creating Web Server');
       server = http.createServer((req,res) => {
         //standard values (although status code might get changed and other headers added);
         res.satusCode = 200;
