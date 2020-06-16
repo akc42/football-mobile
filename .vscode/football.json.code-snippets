@@ -45,11 +45,11 @@
 				"  'use strict';",
 				"",
 				"  const debug = require('debug')('football:api:${2:xxxx}');",
-				"  const dbOpen = require('../utils/database');",
+				"  const db = require('../utils/database');",
 				"",
 				"  module.exports = async function(user, cid, rid, params, responder) {",
+				"    debug('new request from user', user.uid);",
 				"    $0",
-				"    debug('Success ${2:xxxx}');",
 				"  };",
 				"})();"
 			],
