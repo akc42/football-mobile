@@ -280,7 +280,7 @@ INSERT INTO settings (name,value) VALUES('main_menu_icon','menu'); --character f
 INSERT INTO settings (name,value) VALUES('webmaster','webmaster@example.com'); --site webmaster.
 INSERT INTO settings (name,value) VALUES('site_logo','/appimages/site_logo.png'); --url of the site_logo image to be used on info pages and in mail
 INSERT INTO settings (name,value) VALUES('min_pass_len', 6); --minimum password length
-
+INSERT INTO settings (name,value) VALUES('dwell_time', 2000); --time to elapse before new urls get to be pushed to the history stack
 --values for server config
 INSERT INTO settings (name,value) VALUES('cache_age',84400);--cache age before invalid (in seconds), 0 is infinite
 INSERT INTO settings (name,value) VALUES('server_port', 2040); --port the api server should listen on.

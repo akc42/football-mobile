@@ -39,7 +39,11 @@ let webmaster = '';
 let siteLogo = '/appimages/site-logo.png';
 let verifyExpires = 12;
 let firstTimeMessage = `Welcome to the <strong>Football Mobile Results Picking Competition</strong>.This appears to be your first visit to the site.You will be have to provide your email address and later your password but, with your permission, we can remember you so you won't have to keep entering it.`;
+let minPassLen = 6;
+let dwellTime = 2000;
 
+let usage = '';
+let cookieConsent = false;
 
 let globalPromise;
 
@@ -79,6 +83,8 @@ const global = {
       siteLogo = conf.siteLogo;
       verifyExpires = conf.verifyExpires;
       firstTimeMessage = conf.firstTimeMessage;
+      minPassLen = conf.minPassLen;
+      dwellTime = conf.dwellTime;
     })
     return globalPromise;
   },
@@ -87,6 +93,18 @@ const global = {
   },
   set user(v) {
     u = v;
+  },
+  get scope() {
+    return usage;
+  },
+  set scope (v) {
+    usage = v;
+  },
+  get cookieConsent() {
+    return cookieConsent
+  },
+  set cookieConsent(v) {
+    cookieConsent = v;
   },
   set mockGlobal(v){
     globalPromise = v;
@@ -153,6 +171,12 @@ const global = {
   },
   get firstTimeMessage () {
     return firstTimeMessage;
+  },
+  get minPassLen () {
+    return minPassLen;
+  },
+  get dwellTime () {
+    return dwellTime;
   }
 }
 
