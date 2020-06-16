@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 import api from './api.js';
 import global from './globals.js';
 
@@ -24,7 +25,7 @@ let topics = '';
 let debugEnabled = false;
 let limitedUser = 0;
 global.ready.then(() => {
-  if (global.server && global.clientLog.length > 0) {
+  if (global.clientLog.length > 0) {
     limitedUser = global.clientLogUid;
     topics = global.clientLog;
     debugEnabled = true;
@@ -38,10 +39,13 @@ export default function(t) {
     throw new Error('Debug requires a non zero length string which is not "ALL"'); 
   }
   const topic = `:${t}:`;
-
+  let timestamp = new Date().getTime();
   return function(message) {
-    if (debugEnabled && (topics === 'ALL' || topics.indexOf(topic) >=0) && (limitedUser === 0 || global.user.uid === limitedUser)) { 
-      api('session/log',{topic:topic, message: message}); //no interest in reply
+    if (debugEnabled && (topics === 'ALL' || topics.indexOf(topic) >=0) && (limitedUser === 0 || global.user.uid === limitedUser)) {
+      const now = new Date().getTime();
+      const gap = now - timestamp;
+      timestamp = now;
+      api('session/log',{topic:topic, message: message, gap: gap}); //no interest in reply
     }
   }
 }

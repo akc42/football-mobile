@@ -25,7 +25,7 @@
   const cyrb53 = require('../utils/cyrb53');
   const chalk = require('chalk');
   module.exports = async (params,headers) => { 
-    const message = `${chalk.black.bgCyan(params.topic)} ${params.message}`;
+    const message = `${chalk.black.bgCyan(params.topic)} ${params.message}${params.gap !== undefined ? chalk.redBright(' +' + params.gap + 'ms') : ''}`;
     logger('log', message, cyrb53(headers['x-forwarded-for']).toString(16));
     return true;
   };
