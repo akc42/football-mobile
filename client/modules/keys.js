@@ -27,6 +27,10 @@
     keydown event.  On that event it will parse the key combinations pressed and
     fire a "key-pressed" event on the target.
 
+    The key grammer is of the form [<modifier>+]<key>[:<event>] and each of these is
+    space separated.  optional <modifiers> (default none) are shift ctrl alt meta, and the optional 
+    <events> are keydown and keyup (keydown is used as default) 
+
     To allow a using module the freedom to connect and disconnect to the dom, we
     provide two methods to be called during the disconnectCallback and
     connectCallback to disconnect and reconnect to this event
@@ -48,7 +52,7 @@
       super.connectedCallback();
       document.body.addEventListener('key-pressed', this._keyPressed);
       if (this.keys === undefined) {
-        this.keys = new AppKeys(document.body, 'Enter Esc'); //list the keys you want to identify
+        this.keys = new AppKeys(document.body, 'Enter Esc'); //list the keys you want to identify (see comment above for grammer)
       } else {
         this.keys.connect();
       }
@@ -59,7 +63,7 @@
       document.body.removeEventListener('key-pressed', this._keyPressed);
     }
     _keyPressed(e) {
-      TO BE ADDED
+      e.key is an string containing the [<modifier>+]<key> combination from one you requested
     }
 
     The second way of using this, better for when you don't want to react unless a particular area of the page has focus, or
@@ -83,6 +87,9 @@
   <div id="keyreceive" @keys-pressed=${this._keyPressed}>Contents</div>
 
   NOTE: There is no need to bind this._keyPressed to this (as in the first example).  Lit manages it.
+
+  If for any reason you want more info about the keyPress, access
+  this.keys.lastPressed, and it will return the complete binding object
 
   NOTE: I considered making this a mixin to avoid some of this verbosity, but decided in 
   the end the extra was worth it for the flexibility of the different use cases.
@@ -173,6 +180,7 @@ export default class AppKeys {
     this.stop = stop; //marker to say stop propagation;
     if (!(target instanceof HTMLElement)) throw new Error ('AppKeys required an HTML Element as target');
     this.target = target;
+    this.lastPressed = null;
     const keyArray = keys.split(' ');
     this.eventBindings = {};
     for (let keyString of keyArray) {
@@ -268,7 +276,8 @@ export default class AppKeys {
         if (binding.key in MODIFIER_KEYS) {
           //we only wanted the modifiers so if our key IS the modifier we wanted
           if (MODIFIER_KEYS[binding.key] === validKey) {
-            if (!this.target.dispatchEvent(new KeyPressed(binding))) {
+            this.lastPressed = binding;
+            if (!this.target.dispatchEvent(new KeyPressed(binding.combo))) {
               e.preventDefault();
               return;
             }
@@ -276,7 +285,8 @@ export default class AppKeys {
         }
       }
       if (binding.key === validKey) {
-        if (!this.target.dispatchEvent(new KeyPressed(binding))) {
+        this.lastPressed = binding
+        if (!this.target.dispatchEvent(new KeyPressed(binding.combo))) {
           e.preventDefault();
           return;
         }

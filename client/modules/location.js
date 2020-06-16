@@ -1,5 +1,3 @@
-import { LogoffRequest } from './events.js';
-
 /**
     @licence
     Copyright (c) 2018 Alan Chandler, all rights reserved
@@ -18,9 +16,10 @@ import { LogoffRequest } from './events.js';
     by Accuvision (or by potential or existing customers in interacting with Accuvision).
 */
 let routeCallback = null;
-let dwellTime = 2000;
 let lastChangedAt;
 let route;
+import global from './globals.js';
+import {AuthChanged} from './events.js';
 
 export function connectUrl(callback) {
   routeCallback = callback;
@@ -30,7 +29,7 @@ export function connectUrl(callback) {
   window.addEventListener('route-updated', routeUpdated);
   Promise.resolve().then(() => {
     urlChanged();
-    lastChangedAt = window.performance.now() - (dwellTime - 200); //first time we need to adjust for dwell time
+    lastChangedAt = window.performance.now() - (global.dwellTime - 200); //first time we need to adjust for dwell time
   });
 
 }
@@ -52,8 +51,9 @@ function urlChanged() {
   const query = decodeParams(window.location.search.substring(1));
   if (route && route.path ===  path && route.query === query) return;
   lastChangedAt = window.performance.now();
+  const mbball = new RegExp(`^(.*; +)?${global.cookieName}=([^;]+)(.*)?$`);
   route = {
-    path: document.cookie.match(/^(.*; +)?MBBALL=[^;]+(.*)?$/) ? path : '/',
+    path: mbball.test(document.cookie) ? path : '/',
     segment: 0,
     params: {},
     query: query,
@@ -61,7 +61,8 @@ function urlChanged() {
   };
 
   if (routeCallback) routeCallback(route);
-  if (!document.cookie.match(/^(.*; +)?MBBALL=[^;]+(.*)?$/)) window.dispatchEvent(new LogoffRequest());
+  
+  if (!mbball.test(document.cookie)) window.dispatchEvent(new AuthChanged(false));
 }
 function routeUpdated(e) {
   let newPath = route.path;
@@ -104,7 +105,7 @@ function routeUpdated(e) {
   const fullUrl = new URL(newUrl, window.location.protocol + '//' + window.location.host).href;
   if (fullUrl !== window.location.href) { //has it changed?
     let now = window.performance.now();
-    if (lastChangedAt + dwellTime > now) {
+    if (lastChangedAt + global.dwellTime > now) {
       window.history.replaceState({}, '', fullUrl);
     } else {
       window.history.pushState({}, '', fullUrl);
