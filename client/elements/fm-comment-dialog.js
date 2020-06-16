@@ -18,22 +18,22 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
+import './app-overlay.js';
 
 /*
-     <fm-summary>
+     <fm-comment-dialog>
 */
-class FmSummary extends LitElement {
+class FmCommentDialog extends LitElement {
   static get styles() {
     return [];
   }
   static get properties() {
     return {
-      route: {type: Object}
+    
     };
   }
   constructor() {
     super();
-    this.route = {active:false};
   }
   connectedCallback() {
     super.connectedCallback();
@@ -45,14 +45,20 @@ class FmSummary extends LitElement {
     super.update(changed);
   }
   firstUpdated() {
+    this.dialog = this.shadowRoot.querySelector('#dialog');
   }
   updated(changed) {
     super.updated(changed);
   }
   render() {
     return html`
-    <p>Temporary Content</p>
+    <app-overlay close-on-click id="dialog">
+      <p>Not Implemented Yet</p>
+    </app-overlay>
     `;
   }
+  show() {
+    if (this.dialog) this.dialog.show();
+  }
 }
-customElements.define('fm-summary', FmSummary);
+customElements.define('fm-comment-dialog', FmCommentDialog);
