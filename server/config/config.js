@@ -49,6 +49,7 @@
         config.verifyExpires = s.get('verify_expires');
         config.firstTimeMessage = s.get('first_time_message');
         config.minPassLen = s.get('min_pass_len');
+        config.dwellTime = s.get('dwell_time');
    
         
         const rowc = topc.get();

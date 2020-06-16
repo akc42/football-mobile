@@ -42,7 +42,8 @@
       styles.app_header_size = s.get('app-header-size');
       styles.default_icon_size = s.get('default-icon-size');
       styles.email_input_length = s.get('email-input-length');
-
+      styles.pw_input_length = s.get('pw-input-length');
+      styles.name_input_length = s.get('name-input-length');
     })();
     debug('got styles');
     return styles;
