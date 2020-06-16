@@ -65,6 +65,9 @@ class AppExpired extends LitElement {
     this.keys.disconnect();
     document.body.removeEventListener('key-pressed', this._keyPressed);
   }
+  firstUpdated() {
+    this.input = this.shadowRoot.querySelector('#email');
+  }
   render() {
     return html`
       <style>
