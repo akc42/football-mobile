@@ -96,7 +96,7 @@ class AppCheckbox extends LitElement {
         aria-labeled-by="checklabel"
         ?checked="${this.value}"
         ?aria-checked=${this.value}
-        ?disabled="${this.disabled}">${this.value ? html`<pas-icon>check</pas-icon>` : ''}</div>
+        ?disabled="${this.disabled}">${this.value ? html`<material-icon>check</material-icon>` : ''}</div>
       <label id=checklabel for="checkmark"><slot></slot></label>
     `;
   }
