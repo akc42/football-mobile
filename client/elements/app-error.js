@@ -97,24 +97,24 @@ class AppError extends LitElement {
   }
   _clientError(e) {
     if (this.anError) return;
-    e.preventDefault();
+//    e.preventDefault();
     const message = `Client Error:
 ${e.error.stack}
 has occured`;
-    api('/session/log', {type:'Error', message: message});
+    api('session/log', {type:'Error', message: message});
     this.dispatchEvent(new SessionStatus({type:'error'}));
     this.anError = true;
   }
   _promiseRejection(e) {
     if (this.anError) return;
-    e.preventDefault();
+//   e.preventDefault();
     const possibleError = e.reason;
 
     if (possibleError.type === 'api-error') {
       this._serverError(possibleError)
     } else {
       const message = `Client Error: Uncaught Promise Rejection with reason ${e.reason} has occured`;
-      api('/session/log', { type: 'Error', message: message });
+      api('session/log', { type: 'Error', message: message });
       this.dispatchEvent(new SessionStatus({ type: 'error' }));
       this.anError = true;
     }
@@ -126,7 +126,7 @@ has occured`;
   }
   _serverError(e) {
     if (this.anError) return;
-    e.preventDefault();
+//    e.preventDefault();
     //put us back to home
     window.history.pushState({}, null, '/');
     window.dispatchEvent(new LocationAltered());
