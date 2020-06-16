@@ -18,25 +18,29 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
+import { cache } from '../libs/cache.js';
 
-import {SessionStatus} from '../modules/events.js';
-import global 
-from '../modules/globals.js';
+import {AuthChanged,SessionStatus} from '../modules/events.js';
+import global from '../modules/globals.js';
+import api from '../modules/api.js';
+
 import './app-form.js';
 import './fancy-input.js';
-import './send-button.js';
 import './app-waiting.js';
 import './app-checkbox.js';
 import AppKeys from '../modules/keys.js';
 import button from '../styles/button.js';
 import page from '../styles/app-page.js';
+import consent from '../styles/consent.js';
+import { markSeen } from '../modules/visit.js';
+import { switchPath } from '../modules/utils.js';
 
 /*
      <app-logon>: Collects, username, password and notes forgotten password requests
 */
 class AppLogon extends LitElement {
   static get styles() {
-    return [page,button];
+    return [page,button,consent];
   }
   static get properties() {
     return {
@@ -64,6 +68,7 @@ class AppLogon extends LitElement {
     super.disconnectedCallback();
     this.keys.disconnect();
     this.password = '';
+    markSeen();
   }
   firstUpdated() {
     this.target = this.shadowRoot.querySelector('#page');
@@ -77,8 +82,11 @@ class AppLogon extends LitElement {
     return html`
       <style>
 
-        #email,#pw {
+        #email {
           width: var(--email-input-length);
+        }
+        #pw {
+          width: var(--pw-input-length);
         }
         #forgotten {
           font-size:60%;
@@ -91,10 +99,9 @@ class AppLogon extends LitElement {
         <h1>Log On</h1>
         <app-form 
           id="logon" 
-          action="/api/session/logon" 
+          action="session/logon" 
           class="inputs" 
           @form-response=${this._formResponse}>
-          <input type="hidden" name="usage" value=${this.profile ? 'profile': 'play'}/>
           <fancy-input
             label="E-Mail"
             .message=${this.email.length > 0 ? 'Email Or Password Incorrect' : 'Required'}
@@ -109,19 +116,21 @@ class AppLogon extends LitElement {
             @blur=${this._doneFirst}></fancy-input>  
             <fancy-input              
               label="Password"
-              message="Required"
+              .message="min ${global.minPassLen} chars"
               required
+              .minlength=${global.minPassLen}
               type="password"
               name="password"
               id="pw"
               .value="${this.password}"
               @value-changed="${this._pwChanged}"
               @blur=${this._doneFirst}></fancy-input>
-            <div id="forgotten" @click=${this._forgotten}>Forgotten Password</div>
-            <app-checkbox ?value=${this.remember} @value-changed=${this._rememberChanged}>Remember Me</app-checkbox> 
+            <div id="forgotten" @click=${this._forgotten}>Forgotten Password (Enter Email before clicking)</div>
+            <app-checkbox ?value=${this.remember} @value-changed=${this._rememberChanged} name="remember">Remember Me</app-checkbox> 
+              ${cache(global.cookieConsent ? '' : html`<p class="consent">The Remember checkbox, when checked formally gives us permission to store a cookie with your user details on your computer until you next formally log out. Do not do this if this computer is public.</p>`)} 
         </app-form>
         <section slot="action">          
-          <send-button @click=${this._sendData}>Log On</send-button>
+          <button @click=${this._submitLogon}>Log On</button>
         </section>
       </app-page>
     `;
@@ -129,20 +138,20 @@ class AppLogon extends LitElement {
   _doneFirst() {
     this.doneFirst = true;
   }
-  _emChanged() {
+  _emChanged(e) {
     this.email = e.changed;
   }
   async _forgotten(e) {
-    if (!this.input.invalid) {
+    if (!this.emInput.invalid) {
       this.waiting = true;
-      const response = await api('session/requestpin',{email:this.email});
+      const response = await api('session/request_pin',{email:this.email});
       this.waiting = false;
-      if (response.data.found) {
-        const type = response.data.password ? (response.data.remember ? 'markrem': 'markpass'): 'await';
+      if (response.found) {
+        const type = response.password ? (response.remember ? 'markrem': 'markpass'): 'await';
         this.dispatchEvent(new SessionStatus({type: type, email: this.email}));
         this.email = '';
       } else {
-        this.input.invalid = true;
+        this.emInput.invalid = true;
       } 
     } 
   }
@@ -150,12 +159,13 @@ class AppLogon extends LitElement {
     e.stopPropagation();
     if (e.response) {
       this.waiting = false;
-      if (e.response.data.found) {
-        setUser(response.user);
-        const type = response.data.password? (response.data.remember? 'markrem': 'markpass'): 'await'
+      if (e.response.user) {
+        markSeen();
+        global.user = e.response.user;
+        global.scope = e.response.usage;
+        const type = e.response.user.remember === 1 ? 'logonrem': 'logon'
         this.dispatchEvent(new SessionStatus({type: type, email: this.email}));
         this.email = '';
-        this.dispatchEvent(new AuthChanged(true));
       } else {
         this.emInput.invalid = true;
         this.pwInput.invalid = true;
@@ -165,13 +175,15 @@ class AppLogon extends LitElement {
   }
   _pwChanged(e) {
     this.password = e.changed;
+    this.emInput.validate();
   }
   _rememberChanged(e) {
     this.remember = e.changed;
+    markSeen();
   }
   _submitLogon() {
     if (!this.waiting) {
-      const result = this.target.submit();
+      const result = this.doLogon.submit();
       if (result) {
         this.waiting = true;
         this.emInput.invalid = false;

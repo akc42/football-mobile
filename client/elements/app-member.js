@@ -205,7 +205,7 @@ class AppMember extends LitElement {
     switch (this.step) {
       case 1:
           if (!this.einput.invalid) {
-            const data = await api('session/email_verify',{ email: this.email });
+            const data = await api('session/new_member_verify',{ email: this.email });
             if (data.known) {
               this.known = true;
               this.einput.invalid = true;

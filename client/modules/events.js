@@ -156,20 +156,6 @@ export class LocationAltered extends Event {
     super('location-altered',{composed: true, bubbles: true});
   }
 };
-export class LogoffRequest extends Event {
-  static eventType = 'logoff-request';
-
-  /*
-     The following are the fields provided by this event
-
-    None
-
-  */
-
-  constructor() {
-    super('logoff-request',{composed: true, bubbles: true});
-  }
-};
 
 export class OverlayClosed  extends Event {
   static eventType = 'overlay-closed';

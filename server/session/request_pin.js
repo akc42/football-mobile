@@ -33,6 +33,7 @@
     const pin = ('000000' + (Math.floor(Math.random() * 999999)).toString()).slice(-6); //make a new pin 
     debug('going to use pin', pin);
     const hashedPin = await bcrypt.hash(pin, 10);
+    debug('have a hashed pin now');
     let rateLimitExceeded = false;
     const checkParticipant = db.prepare('SELECT * FROM participant WHERE email = ?');
     const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
@@ -41,20 +42,21 @@
     let returnValue = { found: false };
     let user;
     db.transaction(() => {
+      debug('in transaction about to check participant with email', params.email);
       const result = checkParticipant.get(params.email);
       if (result !== undefined) {
-
+        debug('found user as uid = ', result.uid);
         const cookieKey = s.get('cookie_key');
         const webmaster = s.get('webmaster');
         const verifyExpires = s.get('verify_expires');
         const siteBaseref = s.get('site_baseref');
         const rateLimit = s.get('rate_limit');
-
+        debug('read the config values');
         const now = Math.floor((new Date().getTime() / 1000));
 
 
         user = { ...result, password: !!result.password, verification_key: !!result.verification_key };
-        debug('found user as uid = ', user.uid);
+        
         rateLimitExceeded = (user.verification_key && (user.verification_sent + (rateLimit * 60)) > now);
         debug(
           'verification_sent rate end @ ', user.verification_sent + (rateLimit * 60),
@@ -77,7 +79,7 @@
           const html = `<h3>Hi ${user.name}</h3><p>Someone requested a short term password to log on to <a href="${siteBaseref}">${siteBaseref}</a>. They
           requested for it to be sent to this email address. If it was not you, you can safely ignore this email but might like to inform 
           <a href="mailto:${webmaster}">${webmaster}</a> that you were not expecting it.</p>
-          <p>Click on the link <a href="${siteBaseref}/api/pin/${token}">${siteBaseref}/api/reg/pin/${token}</a> to log on
+          <p>Click on the link <a href="${siteBaseref}/api/pin/${token}">${siteBaseref}/api/pin/${token}</a> to log on
           and access your profile. There you may reset your passwords or make other changes to your account.</p>
           <p>This link will only work <strong>once</strong>, and it will <strong>not</strong> work after <strong>${verifyExpires} hours</strong> from
           the time you requested it.</p>
@@ -93,7 +95,8 @@
       }
     })();
     //outside of the transaction, which needs to remain synchronous.
-    if (!rateLimitExceeded) await mail.send('Your Temporary Password', user.email);
+    debug('finished transaction, with found as ', returnValue.found);
+    if (!rateLimitExceeded && returnValue.found) await mail.send('Your Temporary Password', user.email);
     return returnValue;
   };
 })();

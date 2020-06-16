@@ -27,7 +27,7 @@
   const db = require('../utils/database');
 
   module.exports = async function(params) {
-    debug('logon request received for usage', params.usage);
+    debug('logon request received for email', params.email);
  
     const result = db.prepare('SELECT * FROM participant WHERE email = ?').get(params.email);
     
@@ -39,15 +39,15 @@
       let usage; 
       if (correct) {
         debug('user password correct for user ', user.uid);
-        user.remember = params.remember;
+        user.remember = params.remember? 1:0;
 
         db.prepare(`UPDATE participant SET last_logon = (strftime('%s','now')), verification_key = NULL, remember = ? WHERE uid = ?`)
-          .run(params.remember,user.uid);
+          .run(user.remember,user.uid);
         debug('updated user with remember = ', params.remember);
         debug('success');
         return { user: user, usage: 'authorised' };
       } else {
-        debug('password error by user ', uid);
+        debug('password error by user ', user.uid);
       }
 
     }

@@ -28,8 +28,8 @@ import './app-session.js';
 import { SessionStatus } from '../modules/events.js';
 import AppKeys from '../modules/keys.js';
 import api from '../modules/api.js';
-
-
+import Debug from '../modules/debug.js';
+const debug = Debug('main');
 
 /*
      <fm-app>: The controlling app
@@ -102,14 +102,18 @@ class MainApp extends LitElement {
         } else {
           this.keys.connect();
         }
-        
+        debug('authorised set')
         api(`admin/fetch_competitions`).then(response => {
+          debug(`Competitions fetched; there are ${response.competitions.length} of them`)
           this.competitions = response.competitions;
           this.lastCompTime = response.timestamp;
         });
         if (this.cid !== 0) {
           //we have a specific competition set, so get its rounds
+          debug('about to fetch rounds for cid ' + this.cid )
           api('admin/fetch_rounds', { cid: this.cid }).then(response => {
+            debug(`Rounds fetched; there are ${response.rounds.length} of them`)
+
             this.rounds = response.rounds;
             this.lastRoundTime = response.timestamp;
           });
@@ -127,13 +131,15 @@ class MainApp extends LitElement {
     }
     super.update(changed);
   }
-  firstUpdated() {
-    this.mainmenu = this.shadowRoot.querySelector('#mainmenu');
-    this.competitionMenu = this.shadowRoot.querySelector('#competitions');
-    this.roundsMenu = this.shadowRoot.querySelector('#rounds');
-    this.session = this.shadowRoot.querySelector('#session');
-  }
+
+
   updated(changed) {
+    if (changed.has('authorised') && this.authorised) {
+      this.mainmenu = this.shadowRoot.querySelector('#mainmenu');
+      this.competitionMenu = this.shadowRoot.querySelector('#competitions');
+      this.roundsMenu = this.shadowRoot.querySelector('#rounds');
+    }
+
     super.updated(changed);
   }
   render() {
@@ -169,7 +175,8 @@ class MainApp extends LitElement {
           height: calc(100vh - var(--app-header-size, 64px));
           overflow-y:auto;
           display: flex;
-          flex-direction: row;
+          flex-direction: column;
+          align-items:stretch;
         }
 
         .iconreplace {
@@ -197,6 +204,9 @@ class MainApp extends LitElement {
         #copy {
           font-size: 8px;
         }
+        app-session[hidden], app-pages[hidden], app-error[hidden] {
+          display: none !important;
+        }
 
         @media (min-width: 500px) {
           :host, #mainmenu {
@@ -205,15 +215,14 @@ class MainApp extends LitElement {
         }
 
       </style>
-
-       ${cache(this.authorised ? html`
+      ${cache(this.authorised ? html`
         <app-overlay id="mainmenu" closeOnClick>
           <div role="menuitem" @click=${this._goHome}>Home</div>
           <div role="menuitem" @click=${this._roundsMenu}>Rounds</div>
           <div role="menuitem" @click=${this._competitionsMenu}>Competitions</div>
           ${cache((admin || this.user.approve) ? html`
             ${cache(admin ? html`
-              ${cache(this.user.global_admin ? html`
+              ${cache(global.user.global_admin ? html`
                 <div id="createcomp" role="menuitem" @click=${this._selectPage}>Create Competition</div>
                 <div role="menuitem" @click=${this._changeDcomp}>Default Competition</div>
               `: '')}
@@ -248,24 +257,29 @@ class MainApp extends LitElement {
         `:html`<div class="iconreplace"></div>` )}
         <div id="logo">Football Logo</div>
         <div id="appinfo">
-          <div id="version">${this.version}</div>
+          <div id="version">${global.version}</div>
           <div id="copy">&copy; 2008-${global.copyrightYear} Alan Chandler</div>
         </div>
       </header>
       <section>
-        <app-error @session-status=${this._errorChanged} ></app-error>
-        ${cache(this.serverError? '' : html`     
-          <app-session id="session" @auth-changed=${this._authChanged}></app-session>
-          ${cache(this.authorised ? html`
-            <app-pages
-              .cid=${this.cid}
-              .rid=${this.rid}
-              @rid-changed=${this._ridChanged}
-              @dcid-changed=${this._globalChanged}
-              @competitions-changed=${this._refreshComp}
-              @rounds-changed=${this._refreshRound}></app-pages>      
-          `:'' )}
-        `)}
+        <app-error ?hidden=${!this.serverError} @session-status=${this._errorChanged} ></app-error>    
+        <app-session 
+          ?hidden=${this.authorised || this.serverError} 
+          id="session" 
+          .authorised=${this.authorised} 
+          @auth-changed=${this._authChanged}></app-session>
+        ${cache(this.authorised ? html`
+          <app-pages
+            ?hidden=${this.serverError}
+            .cid=${this.cid}
+            .rid=${this.rid}
+            @rid-changed=${this._ridChanged}
+            @dcid-changed=${this._globalChanged}
+            @competitions-changed=${this._refreshComp}
+            @rounds-changed=${this._refreshRound}
+            @auth-changed=${this._authChanged}>
+          </app-pages>      
+        `:'')}
       </section>
     `;
   }
