@@ -37,7 +37,7 @@ DROP TABLE participant;
 CREATE TABLE participant (
     uid integer PRIMARY KEY,
     name character varying,
-    email character varying,
+    email character varying COLLATE NOCASE,
     password character varying, --stores md5 of password to enable login if doing local authentication
     last_logon bigint DEFAULT (strftime('%s','now')) NOT NULL, --last time user connected
     member_approve boolean DEFAULT 0 NOT NULL,--Set true if user may approve membership
@@ -282,7 +282,7 @@ INSERT INTO settings (name,value) VALUES('site_logo','/appimages/site_logo.png')
 INSERT INTO settings (name,value) VALUES('min_pass_len', 6); --minimum password length
 INSERT INTO settings (name,value) VALUES('dwell_time', 2000); --time to elapse before new urls get to be pushed to the history stack
 --values for server config
-INSERT INTO settings (name,value) VALUES('cache_age',84400);--cache age before invalid (in seconds), 0 is infinite
+INSERT INTO settings (name,value) VALUES('cache_age',0);--cache age before invalid (in hours), 0 is infinite
 INSERT INTO settings (name,value) VALUES('server_port', 2040); --port the api server should listen on.
 INSERT INTO settings (name,value) VALUES('cookie_name', 'MBBall'); --name used for our main cookie
 INSERT INTO settings (name,value) VALUES('cookie_key', 'newCookieKey'); --key used to encrypt/decrypt cookie token
@@ -295,20 +295,27 @@ INSERT INTO settings (name,value) VALUES('mail_wordwrap',130); --word wrap colum
 INSERT INTO settings (name,value) VALUES('mail_signature', '/appimages/signature.png;Name of Signature'); --email signature if starts with a slash is an image url which maybe followed by a semi-colon and then caption, else html
 INSERT INTO settings (name,value) VALUES('site_baseref','https://example.com'); -- basic site url without trailing slash to be added to hostless image urls to make complete
 INSERT INTO settings (name,value) VALUES('first_time_message','Welcome to the <strong>Football Mobile Results Picking Competition</strong>.  This appears to be your first visit to the site. You will be have to provide your email address and later your password but, with your permission, we can remember you so you won''t have to keep entering it.'); -- First Paragraph of text for First time Users
--- STYLES
-INSERT INTO styles (name,style) VALUES('app-primary-color', '#adcabd'); --Main colour for use in the application
-INSERT INTO styles (name,style) VALUES('app-accent-color', '#131335'); --Colour to use when something is to stand out - Main Button, Results Tables Headings etc 
-INSERT INTO styles (name,style) VALUES('app-text-color', '#212121'); --Main text colour to use
-INSERT INTO styles (name,style) VALUES('app-reverse-text-color', 'white'); --Text colour to use when writing on accent or primary colour backgrounds
-INSERT INTO styles (name,style) VALUES('app-header-color', 'var(--app-primary-color)'); --Top Header Bar Colour
+
+
+------------------------------------------------------------------------------------------ STYLES
+---COLOURS 
+INSERT INTO styles (name,style) VALUES('app-primary-color', '#42d9ff'); --Main colour for use in the application
+INSERT INTO styles (name,style) VALUES('primary-color-filter', 'invert(69%) sepia(72%) saturate(792%) hue-rotate(160deg) brightness(102%) contrast(102%)'); --Filter needed to color svg to match app-primary-color NOTE this is done by putting desired color in calcfilter.js 
+INSERT INTO styles (name,style) VALUES('app-accent-color', '#131335'); --Colour to use when something is to stand out - Main Button etc 
+INSERT INTO styles (name,style) VALUES('accent-color-filter', 'invert(9%) sepia(23%) saturate(2922%) hue-rotate(213deg) brightness(92%) contrast(102%)'); --Filter needed to color svg to match app-accent-color NOTE this is done by putting desired color in calcfilter.js 
+INSERT INTO styles (name,style) VALUES('app-primary-text', 'var(--app-accent-color)'); --Main text colour to use on primary colour backgrounds
+INSERT INTO styles (name,style) VALUES('app-accent-text', 'white'); --Text colour to use when writing on accent colour backgrounds
+INSERT INTO styles (name,style) VALUES('app-user-color', '#f3fcff'); --Background used to indicate the particular user
+INSERT INTO styles (name,style) VALUES('app-user-text', 'var(--app-accent-color)'); --text Color for highlighted user
 INSERT INTO styles (name,style) VALUES('app-spinner-color', 'var(--app-accent-color)'); --Spinner Dot Colour
 INSERT INTO styles (name,style) VALUES('app-button-color', 'var(--app-accent-color)'); --Main Button Colour
 INSERT INTO styles (name,style) VALUES('app-cancel-button-color', 'lightsteelblue'); --Cancel Button Colour
-INSERT INTO styles (name,style) VALUES('button-text-color', 'var(--app-reverse-text-color)'); --Color of text on primary buttons
-INSERT INTO styles (name,style) VALUES('cancel-button-text-color', 'var(--app-text-color)'); --Color of text on cancel buttons
-INSERT INTO styles (name,style) VALUES('primary-color-filter', 'invert(9%) sepia(23%) saturate(2922%) hue-rotate(213deg) brightness(92%) contrast(102%)'); --Filter needed to color svg to match app-primary-color NOTE this is done by putting desired color in calcfilter.js 
-INSERT INTO styles (name,style) VALUES('app-header-size', '64px'); --height of the main header bar
-INSERT INTO styles (name,style) VALUES('default-icon-size', '24px'); --default icon size
+INSERT INTO styles (name,style) VALUES('button-text-color', 'var(--app-accent-text)'); --Color of text on primary buttons
+INSERT INTO styles (name,style) VALUES('cancel-button-text-color', '#212121'); --Color of text on cancel buttons
+INSERT INTO styles (name,style) VALUES('fw-win-color', '#ffcc99'); --Color of cells to indicate a win
+INSERT INTO styles (name,style) VALUES('app-form-color', '#fcffc0'); --Background Color of Forms;
+
+--- FIELD SIZES
 INSERT INTO styles (name,style) VALUES('email-input-length','220px'); --input field width for e-mail input 
 INSERT INTO styles (name,style) VALUES('name-input-length','120px'); --input field width for display input 
 INSERT INTO styles (name,style) VALUES('pw-input-length','100px'); --input field width for password input 
