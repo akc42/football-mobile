@@ -10,6 +10,7 @@ export default {
     'node_modules/lit-html/directives/guard.js',
     'node_modules/lit-html/directives/repeat.js',
     'node_modules/lit-html/directives/style-map.js',
+    'node_modules/lit-html/directives/template-content.js',
     'node_modules/lit-html/directives/unsafe-html.js',
     'node_modules/lit-html/directives/until.js',
     'node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js'
