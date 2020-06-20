@@ -87,7 +87,7 @@
           at <a href="${siteBaseref}">${siteBaseref}</a>. The first step of the process is to verify that e-mail address, and that is what
           this mail is for. If it was not you, you can safely ignore this email but might like to inform 
           <a href="mailto:${webmaster}">${webmaster}</a> that you were not expecting it.</p>
-          <p>Click on the link <a href="${siteBaseref}/api/pin/${token}">${siteBaseref}/api/reg/pin/${token}</a> confirm that
+          <p>Click on the link <a href="${siteBaseref}/api/pin/${token}">${siteBaseref}/api/pin/${token}</a> confirm that
           you requested membership and to move on to second step of the process.</p>
           <p>This link will only work <strong>once</strong>, and it will <strong>not</strong> work after <strong>${verifyExpires} hours</strong> from
           the time you requested it.</p>

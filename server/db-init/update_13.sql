@@ -316,7 +316,7 @@ INSERT INTO styles (name,style) VALUES('fw-win-color', '#ffcc99'); --Color of ce
 INSERT INTO styles (name,style) VALUES('app-form-color', '#fcffc0'); --Background Color of Forms;
 
 --- FIELD SIZES
-INSERT INTO styles (name,style) VALUES('email-input-length','220px'); --input field width for e-mail input 
+INSERT INTO styles (name,style) VALUES('email-input-length','240px'); --input field width for e-mail input 
 INSERT INTO styles (name,style) VALUES('name-input-length','120px'); --input field width for display input 
 INSERT INTO styles (name,style) VALUES('pw-input-length','100px'); --input field width for password input 
 

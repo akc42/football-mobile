@@ -30,7 +30,6 @@ import './app-waiting.js';
 
 import button from '../styles/button.js';
 import page from '../styles/page.js';
-import consent from '../styles/consent.js';
 import api from '../modules/api.js';
 import {markSeen} from '../modules/visit.js';
 import './app-waiting.js';
@@ -44,10 +43,11 @@ import { switchPath } from '../modules/utils.js';
 */
 class AppProfile extends LitElement {
   static get styles() {
-    return [button, page, consent];
+    return [button, page];
   }
   static get properties() {
     return {
+      route: {type: Object},
       name: {type: String},
       email: {type: String},
       password: {type: String},
@@ -59,11 +59,11 @@ class AppProfile extends LitElement {
   }
   constructor() {
     super();
-    this.name = global.user.name;
-    this.email = global.user.email;
+    this.name = '';
+    this.email = '';
     this.password = '';
     this.replica = '';
-    this.remember = global.user.remember === 1;
+    this.remember = false;
     this.waiting = false;
     this.showpass = false;
     this._keyPressed = this._keyPressed.bind(this);
@@ -76,6 +76,7 @@ class AppProfile extends LitElement {
     this.showpass = false;
     this.name = global.user.name;
     this.email = global.user.email;
+    this.remember = global.user.remember === 1;
     this.keyTarget.addEventListener('keys-pressed', this._keyPressed);
     if (this.keys === undefined) {
       /*
@@ -94,9 +95,7 @@ class AppProfile extends LitElement {
     this.keys.disconnect();
     markSeen(); //say we've seen the remember consent
   }
-  update(changed) {
-    super.update(changed);
-  }
+
   firstUpdated() {
     this.dinput = this.shadowRoot.querySelector('#displayname');
     this.einput = this.shadowRoot.querySelector('#email');
@@ -104,9 +103,7 @@ class AppProfile extends LitElement {
     this.rinput = this.shadowRoot.querySelector('#replica');
     this.doProfile = this.shadowRoot.querySelector('#doprofile')
   }
-  updated(changed) {
-    super.updated(changed);
-  }
+
   render() {
     const unseen = !global.cookieConsent;
     return html`
@@ -121,7 +118,7 @@ class AppProfile extends LitElement {
           width: var(--name-input-length);
         }
         .subtitle {
-          font-size: 0.7em;
+
           font-weight:bold;
         }
         #passwords {
@@ -172,12 +169,12 @@ class AppProfile extends LitElement {
         }
         .explain {
           align-self: center;
-          font-size: .7em;
         }
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <app-page @key-pressed=${this._keyPressed} id="page">
-          <app-form 
+      <app-page @key-pressed=${this._keyPressed} id="page" title="Your Profile">
+        <div class="form">
+          <app-form
             id="doprofile" 
             action="session/update_profile" 
             class="inputs" 
@@ -250,12 +247,10 @@ class AppProfile extends LitElement {
               <app-checkbox ?value=${this.remember} @value-changed=${this._rememberChanged} name="remember">Remember Me</app-checkbox>
               ${cache(global.cookieConsent? '': html`<p class="consent">The Remember checkbox, when checked formally gives us permission to store a cookie with your user details on your computer until you next formally log out. Do not do this if this computer is public.</p>`)} 
           </app-form>
- 
-        <section slot="action">          
-          <button @click=${this._changeProfile}>Update</button>
-          <button cancel @click=${this._cancel}>Cancel</button>
-        </section>
-      </app-page>
+        </div> 
+        <button slot="action" @click=${this._changeProfile}>Update</button>
+        <button slot="action" cancel @click=${this._cancel}>Cancel</button>
+      
       </app-page>
     `;
   }

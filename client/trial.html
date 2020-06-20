@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<!--
+@licence
+    Copyright (c) 2020 Alan Chandler, all rights reserved
+
+    This file is part of Football Mobile.
+
+    Football Mobile is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Football Mobile is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+      content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes, shrink-to-fit=no">
+
+    <title>Test CSS</title>
+    <!-- because this can be served from anywhere base allows us to use relative urls -->
+    <base href="/">
+<link rel="shortcut icon" sizes="32x32" href="appimages/football-logo-32x32.png">
+
+<meta name="theme-color" content="#42d9ff">
+
+    <style>
+      html {
+        background: #ffffff;
+      }
+
+      body {
+        margin: 0;
+        height:100vh;
+        width:100vw;
+        font-family: sans-serif;
+        line-height: 1.5;
+        letter-spacing: 0.1em;
+        background-color: #fafafa;
+        color: #333;
+      }
+      .custom {
+        height:100%;
+        display:flex;
+        flex-direction: column;
+        
+      }
+      .main-app {
+        flex-direction: column-reverse ;
+      }
+      header {
+        background-color: #42d9ff;
+        flex: 0 0 64px;
+      }
+      section {
+        flex: 1 0 0;
+      }
+      .scrollable {
+        overflow-y: auto; 
+        scroll-snap-type: y mandatory;
+      }
+      .item {
+        height: 50px;
+        scroll-snap-align:start;
+        border-radius: 5px;
+        box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
+        margin:0 5px 5px 3px;
+      }
+      .page-template {
+        margin: 40px auto 40px auto;
+        max-height: 100%;
+        border-radius: 10px;
+        box-shadow: 0px 0px 38px -2px rgba(0, 0, 0, 0.5);
+        padding: 20px;
+        min-width: 500px;
+        box-sizing:border-box;
+      }
+      </style>
+
+  </head>
+  <body>
+    <div class="main-app custom">
+      <header class="main-header">Main Header Bar</header>
+      <section class="main-section">
+        <div class="page-manager custom">
+          <div class="managed-page custom">
+            <div class="page-template custom">
+              <header class="secondary-header">Secondary Header</header>
+              <section class="container">
+                <div class="list-manager custom">
+                  <header class="list-header">List Header</header>
+                  <section class="list scrollable">
+                    <div class="item">Item 1</div>
+                    <div class="item">Item 2</div>
+                    <div class="item">Item 3</div>
+                    <div class="item">Item 4</div>
+                    <div class="item">Item 5</div>
+                    <div class="item">Item 6</div>
+                    <div class="item">Item 7</div>
+                    <div class="item">Item 8</div>
+                    <div class="item">Item 9</div>
+                    <div class="item">Item 10</div>
+                    <div class="item">Item 11</div>
+                    <div class="item">Item 12</div>
+                    <div class="item">Item 13</div>
+                  </section>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

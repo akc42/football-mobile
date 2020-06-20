@@ -20,7 +20,7 @@
 import { LitElement, html } from '../libs/lit-element.js';
 import { cache } from '../libs/cache.js';
 
-import {AuthChanged,SessionStatus} from '../modules/events.js';
+import {SessionStatus} from '../modules/events.js';
 import global from '../modules/globals.js';
 import api from '../modules/api.js';
 
@@ -30,17 +30,16 @@ import './app-waiting.js';
 import './app-checkbox.js';
 import AppKeys from '../modules/keys.js';
 import button from '../styles/button.js';
-import page from '../styles/app-page.js';
-import consent from '../styles/consent.js';
+import page from '../styles/page.js';
 import { markSeen } from '../modules/visit.js';
-import { switchPath } from '../modules/utils.js';
+
 
 /*
      <app-logon>: Collects, username, password and notes forgotten password requests
 */
 class AppLogon extends LitElement {
   static get styles() {
-    return [page,button,consent];
+    return [page,button];
   }
   static get properties() {
     return {
@@ -84,54 +83,71 @@ class AppLogon extends LitElement {
 
         #email {
           width: var(--email-input-length);
+          grid-area: email;
         }
         #pw {
           width: var(--pw-input-length);
+          grid-area: pw;
         }
         #forgotten {
-          font-size:60%;
-          margin: 20px;
+          grid-area: note;
         }
+        .form {
+          display: grid;
+          grid-template-columns: 3fr 5fr;
+          grid-template-areas:
+            "email email"
+            "pw note"
+            "rem rem"
+            "consent consent";
+        }
+        app-checkbox {
+          grid-area: rem;
+        }
+        .consent {
+          grid-area: consent;
+        }
+        
 
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <app-page id="page" @keys-pressed=${this._submitLogon}>
-        <h1>Log On</h1>
-        <app-form 
-          id="logon" 
-          action="session/logon" 
-          class="inputs" 
-          @form-response=${this._formResponse}>
-          <fancy-input
-            label="E-Mail"
-            .message=${this.email.length > 0 ? 'Email Or Password Incorrect' : 'Required'}
-            autofocus
-            autocomplete="off"
-            required
-            type="email"
-            name="email"
-            id="email"
-            .value="${this.email}"
-            @value-changed="${this._emChanged}"
-            @blur=${this._doneFirst}></fancy-input>  
-            <fancy-input              
-              label="Password"
-              .message="min ${global.minPassLen} chars"
+      <app-page id="page" @keys-pressed=${this._submitLogon} title="Log On">
+        <div class="form">
+          <app-form 
+            id="logon" 
+            action="session/logon" 
+            class="inputs" 
+            @form-response=${this._formResponse}>
+            <fancy-input
+              label="E-Mail"
+              .message=${this.email.length > 0 ? 'Email Or Password Incorrect' : 'Required'}
+              autofocus
+              autocomplete="off"
               required
-              .minlength=${global.minPassLen}
-              type="password"
-              name="password"
-              id="pw"
-              .value="${this.password}"
-              @value-changed="${this._pwChanged}"
-              @blur=${this._doneFirst}></fancy-input>
-            <div id="forgotten" @click=${this._forgotten}>Forgotten Password (Enter Email before clicking)</div>
-            <app-checkbox ?value=${this.remember} @value-changed=${this._rememberChanged} name="remember">Remember Me</app-checkbox> 
-              ${cache(global.cookieConsent ? '' : html`<p class="consent">The Remember checkbox, when checked formally gives us permission to store a cookie with your user details on your computer until you next formally log out. Do not do this if this computer is public.</p>`)} 
-        </app-form>
-        <section slot="action">          
-          <button @click=${this._submitLogon}>Log On</button>
-        </section>
+              type="email"
+              name="email"
+              id="email"
+              .value="${this.email}"
+              @value-changed="${this._emChanged}"
+              @blur=${this._doneFirst}></fancy-input>  
+              <fancy-input              
+                label="Password"
+                .message="min ${global.minPassLen} chars"
+                required
+                .minlength=${global.minPassLen}
+                type="password"
+                name="password"
+                id="pw"
+                .value="${this.password}"
+                @value-changed="${this._pwChanged}"
+                @blur=${this._doneFirst}></fancy-input>
+              <p id="forgotten">Forgotten password!! Enter e-mail address and then click the forgotten password button</p> 
+              <app-checkbox ?value=${this.remember} @value-changed=${this._rememberChanged} name="remember">Remember Me</app-checkbox> 
+                ${cache(global.cookieConsent ? '' : html`<p class="consent">The Remember checkbox, when checked formally gives us permission to store a cookie with your user details on your computer until you next formally log out. Do not do this if this computer is public.</p>`)} 
+          </app-form>
+        </div>        
+        <button slot="action" @click=${this._submitLogon}>Log On</button>
+        <button slot="action" cancel @click=${this._forgotten}>Forgotten Password</button>
       </app-page>
     `;
   }
@@ -163,8 +179,8 @@ class AppLogon extends LitElement {
         markSeen();
         global.user = e.response.user;
         global.scope = e.response.usage;
-        const type = e.response.user.remember === 1 ? 'logonrem': 'logon'
-        this.dispatchEvent(new SessionStatus({type: type, email: this.email}));
+        const type = e.response.user.remember === 1 ? 'logonrem' : 'logon'
+        this.dispatchEvent(new SessionStatus({ type: type, email: this.email }));
         this.email = '';
       } else {
         this.emInput.invalid = true;

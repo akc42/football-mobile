@@ -1,0 +1,478 @@
+/*
+ 	Copyright (c) 2008,2009 Alan Chandler
+    This file is part of MBBall, an American Football Results Picking
+    Competition Management software suite.
+
+    MBBall is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    MBBall is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with MBBall (file COPYING.txt).  If not, see <http://www.gnu.org/licenses/>.
+
+*/
+
+html {
+}
+
+
+/* Tables should show empty cells. */
+table
+{
+	empty-cells: show;
+}
+
+/* By default (td, body..) use Tahoma in black. */
+body, td, th
+{
+	color: #000000;
+	font-size: small;
+	font-family: tahoma, sans-serif;
+}
+
+
+.hidden {display:block;position:absolute;visibility:hidden;} /* this is still to measure the dimension of hidden things */
+.error {background-color:#FF9999;font-weight:bold;}
+[disabled],[readonly] {background-color:#EEEEEE;color:black;}
+.clear {clear:both;float:none;}
+.loading {
+	width:300px;
+	height:100px;
+	background: white url(spinner.gif) no-repeat center;
+}
+
+/*#content>table.layout{width:970px;}*/
+
+#r{
+	width:25em;
+}
+#registration {
+	background-color:white;
+	padding:2em;
+	border:3px solid red;
+}
+
+#registration h1 {
+	color:blue;
+	text-align:center;
+}
+
+#registration .condition {
+	margin:1em;
+	border:2px solid black;
+	padding:2em;
+}
+#registration .bbcond {
+	color:#990000;
+	font-size:x-small;
+}
+
+#registration .bbcond i {
+	color:black;
+}
+
+#registered>p>span {color:red;}
+#registered .user_name {cursor:pointer;}
+
+#agree {
+	padding:1em;
+	text-align:center;
+}
+
+.radio{width:22px;}
+.user_name{width:140px;}
+.tid {width:30px; text-align:center;}
+.score{width:40px; text-align:right;}
+.ou{width:40px;text-align:center;}
+.question {width:500px;}
+.conference{width:300px;}
+.confhead{width:70px;}
+
+span.hid {width:25px;text-align:right;}
+span.aid {width:25px;text-align:left;}
+
+table.layout table th.tid {width:60px;}
+table.layout table.layout td {text-align:center;}
+table.layout table.layout td.score {text-align:center;}
+table.layout table.layout td.comment{text-align:left;}
+table.layout table.layout td.limited, h2.limited {text-align:center;font-weight:bold;background-color:red;color:white;}
+
+table.layout table td.in_po {background-color:#99FF99;}
+table.layout table td.win {background-color:#FFCC99;}
+table.layout table td.comment{height:40px;width:86px;vertical-align:top;}
+table.layout table th.score{text-align:center;}
+table.layout table td.opt_sel{text-align:center;height:20px;}
+table.layout table.layout td.comment{height:40px;width:86px;vertical-align:top;background-color:#D5F4FF}
+table.layout table td.me {background-color:#D5F4FF;}
+table.layout table th.single_answer,table.layout table td.single_answer {text-align:right;padding-right:240px;}
+span.in_po {font-size:0.6em;}
+td p.no_team {background-color:#CCFFFF;}
+td#instructions td {background-color:white; width:150px; border:2px solid black; font-size:x-small; text-align:left;vertical-align:top;}
+
+#bonus_pick,#instructions {vertical-align:top;}
+table.layout table.layout td#instructions {width:450px;height:1200px;}
+table.layout table.layout td#instructions p {text-align:left;}
+table.layout table.layout td#instructions ul {text-align:left;margin-left:2px;padding-left:1px;}
+table.layout table.layout td#instructions ul ul {text-align:left;margin-left:4px;padding-left:1px;}
+table.layout table.layout td#instructions li {list-style-position:inside;list-style-type:disc;}
+table.layout table.layout td#instructions li li {list-style-position:inside;list-style-type:square;}
+table.layout table.layout td#instructions h1,
+ table.layout table.layout td#instructions h2,
+ table.layout table.layout td#instructions h3 {text-align:left;font-size:small;}
+table.layout table.layout td#instructions h2,
+ table.layout table.layout td#instructions h3{ font-style:italic;}
+table.layout table.layout td#instructions h3{font-weight:normal;}
+ 
+
+#emoticons {
+  background-color:white;
+  border:1px solid black;
+  -moz-border-radius: 12px;
+  -webkit-border-radius: 12px;
+  border-radius: 12px;  
+}
+table.layout table.layout td#emoticon_cell{width:450px;height:160px;}
+
+#make_picks, #cancel_picks {
+	font-size:large;
+	font-weight:bold;
+	margin:10px;
+	margin-right:100px;
+	background-color:red;
+	color:white;
+	padding:5px;
+	border:3px outset;
+	cursor:pointer;
+}
+
+#make_picks {
+  	float:right;
+}
+
+#cancel_picks {
+	float:left;
+}
+
+#make_picks:hover, #make_picks:active, #cancel_picks:hover, #cancel_picks:active {border-style:inset;}
+
+/* mainly administration stuff below here */
+div.del {
+	background: url(cross.gif);
+	border: 0;
+	cursor: pointer;
+	float: left;
+	height: 16px;
+	width: 16px;
+	padding:0;
+}
+
+div.del:hover, div.del:active {background-position:left bottom;}
+.del_head{width:18px;}
+
+#rounds {
+	vertical-align:top;
+}
+
+#options {
+	vertical-align:top;
+	width:200px;
+	background-color:#339900;
+	color:#FFFFCC;
+}
+
+/*#round{width:600px;}*/
+
+textarea#question{height:140px;}
+#bonuscomment{height:220px;}
+textarea#condition{height:180px}
+#matches {
+	width:772px;
+	padding:0px;
+	vertical-align:top;
+	background-color:#CCEDFF;
+}
+
+#tic {
+	background-color:#CCEDFF;
+	cursor:pointer;
+    width:60px;
+}
+
+#tnic {
+	cursor:pointer;
+    width:30px;
+}
+
+.tic {
+  height:21px;
+  padding:2px;
+  margin:1px 0px;
+}
+
+#addall {
+	background: url(all.gif);
+	border: 0;
+	cursor: pointer;
+	float: left;
+	height: 16px;
+	width: 16px;
+	padding:0;
+}
+
+#addall:hover, #addall:active {background-position:left bottom;}
+
+
+textarea.question, textarea.comment {
+	height:100px;
+	padding:3px;
+	background-color:white;
+}
+
+#optionform table{width:100%;}
+
+#option {
+  text-align:center;
+  color:#FFFFCC;
+  font-weight:bold;
+  background-color:#339900;
+  border:4px outset #CCCCFF;
+  width:30px;
+  cursor:pointer;
+  -moz-border-radius: 12px;
+  -webkit-border-radius: 12px;
+  border-radius: 12px;
+}
+#option:hover {border-style:inset;}
+
+.option_input {width:192px;}
+.option_choice {width:200px;}
+
+#value {width:2em;}
+
+#answer {width:2em;}
+#gap {width:4em;}
+
+.comment {background-color:#FFFFCC;vertical-align:top;}
+.comment textarea {
+	width:160px;
+	min-height:56px; 
+	height:auto;
+}
+/* for Internet Explorer */
+/*\*/
+* html .comment {
+height: 56px;
+}
+/**/
+
+caption,#picks h1, #popicks h1 ,#playoff_pick h1, #bonus_pick h1 {font-size:small; font-weight:bold;text-align:center;}
+#playoff_pick h2, #bonus_pick h2 {font-size:small; font-weight:normal;text-align:center;}
+table.layout table td {
+	background-color:white;
+	border:1px solid #CCCCFF;
+}
+
+table.layout table.form td, table.layout td, table.layout table.layout td {background-color:#FFFFCC;}
+table.layout table.form th, table.layout th, table.layout td.conference , table.layout table.layout td.conference {background-color:#4A7DB5;color:#EFEFEF}
+table.layout td.conference , th {font-size:x-small;font-weight:normal;}
+td, div {padding:2px;}
+
+.ctitle {width:160px;}
+.user {width:180px;}
+.option1{width:12em;}
+table.layout {
+  -moz-border-radius: 6px;
+  -webkit-border-radius: 6px;
+  border-radius: 6px;
+}
+table.layout table.form td.submit{width:8em; text-align:center;background-color:#993300;}
+.time,.datetime {width:160px;text-align:center;}
+.option2{width:8em;}
+
+#competition div.calendar,#round div.calendar {background-color:#ddd;}
+#competition div.calendar span, #round div.calendar span {background-color:white;}
+
+.selectthis {
+	cursor:pointer;
+}
+
+.inmatch {
+  background-color:red;
+  -moz-border-radius: 6px;
+  -webkit-border-radius: 6px;
+  border-radius: 6px;
+}
+
+div.match {
+  width:181px;
+  border:2px solid black; 
+  padding:2px;
+  background-color:red; 
+  float:left;
+  margin:2px;
+  -moz-border-radius: 6px;
+  -webkit-border-radius: 6px;
+  border-radius: 6px;
+}
+div.match div {padding:1px;}
+div.match div.del {margin-left:2px;}
+div.match span {background-color:white; border:1px inset black;vertical-align:middle; }
+div.match .open {width:67px; height:22px; float:left;}
+div.match .hid, div.match .aid { 
+  width:32px;
+  height:18px; 
+  float:left;
+  border:1px solid blue;
+  background-color:#ddd;
+  text-align:center;
+  padding:2px 1px;
+  -moz-border-radius: 6px;
+  -webkit-border-radius: 6px;
+  border-radius: 6px;
+}
+div.match .hid span, div.match .aid span {
+	cursor:pointer;
+}
+div.match .hid span {text-align:left;}
+div.match .aid span {text-align:right;}
+div.match .at {float:left;width:16px;border:none;background:transparent;text-align:center;}
+
+div.match .hscore , div.match .ascore,div.match .cscore {
+	float:left;
+	border:1px solid blue;
+	background-color:#ddd;
+	margin-bottom:1px;
+}
+div.match .hscore {
+  margin-left:18px;
+  margin-right:28px;
+}
+
+div.match .hscore input, div.match .ascore input {width:26px;}
+
+div.match .cscore input {width:30px;}
+
+div.match .comment, div.match .mtime {width:176px;float:left;border:1px solid blue;background-color:#ddd;margin-bottom:1px;}
+div.match .comment textarea, div.match .mtime input {width:172px;}
+div.match .mtime {height:24px;}
+div.match .isUnderdog {background-color:#97FFC3;}
+div.match .underdog{
+  text-align:center;
+  background-color:#ffffcc;
+  color:#444;
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  width:170px;
+  margin:2px auto;
+  height:24px;
+}
+/*div.match .underdog*/ 
+.slider {
+  -moz-border-radius: 2px;
+  -webkit-border-radius: 2px;
+  border-radius: 2px;
+  width:156px;
+  height:6px;
+  margin:0 auto;
+  background-color:#41C6FF;
+  position:relative;
+  top:9px;
+}
+.pslide {
+  -moz-border-radius: 2px;
+  -webkit-border-radius: 2px;
+  border-radius: 2px;
+  width:100px;
+  height:6px;
+  margin:0 auto;
+  background-color:#41C6FF;
+  position:relative;
+  top:9px;
+}
+
+#pointsslider {
+  text-align:left;
+  height: 24px;
+  width:170px;
+}
+/*div.match .underdog*/ 
+.slider .knob , .pslide .knob {
+   -moz-border-radius: 6px;
+  -webkit-border-radius: 6px;
+  border-radius: 6px;
+  width:16px;
+  height:16px;
+  text-align:center;
+  vertical-align:middle;
+  background-color:silver;
+   color:yellow;
+  font-weight:bold;
+  font-size:x-small;
+  cursor:pointer;
+  position:absolute;
+  top:-6px;
+}
+.minortick, .majortick ,.minortickv,.majortickv{
+  position:absolute;
+  background-color:transparent;
+}
+
+.minortick {
+  height:4px;
+  top:-9px;
+  width:1px;
+  border-left:1px solid black;
+}
+
+.majortick {
+  height:6px;
+  top:-9px;
+  width:1px;
+  border-left:1px solid black;
+}
+.minortickv {
+  width:5px;
+  right:-7px;
+  height:1px;
+  border-bottom:1px solid black;
+}
+
+.majortickv {
+  width:7px;
+  right:-9px;
+  height:1px;
+  border-bottom:1px solid black;
+}
+
+#notice {
+	margin:30px;
+	padding:20px;
+	font-size:1.2em;
+	background-color:#FFFFCC;
+	color:#000000;
+}
+
+div.xtra {
+  position:absolute;
+  bottom:0;
+  right:0;
+  font-size:0.8em;
+  background-color:#97FFC3;
+    color:black;
+}
+
+.late_pick {
+  font-size:0.6em;
+  margin-right:0.5em;
+}
+
+.without_cache {
+  border:dotted 1px grey;
+}

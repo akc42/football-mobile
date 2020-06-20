@@ -26,7 +26,6 @@ import button from '../styles/button.js';
 
 import { EmailStatus } from '../modules/events.js';
 import api from '../modules/api.js';
-import user from '../modules/user/js';
 import './app-waiting.js';
 import './app-page.js';
 import global from '../modules/globals.js';
@@ -76,8 +75,7 @@ class AppRequestPin extends LitElement {
 
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <app-page>
-          <h2>${user.name}</h2>
+      <app-page .title=${global.user.name}>
           <p>We are going to send you (via email) a link which will temporarily (for the next ${global.verifyExpires} hours) automatically 
           log you on to this web site, to enable you to reset your password.  The email address we will
           use is <em>${user.email}</em>. Please only continue if this e-mail address is yours.</p>

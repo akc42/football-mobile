@@ -69,47 +69,17 @@ class AppEmailVerify extends LitElement {
         #email {
           width: var(--email-input-length);
         }
-        p {
-          font-size: 1.3em;
-        }
-        @media (max-height: 1300px) {
-          p {
-            font-size:1.3em;
-          }
-
-        }
-        @media (max-height: 1000px) {
-          p {
-            font-size: 1.0em;
-          }
-        }
-
-        @media (max-height: 700px) {
-          p {
-            font-size: 0.9em;
-          }
-        }
-
-        @media (max-height: 600px) {
-          p {
-            font-size: 0.7em;
-          }
-        }
-
-
-
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <app-page @key-pressed=${this._sendData} id="page">
-        
-        <section class="intro">
-          <p>If you still have the same e-mail address since the last time you registered and played with us,
-          enter it below.  However, if you are a new visitor or you have changed your e-mail address since
-          you last played in the competition, please enter it here and then request Membership.</p>
+      <app-page @key-pressed=${this._sendData} id="page" title="Email Verification">
+        <p>If you still have the same e-mail address since the last time you registered and played with us,
+        enter it below.  However, if you are a new visitor or you have changed your e-mail address since
+        you last played in the competition, please enter it here and then request Membership.</p>
 
-          <p>New members please note that this Competiion is for Members only, and once we have verified your
-          email address we will ask you for a short note to explain to the Membership Committee why you should be admitted. 
-          You will then have to wait for approval while they review your application.</p>     
+        <p>New members please note that this Competiion is for Members only, and once we have verified your
+        email address we will ask you for a short note to explain to the Membership Committee why you should be admitted. 
+        You will then have to wait for approval while they review your application.</p>
+        <div class="form">    
           <fancy-input
             label="E-Mail"
             .message=${this.email.length > 0 && this.email.indexOf('@') > 0 ? 'Email Not Known' : 'Required'}
@@ -120,12 +90,10 @@ class AppEmailVerify extends LitElement {
             name="email"
             id="email"
             .value="${this.email}"
-            @value-changed="${this._emChanged}"></fancy-input>  
-        </section>
-        <section slot="action">          
-          <button @click=${this._sendData}>Verify</button>
-          <button cancel @click=${this._newMember}>Request Membership</button>
-        </section>
+            @value-changed="${this._emChanged}"></fancy-input>
+        </div>  
+        <button slot="action" @click=${this._sendData}>Verify</button>
+        <button slot="action" cancel @click=${this._newMember}>Request Membership</button>
       </app-page>
     `;
   }
@@ -136,7 +104,7 @@ class AppEmailVerify extends LitElement {
 
   _newMember(e) {
     e.stopPropagation();
-    if (!this.input.invalid) this.dispatchEvent(new SessionStatus({type:'member',email:this.email}));
+    this.dispatchEvent(new SessionStatus({type:'member',email:this.email}));
   }
 
   async _sendData() {

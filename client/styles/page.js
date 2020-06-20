@@ -28,6 +28,26 @@ export default css`
     display:flex;
     flex-direction:column;
     align-items: stretch;
-    justify-content: flex-start;
+    box-sizing: border-box;
   }
+  :host[hidden] {
+    display: !important none;
+    flex:0, 1, 0px;
+  }
+  .form {
+    background-color: var(--app-form-color);
+    border-radius:5px;
+  }
+  .scrollable {
+    overflow-y:auto;
+    scroll-snap-type: y mandatory;
+    
+  }
+  header {
+    flex:0 1 0;
+  }
+  section {
+    flex: 1 0 0;
+  }
+
 `;

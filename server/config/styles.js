@@ -26,25 +26,11 @@
   module.exports = async function() {
     debug('got a styles request');
     const styles = {};
-    const s = db.prepare('SELECT style FROM styles WHERE name = ?').pluck();
-    db.transaction(() => {
-      styles.app_primary_color = s.get('app-primary-color');
-      styles.app_accent_color = s.get('app-accent-color');
-      styles.app_text_color = s.get('app-text-color');
-      styles.app_reverse_text_color = s.get('app-reverse-text-color');
-      styles.app_header_color = s.get('app-header-color');
-      styles.app_spinner_color = s.get('app-spinner-color');
-      styles.app_button_color = s.get('app-button-color');
-      styles.button_text_color = s.get('button-text-color');
-      styles.app_cancel_button_color = s.get('app-cancel-button-color');
-      styles.cancel_button_text_color = s.get('cancel-button-text-color');
-      styles.primary_color_filter = s.get('primary-color-filter');
-      styles.app_header_size = s.get('app-header-size');
-      styles.default_icon_size = s.get('default-icon-size');
-      styles.email_input_length = s.get('email-input-length');
-      styles.pw_input_length = s.get('pw-input-length');
-      styles.name_input_length = s.get('name-input-length');
-    })();
+    const s = db.prepare('SELECT name, style FROM styles').all();
+    for (const style of s) {
+      styles[style.name.replace(/-/g,'_')] = style.style;
+    }
+
     debug('got styles');
     return styles;
   };

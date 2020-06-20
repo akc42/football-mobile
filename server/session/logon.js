@@ -34,22 +34,28 @@
     if (result !== undefined) {
       debug('found the user')
       const user = { ...result, password: !!result.password, verification_key: !!result.verification_key}
-      const correct = await bcrypt.compare(params.password,result.password);
+      if (user.password) {
+        const correct = await bcrypt.compare(params.password,result.password);
 
-      let usage; 
-      if (correct) {
-        debug('user password correct for user ', user.uid);
-        user.remember = params.remember? 1:0;
+        let usage; 
+        if (correct) {
+          debug('user password correct for user ', user.uid);
+          user.remember = params.remember? 1:0;
 
-        db.prepare(`UPDATE participant SET last_logon = (strftime('%s','now')), verification_key = NULL, remember = ? WHERE uid = ?`)
-          .run(user.remember,user.uid);
-        debug('updated user with remember = ', params.remember);
-        debug('success');
-        return { user: user, usage: 'authorised' };
+          db.prepare(`UPDATE participant SET last_logon = (strftime('%s','now')), verification_key = NULL, remember = ? WHERE uid = ?`)
+            .run(user.remember,user.uid);
+          debug('updated user with remember = ', params.remember);
+          debug('success');
+          return { user: user, usage: 'authorised' };
+        } else {
+          debug('password error by user ', user.uid);
+        }
       } else {
-        debug('password error by user ', user.uid);
+        debug('user does not have a password');
+        const requestPin = require('./request_pin');
+        const result = await requestPin(params);
+        return {user:user, usage: 'await'};
       }
-
     }
     return {user: false};
   };

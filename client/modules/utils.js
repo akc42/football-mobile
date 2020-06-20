@@ -17,7 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+import {LocationAltered} from './events.js';
 
 export function generateUri(path, params) {
   var str = [];
@@ -42,7 +42,7 @@ export function openPdf(path, params) {
 }
 export function switchPath(path, params) {
   history.pushState({}, null, generateUri(path,params));
-  window.dispatchEvent(new CustomEvent('location-changed'));
+  window.dispatchEvent(new LocationAltered());
 }
 
 

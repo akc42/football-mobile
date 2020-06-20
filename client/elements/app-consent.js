@@ -62,13 +62,6 @@ class AppConsent extends LitElement {
   render() {
     return html`
       <style>
-
-        h1 {
-          font-size: 1.0em;
-        }
-        p,li {
-          font-size: 1.3rem;
-        }
         ol {
           margin-block-start:0.5rem;
           margin-block-end:0.3rem;
@@ -78,32 +71,16 @@ class AppConsent extends LitElement {
         ol li {
           padding-inline-start: 0.5rem;
         }
-        @media (max-height: 1300px) {
-          p,li {
-            font-size:1.0rem;
-          }
-
 
         }
         @media (max-height: 1000px) {
-          p,li {
-            font-size: 0.75rem;
-          }
+
           ol {
             padding-inline-start:20px;
           }
          }
-
-        @media (max-height: 700px) {
-          p,li {
-            font-size: 0.6rem;
-          }
-        }
-
         @media (max-height: 600px) {
-          p, li {
-            font-size: 0.5rem;
-          }
+
           ol {
             padding-inline-start:10px;
           }
@@ -111,20 +88,17 @@ class AppConsent extends LitElement {
 
 
       </style>
-      <app-page>
-        <h1>Your Privacy</h1>
-        <section class="intro">
-          <p>${unsafeHTML(global.firstTimeMessage)}</p>
+      <app-page title="Your Privacy">
+        <p>${unsafeHTML(global.firstTimeMessage)}</p>
 
-          <p> We use cookies on this site for two purposes:-</p>
-          <ol>
-            <li>To know if you have visited before, in order to securely process pre-login functions.</li>
-            <li>To remember your log-on details, to avoid you having to log on at each visit.</li>
-          </ol>
-          <p>Accepting this notice will allow us to use cookies for the 1st purpose only. This cookie will expire in 90 days after your
-            last visit. If you do not wish to accept, I am afraid we can proceed no further.</p>
-          <p>You will have an opportunity to indicate your preference for the 2nd purpose when you come to log on.</p>
-        </section>
+        <p> We use cookies on this site for two purposes:-</p>
+        <ol>
+          <li>To know if you have visited before, in order to securely process pre-login functions.</li>
+          <li>To remember your log-on details, to avoid you having to log on at each visit.</li>
+        </ol>
+        <p>Accepting this notice will allow us to use cookies for the 1st purpose only. This cookie will expire in 90 days after your
+          last visit. If you do not wish to accept, I am afraid we can proceed no further.</p>
+        <p>You will have an opportunity to indicate your preference for the 2nd purpose when you come to log on.</p>
                 
         <button slot="action" @click=${this._accept}>Accept visit tracking</button>
       </app-page>

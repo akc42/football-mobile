@@ -25,6 +25,8 @@ import './app-error.js';
 import './app-overlay.js';
 import './app-pages.js';
 import './app-session.js';
+import './material-icon.js';
+
 import { SessionStatus } from '../modules/events.js';
 import AppKeys from '../modules/keys.js';
 import api from '../modules/api.js';
@@ -146,12 +148,22 @@ class MainApp extends LitElement {
     const admin = (global.luid !== 0 && (global.luid === global.user.uid) || global.user.global_admin) ;
     return html`  
       <style>
-        :host {
 
+        html,
+        body {
           height: 100vh;
+        }
+
+        body {
+          margin: 0;
+        }
+
+        :host {
+          height: 100%;
           display: flex;
           flex-direction: column-reverse;
-          justify-content:flex-start;
+          font-size:12px;
+          --icon-size:24px;
         }
         #mainmenu {
           display:flex;
@@ -163,20 +175,22 @@ class MainApp extends LitElement {
           font-weight: bold;
         }
         header {
-          height: var(--app-header-size, 64px);
-          color: var(--app-reverse-text-color, white);
-          background-color: var(--app-header-color,#adcabd );
+          flex: 0 1 auto;
+        }
+         section {
+          flex:1 0 0;
+        }
+
+       .fixed {
+          flex: 0 1 64px;
+        }
+        .primary {
+          color: var(--app-primary-text);
+          background-color: var(--app-primary-color);
           display: flex;
           flex-direction: row;
           justify-content: space-between;
           align-items:center;
-        }
-        section {
-          height: calc(100vh - var(--app-header-size, 64px));
-          overflow-y:auto;
-          display: flex;
-          flex-direction: column;
-          align-items:stretch;
         }
 
         .iconreplace {
@@ -185,12 +199,8 @@ class MainApp extends LitElement {
           background-color: transparent;
         }
         #logo {
-          display:block;
-          color: transparent;
-          height: var(--app-header-size, 64px);
-          width: var(--app-header-size, 64px);
-          background: url("../appimages/football-logo.svg");
-          background-size: var(--app-header-size, 64px) var(--app-header-size,64px);
+          height: 64px;
+          width: 64px;
         }
         #appinfo {
           display:flex;
@@ -211,6 +221,7 @@ class MainApp extends LitElement {
         @media (min-width: 500px) {
           :host, #mainmenu {
             flex-direction: column;
+            font-size:12pt;
           }
         }
 
@@ -251,17 +262,17 @@ class MainApp extends LitElement {
           `))}
         </app-overlay>       
         `:'')}
-      <header>
+      <header class="primary fixed">
         ${cache(this.authorised? html`
         <material-icon @click=${this._menu}>${global.mainMenuIcon}</material-icon>        
         `:html`<div class="iconreplace"></div>` )}
-        <div id="logo">Football Logo</div>
+        <img id="logo" src="/appimages/football-logo.svg" alt="football logo"/>
         <div id="appinfo">
           <div id="version">${global.version}</div>
           <div id="copy">&copy; 2008-${global.copyrightYear} Alan Chandler</div>
         </div>
       </header>
-      <section>
+      <section class="scrollable">
         <app-error ?hidden=${!this.serverError} @session-status=${this._errorChanged} ></app-error>    
         <app-session 
           ?hidden=${this.authorised || this.serverError} 
@@ -302,7 +313,7 @@ class MainApp extends LitElement {
   _competitionSelected(e) {
     const selected = parseInt(e.currentTarget.dataset.cid,10);
     if (this.editingDcid) {
-      api(`/${selected}/dcid`).then(response => {
+      api(`${selected}/dcid`).then(response => {
           global.dcid = response.dcid;
           this.requestUpdate();
       });

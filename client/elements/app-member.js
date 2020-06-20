@@ -74,15 +74,11 @@ class AppMember extends LitElement {
   render() {
     return html`
       <style>
-        h1 {
-          font-size: 1.0em;
-        }
+
         #email {
           width: var(--email-input-length);
         }
-        p,li {
-          font-size: 1.3rem;
-        }
+
         ol {
           margin-block-start:0.5rem;
           margin-block-end:0.3rem;
@@ -95,32 +91,17 @@ class AppMember extends LitElement {
         .step {
           background-color: lemonchiffon;
         }
-        @media (max-height: 1300px) {
-          p,li {
-            font-size:1.0rem;
-          }
-
-
-        }
         @media (max-height: 1000px) {
-          p,li {
-            font-size: 0.75rem;
-          }
+
           ol {
             padding-inline-start:20px;
           }
          }
 
-        @media (max-height: 700px) {
-          p,li {
-            font-size: 0.6rem;
-          }
-        }
+  
 
         @media (max-height: 600px) {
-          p, li {
-            font-size: 0.5rem;
-          }
+ 
           ol {
             padding-inline-start:10px;
           }
@@ -130,51 +111,51 @@ class AppMember extends LitElement {
 
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <app-page @key-pressed=${this._sendData} id="page">
-          <h1> Applying for Membership</h1>
-       
+      <app-page @key-pressed=${this._sendData} id="page" title="Membership">
           <p>Applying for membership is a three step process.  You are currently at Step ${this.step} as highlighted below.</p>
-
           <ol>
-          <li class=${classMap({step: this.step === 1})}><p>We need to verify your email address.  When your enter you e-mail
-          address and click on the "Verify Email" button we will send a link to that e-mail address which when you click on it,
-          it will bring you back here to conduct step 2.</p>
-          ${cache(this.step === 1 ? html`
+            <li class=${classMap({step: this.step === 1})}>
+            ${cache(this.step === 1 ? html`
+            <p>We need to verify your email address.  When your enter you e-mail
+            address and click on the "Verify Email" button we will send a link to that e-mail address which when you click on it,
+            it will bring you back here to conduct step 2.</p>              
             <p>If you requested membership by mistake, just click the "Cancel" button and we return you to the previous page.</p>
-            <fancy-input
-              label="E-Mail"
-              .message=${this.known? 'Email aready a member': (this.email.length > 0 && this.email.indexOf('@') > 0 ? 'Email ' : 'Required')}
-              autofocus
-              autocomplete="off"
-              required
-              type="email"
-              name="email"
-              id="email"
-              .value="${this.email}"
-              @value-changed="${this._emChanged}"></fancy-input>  
-          `:'')}</li>
-            <li class=${classMap({step: this.step === 2})}><p>Membership has to be approved by a member of the membership committee.  In this
-            step you enter a reason for becoming a member and click on the Request Approval button.</p>
+              <div class="form">
+                <fancy-input
+                  label="E-Mail"
+                  .message=${this.known? 'Email aready a member': (this.email.length > 0 && this.email.indexOf('@') > 0 ? 'Email ' : 'Required')}
+                  autofocus
+                  autocomplete="off"
+                  required
+                  type="email"
+                  name="email"
+                  id="email"
+                  .value="${this.email}"
+                  @value-changed="${this._emChanged}"></fancy-input>
+              </div>  
+            `:html`<p>Verify your email address</p>`)}</li>
+            <li class=${classMap({step: this.step === 2})}><p>You request approval from the membership committee.</p>
             ${cache(this.step === 2 ? html`
-              <p>If you wish to cancel your membership request just click on the "Cancel Membership Request" button.  If you need time to think about your request just close the browser for now and you will return here  when you revisit the site.</p>
-             <fancy-input
-              label="Reason"
-              .message=${'Reason Required'}
-              autofocus
-              textArea
-              autocomplete="off"
-              required
-              name="reason"
-              id="reason"
-              .value="${this.reason}"
-              @value-changed="${this._reasonChanged}"></fancy-input>` : '')}           
+            <p>In this step you enter a reason for becoming a member and click on the Request Approval button.</p>
+              <div class="form">
+                <fancy-input
+                  label="Reason"
+                  .message=${'Reason Required'}
+                  autofocus
+                  textArea
+                  autocomplete="off"
+                  required
+                  name="reason"
+                  id="reason"
+                  .value="${this.reason}"
+                  @value-changed="${this._reasonChanged}"></fancy-input>
+              </div>` : '')}           
             </li>
             <li class="${classMap({step: this.step === 3})}"><p>You wait for the membership committee to approve your request.  When approved you will be
             sent an e-mail telling you have been approved.</p>
-            ${cache(this.step === 3 ? html`<p>This email will contain another link (which will expire in ${global.verifyExpires} hours of it having
-            been sent). If, you received the link but were unable to act upon it with sufficient time, just click the "Resend Link" button.</p>
+            ${cache(this.step === 3 ? html`<p>This email will contain another link with a temporary password to enable to setup your profile. If, you received the link but were unable to act upon it with sufficient time, just click the "Resend Link" button.</p>
             <p>Requesting the link before you have been approved will have no effect, so just close the browser for now and wait.</p>`:'')}</li>
-            </ol>
+          </ol>
                   
           ${cache((this.step > 0 && this.step < 4) ? 
             html`<button slot="action" @click=${this._sendData}>${

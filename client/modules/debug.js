@@ -20,6 +20,7 @@
 
 import api from './api.js';
 import global from './globals.js';
+import {manageVisitCookie} from './visit.js';
 
 let topics = '';
 let debugEnabled = false;
@@ -45,7 +46,8 @@ export default function(t) {
       const now = new Date().getTime();
       const gap = now - timestamp;
       timestamp = now;
-      api('session/log',{topic:topic, message: message, gap: gap}); //no interest in reply
+      const cookie = manageVisitCookie();
+      if (cookie) api('session/log',{topic:topic, message: message, gap: gap}); //no interest in reply
     }
   }
 }

@@ -36,6 +36,11 @@ class AppForm extends LitElement  {
       <style>
         :host {
           display: contents;
+
+        }
+        ::slotted(*) {
+          background-color: var(--app-form-color);
+          border-radius: 5px;
         }
       </style>
       <slot id="mychildren"></slot>

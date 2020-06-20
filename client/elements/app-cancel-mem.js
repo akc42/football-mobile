@@ -75,47 +75,19 @@ class AppCancelMem extends LitElement {
         #email {
           width: var(--email-input-length);
         }
-        p {
-          font-size: 1.3em;
-        }
-        @media (max-height: 1300px) {
-          p {
-            font-size:1em;
-          }
-
-        }
-        @media (max-height: 1000px) {
-          p {
-            font-size: 0.7em;
-          }
-        }
-
-        @media (max-height: 700px) {
-          p {
-            font-size: 0.5em;
-          }
-        }
-
-        @media (max-height: 600px) {
-          p {
-            font-size: 0.45em;
-          }
-        }
-
 
 
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <app-page>
-        
-        <section class="intro">
-          <p>You have requested that we cancel your membership request.</p>
+      <app-page title="Cancel Membership">
+        <p>You have requested that we cancel your membership request.</p>
 
-          <p>If you do <strong>not</strong> want to proceed please hit the "Cancel Button below".  However if you <strong>do</strong>
-          wish to proceed, please re-enter your email address to confirm that you are who we think you are and click on the "Confirm" below.</p>
-          
-          <p><em>Please note</em>, clicking on "Confirm" will remove all cookies related to this site from your computer.  You will have to go through
-          the consent process again if you wish to re-apply</p> 
+        <p>If you do <strong>not</strong> want to proceed please hit the "Cancel Button below".  However if you <strong>do</strong>
+        wish to proceed, please re-enter your email address to confirm that you are who we think you are and click on the "Confirm" below.</p>
+        
+        <p><em>Please note</em>, clicking on "Confirm" will remove all cookies related to this site from your computer.  You will have to go through
+        the consent process again if you wish to re-apply</p> 
+        <div class="form">
           <fancy-input
             label="E-Mail"
             .message=${this.email.length > 0? 'Email Unknown':'Required'}
@@ -126,12 +98,10 @@ class AppCancelMem extends LitElement {
             name="email"
             id="email"
             .value="${this.email}"
-            @value-changed="${this._emChanged}"></fancy-input>  
-        </section>
-        <section slot="action">          
-          <button @click=${this._sendData}>Confirm</button>
-          <button cancel @click=${this._cancel}>Cancel</button>
-        </section>
+            @value-changed="${this._emChanged}"></fancy-input>
+        </div>
+        <button slot="action" @click=${this._sendData}>Confirm</button>
+        <button slot="action" cancel @click=${this._cancel}>Cancel</button>
       </app-page>
     `;
   }

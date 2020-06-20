@@ -74,23 +74,16 @@ class AppError extends LitElement {
 
       </style>
       ${cache(this.anError?html`
-        <app-page>
+        <app-page .title=${this.forbidden?'Forbidden': 'Something Went Wrong'}>
           ${cache(this.forbidden ? html`
-            <h1>Forbidden</h1>
             <p class="forbidden">You have tried to access a forbidden area.</p>
-
           `:html`
-            <h1>Something Went Wrong</h1>
-            <section class="intro">
-              <p>We are sorry but something has gone wrong with the operation of the site.  The problem has been logged
-              with the server and it will be dealt with soon.</p>
-              <p>Nevertheless, you may wish to e-mail the web master (<a href="mailto:${global.webmaster}">${global.webmaster}</a>) to let
-              them know that there has been an issue.</p> 
-            </section>
+            <p>We are sorry but something has gone wrong with the operation of the site.  The problem has been logged
+            with the server and it will be dealt with soon.</p>
+            <p>Nevertheless, you may wish to e-mail the web master (<a href="mailto:${global.webmaster}">${global.webmaster}</a>) to let
+            them know that there has been an issue.</p>             
             <button slot="action" @click=${this._reset}>Restart</button>
           `)}
-
-          
         </app-page>
       `: '')}
     `;

@@ -22,6 +22,5 @@ import { css } from '../libs/lit-element.js';
 export default css`
   .consent {
     align-self: center;
-    font-size: 0.5em;       
   }
 `;

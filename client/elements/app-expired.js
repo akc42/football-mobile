@@ -74,45 +74,15 @@ class AppExpired extends LitElement {
         #email {
           width: var(--email-input-length);
         }
-        p {
-          font-size: 1.3em;
-        }
-        @media (max-height: 1300px) {
-          p {
-            font-size:1em;
-          }
-
-        }
-        @media (max-height: 1000px) {
-          p {
-            font-size: 0.7em;
-          }
-        }
-
-        @media (max-height: 700px) {
-          p {
-            font-size: 0.5em;
-          }
-        }
-
-        @media (max-height: 600px) {
-          p {
-            font-size: 0.45em;
-          }
-        }
-
-
-
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <app-page>
-        
-        <section class="intro">
-          <p>Sadly the link that we sent you that you have just tried to use as either expired or been corrupted in some way.
-          We are sorry, but because of that we are unable to identify you. If you wish to try again, please enter you email
-          address below and request a new link.</p>
+      <app-page title="Link Expired">      
+        <p>Sadly the link that we sent you that you have just tried to use as either expired or been corrupted in some way.
+        We are sorry, but because of that we are unable to identify you. If you wish to try again, please enter you email
+        address below and request a new link.</p>
 
-          <p>If you don't think you need a new link and can log in normally, just hit the cancel button below (or press the escape key)</p>     
+        <p>If you don't think you need a new link and can log in normally, just hit the cancel button below (or press the escape key)</p>  
+        <div class="form">   
           <fancy-input
             label="E-Mail"
             .message=${this.email.length > 0 && this.email.indexOf('@') > 0 ? 'Email Not Known' : 'Required'}
@@ -124,11 +94,9 @@ class AppExpired extends LitElement {
             id="email"
             .value="${this.email}"
             @value-changed="${this._emChanged}"></fancy-input>  
-        </section>
-        <section slot="action">          
-          <button @click=${this._sendData}>Resend Link</button>
-          <button cancel @click=${this._logon}>Cancel</button>
-        </section>
+        </div>  
+        <button slot="action" @click=${this._sendData}>Resend Link</button>
+        <button slot="action" cancel @click=${this._logon}>Cancel</button>    
       </app-page>
     `;
   }

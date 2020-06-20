@@ -20,6 +20,8 @@
 
 import { LitElement, html } from '../libs/lit-element.js';
 import { cache } from '../libs/cache.js';
+import page from '../styles/page.js';
+
 import api from '../modules/api.js';
 import global from '../modules/globals.js';
 import { AuthChanged } from '../modules/events.js';
@@ -37,6 +39,9 @@ import './app-overlay.js';
      <app-session>
 */
 class AppSession extends LitElement {
+  static get styles() {
+    return [page];
+  }
 
   static get properties() {
     return {
@@ -79,7 +84,7 @@ class AppSession extends LitElement {
   }
   updated(changed) {
     if (changed.has('state')) {
-      debug(`state-changed to ${this.state}`);
+      debug(`state-changed to ${this.state}`); //can't log with no visit cookie
       this.waiting = true;   
       switch(this.state) {
         case 'consent':
@@ -166,8 +171,8 @@ class AppSession extends LitElement {
           import ('./app-member.js').then(this.waiting=false);
           break;
         case 'profile':
-          this.authorised = true;
           switchPath('/profile');
+          this.authorised = true;
           break;
         case 'requestpin':
           import('./app-request-pin.js').then(this.waiting = false);
@@ -181,14 +186,7 @@ class AppSession extends LitElement {
   render() {
     return html`
       <style>
-        :host {
-          display: block;
-          flex:1;
-        }
-        :host[hidden] {
-          display: !important none;
-          flex:0;
-        }
+
       </style>
       <app-overlay id="inuse"></app-overlay>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
@@ -211,6 +209,7 @@ class AppSession extends LitElement {
     `;
   }
   _consent() {
+
     makeVisitCookie('emailverify'); //next state if we don't actually have a normal cookie
     this.state = 'validate'; //this makes us go check the cookie
   }

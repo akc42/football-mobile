@@ -1,19 +1,19 @@
 {
 
   "name": "Football Mobile",
-  "short_name": "Ball",
+  "short_name": "FMob",
     "icons": [{
       "src": "appimages/football-logo-32x32.png",
       "type": "image/png",
       "sizes": "32x32"
     }, {
-      "src": "appimages/football-logo.svg",
+      "src": "appimages/football-logo-128x128.png",
       "sizes": "128x128",
-      "type": "image/svg"
-    }, {
-      "src": "appimages/football-logo-144x144.png",
-      "sizes": "144x144",
       "type": "image/png"
+    }, {
+      "src": "appimages/football-logo.svg",
+      "sizes": "144x144",
+      "type": "image/svg"
     }, {
       "src": "appimages/football-logo.svg",
       "sizes": "192x192",

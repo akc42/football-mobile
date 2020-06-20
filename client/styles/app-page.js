@@ -29,32 +29,50 @@ export default  css`
     max-width: 600px;
     justify-content: start;
     padding:10px;
+    box-sizing:border-box;
   }
   header {
-    height: 64px;
-    margin: 0 auto;
-    padding: 0;
+    display: flex;
+    flex-direction: row;
+    flex:0 1 0;
   }
+  header .title {
+    margin-left: 10px;
+    font-weight: bold;
+    font-size:18px;
+    text-transform: uppercase;
+    flex:1 1 auto;
+    text-align: center;
+    vertical-align:middle;
+    background-color: var(--app-primary-color);
+    color: var(--app-primary-text);
+    border-radius: 5px;
+  }
+  section {
+    flex: 1 0 0;
+    height:100%;
+    display: flex;
+    flex-direction: column;
+  }
+
   .action {
     display: flex;
     width:100%;
     flex-direction:row;
     flex-wrap: wrap;
     justify-content: space-evenly;
-    margin-top:auto;
+    flex:0 1 auto;
   }
 
   @media (min-width: 500px) {
 
-    .action {
-      margin-top: 10px;
-    }
     :host {
       margin: 40px auto 40px auto;
-      height: auto;
+      max-height: 100%;
       border-radius: 10px;
       box-shadow: 0px 0px 38px -2px rgba(0, 0, 0, 0.5);
       padding: 20px;
+      min-width: 500px;
     }
   }
 

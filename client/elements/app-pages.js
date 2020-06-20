@@ -25,7 +25,6 @@ import {cache} from '../libs/cache.js';
 import {connectUrl, disconnectUrl} from '../modules/location.js';
 
 import PageManager from './page-manager.js';
-import './fm-summary.js';
 
 import page from '../styles/page.js';
 
@@ -35,18 +34,16 @@ export class AppPages extends PageManager {
   }
   static get properties() {
     return {
-      name: { type: String },
-      email: { type: String },
-      password: { type: String },
-      replica: { type: String },
-      remember: { type: Boolean }
+      cid: {type: Number},
+      rid: {type: Number}
     };
   }
 
 
   constructor() {
     super();
-    this.last = 0;
+    this.cid = 0;
+    this.rid = 0;
 
   }
   connectedCallback() {
@@ -66,10 +63,10 @@ export class AppPages extends PageManager {
       ${cache({
         home: html`<fm-summary 
           managed-page
+          .cid=${this.cid}
           .route=${this.subRoute}>Summary Loading ...</fm-summary>`,
         profile: html`<app-profile
-          managed-page
-          .route=${this.subRoute}>Profile Loading ...</app-profile>`
+          managed-page>Profile Loading ...</app-profile>`
       }[this.page])}
 
     `;
@@ -80,8 +77,8 @@ export class AppPages extends PageManager {
   loadPage(page) {
     this.waiting = true;
     switch (page) {
-      case home:
-        this.waiting = false;
+      case 'home':
+        import('./fm-summary.js').then(this.waiting = false);
         break;
         
       case 'profile':

@@ -31,10 +31,13 @@ class AppPage extends LitElement {
   }
   render() {
     return html`
-      <header><img src="${global.siteLogo}" height="64px"></header>
-      <slot class="container"></slot>
+      <header>
+        <img src="${global.siteLogo}" height="64px"/>
+        <div class="title">${this.title}</div>
+      </header>
+      <section><slot class="container"></slot></section>
   
-      <slot class="action" name="action"></slot>
+      <div class="action"><slot name="action"></slot></div>
     `;
   }
 }
