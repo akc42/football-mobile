@@ -58,7 +58,7 @@ class FmSummary extends LitElement {
   update(changed) {
     if ((changed.has('cid') || changed.has('route'))
       && this.cid > 0 && this.route.active && this.route.params.page.length === 0 && this.fetchedCid !== this.cid) {
-        api(`${this.cid}/fetch_users`).then(response => {
+        api(`${this.cid}/users_summary`).then(response => {
           this.fetchCid = this.cid;
           this.users = response.users;
         });
