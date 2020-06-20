@@ -74,8 +74,11 @@ class FmSummary extends LitElement {
     return html`
     <style>
       .container {
-        margin:2px;
         background-color: var(--app-primary-color);
+        border:2px solid var(--app-accent-color);;
+        border-radius: 5px;
+        box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
+        margin:5px 5px 5px 3px;
         display: grid;
         grid-gap:2px;
         grid-template-columns: 1fr 1fr 1fr;
@@ -86,6 +89,9 @@ class FmSummary extends LitElement {
       .un,.rs,.ps,.ts {
         background-color: white;
         color:var(--app-primary-text);
+        text-align: center;
+        vertical-align: center;
+        font-weight: bold;
       }
       .un {
         grid-area:user

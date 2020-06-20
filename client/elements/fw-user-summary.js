@@ -18,8 +18,11 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
+import {classMap} from '../libs/class-map.js';
 
 import style from '../styles/fw-user-summary.js';
+
+import global from '../modules/globals.js';
 
 /*
      <fw-user-summary>
@@ -40,10 +43,10 @@ class FwUserSummary extends LitElement {
 
   render() {
     return html`
-      <div class="un">${this.item.name}</div>
-      <div class="rs">${this.item.rscore}</div>
-      <div class="ps">${this.item.pscore}</div>
-      <div class="ts">${this.item.tscore}</div>
+      <div class="un ${classMap({me: global.user.uid === this.item.uid})}">${this.item.name}</div>
+      <div class="rs ${classMap({ me: global.user.uid === this.item.uid })}">${this.item.rscore}</div>
+      <div class="ps ${classMap({ me: global.user.uid === this.item.uid })}">${this.item.pscore}</div>
+      <div class="ts ${classMap({ me: global.user.uid === this.item.uid })}">${this.item.tscore}</div>
     `;
   }
 }

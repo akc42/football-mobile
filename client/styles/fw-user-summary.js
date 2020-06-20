@@ -51,5 +51,10 @@ export default css`
   .ts {
     grid-area:ts;
   }
+  .me {
+    background-color: var(--app-user-color);
+    color: var(--app-user-text);
+    font-weight: bold;
+  }
 
 `;
