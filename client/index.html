@@ -27,28 +27,28 @@
     <title>Football Mobile</title>
     <!-- because this can be served from anywhere base allows us to use relative urls -->
     <base href="/">
-<link rel="shortcut icon" sizes="32x32" href="images/football-logo-32x32.png">
+<link rel="shortcut icon" sizes="32x32" href="appimages/football-logo-32x32.png">
 
-<meta name="theme-color" content="#adcabd">
+<meta name="theme-color" content="#42d9ff">
 <!-- Add to homescreen for Chrome on Android. Fallback for manifest.json -->
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="application-name" content="PASv5">
+<meta name="application-name" content="FMob">
 
 <!-- Add to homescreen for Safari on iOS -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="PASv5">
+<meta name="apple-mobile-web-app-title" content="FMob">
 
 <!-- Homescreen icons -->
-<link rel="apple-touch-icon" href="images/football-logo.svg">
-<link rel="apple-touch-icon" sizes="72x72" href="images/football-logo.svg">
-<link rel="apple-touch-icon" sizes="96x96" href="images/football-logo.svg">
-<link rel="apple-touch-icon" sizes="144x144" href="images/football-logo-144x144.png">
-<link rel="apple-touch-icon" sizes="192x192" href="images/football-logo.svg">
+<link rel="apple-touch-icon" href="appimages/football-logo.svg">
+<link rel="apple-touch-icon" sizes="72x72" href="appimages/football-logo.svg">
+<link rel="apple-touch-icon" sizes="96x96" href="appimages/football-logo.svg">
+<link rel="apple-touch-icon" sizes="144x144" href="appimages/football-logo.svg">
+<link rel="apple-touch-icon" sizes="192x192" href="appimages/football-logo.svg">
 
 <!-- Tile icon for Windows 8 (144x144 + tile color) -->
-<meta name="msapplication-TileImage" content="images/football-logo-144x144.png">
-<meta name="msapplication-TileColor" content="#adcabd">
+<meta name="msapplication-TileImage" content="appimages/football-logo.svg">
+<meta name="msapplication-TileColor" content="#42d9ff">
 <meta name="msapplication-tap-highlight" content="no">
     <link rel="manifest" href="manifest.json">
     <script>
@@ -69,7 +69,8 @@
 
       body {
         margin: 0;
-        min-height: 100vh;
+        height:100vh;
+        width:100vw;
         font-family: sans-serif;
         line-height: 1.5;
         letter-spacing: 0.1em;
@@ -81,10 +82,11 @@
       main-app[unresolved] {
         display: flex;
         flex-direction: column-reverse;
-        font-size: 16pt;
-        color: #202020;
-        background-color:#ffffff;
-        height: 100vh;
+        font-size: 10pt;
+        color: black;
+        background-color:white;
+        height: 100%;
+        width: 100%
 
       }
 
@@ -92,18 +94,14 @@
         display: flex;
         flex-direction: row;
         justify-content: center;
-        height: 64px;
-        background-color: #adcabd;
-        color: #ffffff;
-        width: 100%;
+        flex: 0 1 64px;
+        background-color: #42d9ff;
+        color: #131335;
         box-shadow: 0px 20px 41px 0px rgba(0,0,0,0.2);
       }
 
       main-app[unresolved] section {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
+        flex: 1,1,auto;
         letter-spacing: 0.3em;
         font-weight: 600;
       }
@@ -118,7 +116,7 @@
 
   </head>
   <body>
-    <main-app unresolved>
+    <main-app unresolved >
       <header class="header"><div>Football Mobile</div></header>
       <section><div>Application Loading ...</div></section>
     </main-app>
