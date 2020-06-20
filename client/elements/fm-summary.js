@@ -19,29 +19,50 @@
 */
 import { LitElement, html } from '../libs/lit-element.js';
 
+import api from '../modules/api.js';
+import page from '../styles/page.js';
+
+import './fw-list.js';
+import './fw-user-summary.js';
+import './app-page.js';
+
 /*
      <fm-summary>
 */
 class FmSummary extends LitElement {
   static get styles() {
-    return [];
+    return [page];
   }
   static get properties() {
     return {
+      users: {type: Array},
+      cid: {type: Number},
       route: {type: Object}
     };
   }
   constructor() {
     super();
-    this.route = {active:false};
+    this.users = [];
+    this.cid=0;
+    this.route = {active: false};
+    this.fetchedCid = 0;
   }
   connectedCallback() {
     super.connectedCallback();
+
+
   }
   disconnectedCallback() {
     super.disconnectedCallback();
   }
   update(changed) {
+    if ((changed.has('cid') || changed.has('route'))
+      && this.cid > 0 && this.route.active && this.route.params.page.length === 0 && this.fetchedCid !== this.cid) {
+        api(`${this.cid}/fetch_users`).then(response => {
+          this.fetchCid = this.cid;
+          this.users = response.users;
+        });
+    }
     super.update(changed);
   }
   firstUpdated() {
@@ -51,7 +72,45 @@ class FmSummary extends LitElement {
   }
   render() {
     return html`
-    <p>Temporary Content</p>
+    <style>
+      .container {
+        margin:2px;
+        background-color: var(--app-primary-color);
+        display: grid;
+        grid-gap:2px;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-areas:
+          "user rs ps"
+          "user ts ts";
+      }
+      .un,.rs,.ps,.ts {
+        background-color: white;
+        color:var(--app-primary-text);
+      }
+      .un {
+        grid-area:user
+      }
+
+      .rs {
+        grid-area:rs;
+      }
+      .ps {
+        grid-area: ps;
+      }
+      .ts {
+        grid-area:ts;
+      }
+    </style>
+    <app-page title="Summary">
+        <fw-list custom="fw-user-summary"  .items=${this.users}>
+        <div slot="header" class="container">
+          <div class="un">Name</div>
+          <div class="rs">Round Score</div>
+          <div class="ps">Playoff Score</div>
+          <div class="ts">Total Score</div>
+        </div>
+      </fw-list>
+    </app-page>
     `;
   }
 }
