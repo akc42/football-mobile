@@ -27,6 +27,8 @@ import './app-pages.js';
 import './app-session.js';
 import './material-icon.js';
 
+import tooltip from '../styles/tooltip.js';
+
 import { SessionStatus } from '../modules/events.js';
 import AppKeys from '../modules/keys.js';
 import api from '../modules/api.js';
@@ -37,7 +39,9 @@ const debug = Debug('main');
      <fm-app>: The controlling app
 */
 class MainApp extends LitElement {
-
+  static get styles() {
+    return [tooltip];
+  }
   static get properties() {
     return {
       authorised: {type: Boolean},
@@ -140,6 +144,7 @@ class MainApp extends LitElement {
       this.mainmenu = this.shadowRoot.querySelector('#mainmenu');
       this.competitionMenu = this.shadowRoot.querySelector('#competitions');
       this.roundsMenu = this.shadowRoot.querySelector('#rounds');
+      this.menuicon = this.shadowRoot.querySelector('#menuicon');
     }
 
     super.updated(changed);
@@ -164,6 +169,20 @@ class MainApp extends LitElement {
           flex-direction: column-reverse;
           font-size:12px;
           --icon-size:24px;
+        }
+        #menuicon {
+          display: flex;
+          flex-direction: row;
+          cursor:pointer;
+          margin: 0 0 0 40px;
+          border: none;
+          padding: 5px;
+          border-radius:5px;
+          box-shadow: 2px 2px 5px 4px rgba(0,0,0,0.2);
+          --icon-size:30px;
+        }
+        #menuicon:active {
+          box-shadow:none;
         }
         #mainmenu {
           display:flex;
@@ -264,7 +283,9 @@ class MainApp extends LitElement {
         `:'')}
       <header class="primary fixed">
         ${cache(this.authorised? html`
-        <material-icon @click=${this._menu}>${global.mainMenuIcon}</material-icon>        
+            <div id="menuicon"  class="right" @click=${this._menu} data-tooltip="Main Menu">
+              <material-icon>${global.mainMenuIcon}</material-icon>
+            </div>        
         `:html`<div class="iconreplace"></div>` )}
         <img id="logo" src="/appimages/football-logo.svg" alt="football logo"/>
         <div id="appinfo">
@@ -343,7 +364,10 @@ class MainApp extends LitElement {
 
   }
   _menu(e) {
-    if (this.mainmenu) this.mainmenu.show();
+    if (this.mainmenu) {
+      this.mainmenu.positionTarget = this.menuicon;
+      this.mainmenu.show();
+    }
   }
   async _reset(e) {
     this.serverError = false;
