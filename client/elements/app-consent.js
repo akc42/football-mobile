@@ -88,7 +88,7 @@ class AppConsent extends LitElement {
 
 
       </style>
-      <app-page title="Your Privacy">
+      <app-page heading="Your Privacy">
         <p>${unsafeHTML(global.firstTimeMessage)}</p>
 
         <p> We use cookies on this site for two purposes:-</p>

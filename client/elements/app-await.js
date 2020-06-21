@@ -43,7 +43,7 @@ class AppAwait extends LitElement {
 
   render() {
     return html`
-      <app-page title="Check Your Email">
+      <app-page heading="Check Your Email">
         <p>You have been sent an email (to ${this.email}) which contains a link.  This link is a special one, in that it cannot 
         be used more than once.  Also, as added protection, it has to be used within ${global.verifyExpires} hours from when it was
         requested.</p>

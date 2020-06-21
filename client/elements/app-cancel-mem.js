@@ -79,7 +79,7 @@ class AppCancelMem extends LitElement {
 
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <app-page title="Cancel Membership">
+      <app-page heading="Cancel Membership">
         <p>You have requested that we cancel your membership request.</p>
 
         <p>If you do <strong>not</strong> want to proceed please hit the "Cancel Button below".  However if you <strong>do</strong>

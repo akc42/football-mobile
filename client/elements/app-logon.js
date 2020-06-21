@@ -111,7 +111,7 @@ class AppLogon extends LitElement {
 
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <app-page id="page" @keys-pressed=${this._submitLogon} title="Log On">
+      <app-page id="page" @keys-pressed=${this._submitLogon} heading="Log On">
         <div class="form">
           <app-form 
             id="logon" 

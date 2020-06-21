@@ -36,7 +36,7 @@ export default  css`
     flex-direction: row;
     flex:0 1 0;
   }
-  header .title {
+  header .heading {
     margin-left: 10px;
     font-weight: bold;
     font-size:18px;

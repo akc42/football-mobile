@@ -172,7 +172,7 @@ class AppProfile extends LitElement {
         }
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <app-page @key-pressed=${this._keyPressed} id="page" title="Your Profile">
+      <app-page @key-pressed=${this._keyPressed} id="page" heading="Your Profile">
         <div class="form">
           <app-form
             id="doprofile" 

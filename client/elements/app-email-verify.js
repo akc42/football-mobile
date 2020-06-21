@@ -71,7 +71,7 @@ class AppEmailVerify extends LitElement {
         }
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <app-page @key-pressed=${this._sendData} id="page" title="Email Verification">
+      <app-page @key-pressed=${this._sendData} id="page" heading="Email Verification">
         <p>If you still have the same e-mail address since the last time you registered and played with us,
         enter it below.  However, if you are a new visitor or you have changed your e-mail address since
         you last played in the competition, please enter it here and then request Membership.</p>

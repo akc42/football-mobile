@@ -29,11 +29,20 @@ class AppPage extends LitElement {
   static get styles() {
     return [style];
   }
+  static get properties() {
+    return {
+      heading: {type: String}
+    };
+  }
+  constructor() {
+    super();
+    this.heading='';
+  }
   render() {
     return html`
       <header>
         <img src="${global.siteLogo}" height="64px"/>
-        <div class="title">${this.title}</div>
+        <div class="heading">${this.heading}</div>
       </header>
       <section><slot class="container"></slot></section>
   

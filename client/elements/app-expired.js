@@ -76,7 +76,7 @@ class AppExpired extends LitElement {
         }
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <app-page title="Link Expired">      
+      <app-page heading="Link Expired">      
         <p>Sadly the link that we sent you that you have just tried to use as either expired or been corrupted in some way.
         We are sorry, but because of that we are unable to identify you. If you wish to try again, please enter you email
         address below and request a new link.</p>

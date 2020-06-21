@@ -111,7 +111,7 @@ class AppMember extends LitElement {
 
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <app-page @key-pressed=${this._sendData} id="page" title="Membership">
+      <app-page @key-pressed=${this._sendData} id="page" heading="Membership">
           <p>Applying for membership is a three step process.  You are currently at Step ${this.step} as highlighted below.</p>
           <ol>
             <li class=${classMap({step: this.step === 1})}>

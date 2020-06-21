@@ -107,7 +107,7 @@ class FmSummary extends LitElement {
         grid-area:ts;
       }
     </style>
-    <app-page title="Summary">
+    <app-page heading="Summary">
         <fw-list custom="fw-user-summary"  .items=${this.users}>
         <div slot="header" class="container">
           <div class="un">Name</div>

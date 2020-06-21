@@ -74,7 +74,7 @@ class AppError extends LitElement {
 
       </style>
       ${cache(this.anError?html`
-        <app-page .title=${this.forbidden?'Forbidden': 'Something Went Wrong'}>
+        <app-page .heading=${this.forbidden?'Forbidden': 'Something Went Wrong'}>
           ${cache(this.forbidden ? html`
             <p class="forbidden">You have tried to access a forbidden area.</p>
           `:html`

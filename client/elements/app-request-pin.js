@@ -75,10 +75,11 @@ class AppRequestPin extends LitElement {
 
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <app-page .title=${global.user.name}>
+      <app-page .heading=${global.user.name}>
           <p>We are going to send you (via email) a link which will temporarily (for the next ${global.verifyExpires} hours) automatically 
-          log you on to this web site, to enable you to reset your password.  The email address we will
-          use is <em>${user.email}</em>. Please only continue if this e-mail address is yours.</p>
+           enable you access your profile page to reset your password. You will then be redirected to the log on page where you should 
+          then formally log on with that new password.</p>  
+          <p>The email address we will use is <em>${user.email}</em>. Please only continue if this e-mail address is yours.</p>
           <p> Unfortunately if you have already changed your e-mail address and this address will not allow you to
           receive the link, then you will have to cancel this action to return to the previous page, where
           you can enter your new email address and request membership instead.</p>                   

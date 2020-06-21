@@ -42,7 +42,7 @@ class StandIn extends LitElement {
   }
   render() {
     return html`
-      <app-page>
+      <app-page heading="Stand In">
         <div id=element>${this.standinfor}</div> 
         <p>${this.standinfor} has not been implemented yet.  This is a place holder for that implementation.</p>
       </app-page>
