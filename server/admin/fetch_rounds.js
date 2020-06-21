@@ -18,9 +18,6 @@
     along with Football-Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-  this is a dummy file, do not remove unless there is at least one other real file in the directory
-*/
 
 (function () {
   'use strict';
