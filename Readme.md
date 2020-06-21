@@ -127,11 +127,16 @@ different ways of being called)
 
   const routerOpts = {mergeParams: true};
   const router = Router(routerOpts);  //create a router
-  const api = Router(routerOpts); //all routes through this.
+  const api = Router(routerOpts);
   const conf = Router();
   const ses = Router(routerOpts);
+  const admin = Router(routerOpts);
+  const madmin = Router(routerOpts);
+  const gadmin = Router(routerOpts);
   const cid = Router(routerOpts);
+  const cadmin = Router(routerOpts);
   const cidrid = Router(routerOpts);
+  const radmin = Router(routerOpts);
   router.use('/api/', api);
 
 ```
@@ -141,8 +146,7 @@ just be plain get requests, much like the static files
 
 ```javascript
 
-  api.use('/config/', conf);
-
+  api.use('/config/', conf);      
   const confs = loadServers(__dirname, 'config');
   for (const config in confs){
     conf.get(`/${config}`, async (req,res) => {
@@ -168,6 +172,12 @@ So the directories I use are:-
   <dd>Functions necessary to manage provide initial information for a partially authorised user.  A partially authorised
   user is one who has logged in via the use of a short term pin sent to him via e-mail.  It only allows him to access his
   profile, where he may edit his password so he can then use it to log on properly.</dd>
+  <dt>adminm</dt>
+  <dd>All the member approval function, only accessessible if the user is a global admin or has member_approval set it their profile</dd>
+  <dt>adminc</dt>
+  <dd>Functions that are to administer a competition, the user must either be a global admin or have a uid that matches the administrator field in the competition record</dd>
+  <dt>adming</dt>
+  <dd>Functions that only a global admin can perform</dd>
   <dt>cid</dt>
   <dd>Functions were the input key to the database required just the competition id (cid).</dd>
   <dt>cidrid</dt>
@@ -185,7 +195,17 @@ Various levels of middleware (no brackets) and apis (with [] brackets) are provi
                                                                            |
     <-----------------------------------------------------------------------
     |
-    -->fullCookieAuthorisedCheck-->[/api/:cid/:rid/*]-->[/api/:cid/*]-->404
+    -->fullCookieAuthorisedCheck-->[/api/:cid/*]-->[/api/:cid/:rid/*]-->404
+                                 |               |
+                                 |               -->[/api/:cid/admin] -->userIsCompetitionAdmin-->
+                                 |                                                               |  
+                                 |    <-----------------------------------------------------------
+                                 |    |
+                                 |    -->[/api/:cid/admin/*]-->[/api/:cid/admin/:rid/*]-->404
+                                 |
+                                 -->[/api/admin/map]-->userHasMemberApproval-->[/api/admin/map/*]-->404
+                                 |
+                                 -->/[/api/admin/gadm]-->userIsGlobalAdmin-->[/api/admin/gadm/*]-->404
 ```
 ### Client Page Management and Client Side Routing
 

@@ -19,6 +19,8 @@
     along with football-mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+const { catch } = require('./version');
+
 
 (function() {
   'use strict';
@@ -145,8 +147,12 @@
       const conf = Router();
       const ses = Router(routerOpts);
       const admin = Router(routerOpts);
+      const madmin = Router(routerOpts);
+      const gadmin = Router(routerOpts);
       const cid = Router(routerOpts);
+      const cadmin = Router(routerOpts);
       const cidrid = Router(routerOpts);
+      const radmin = Router(routerOpts);
       
     
       debug('tell router to use api router for /api/ routes');
@@ -350,7 +356,7 @@
         })
       }
       /*
-        Beyond here we are only allowed if our cookie specified a usage of play, so we need some middleware to detect it
+        Beyond here we are only allowed if our cookie specified a usage of authorised, so we need some middleware to detect it
       */
       debug('Set up to check cookie usage');
       api.use((req, res, next) => {
@@ -362,15 +368,122 @@
         }
       });
       /*
+        Beyond here we are going to check for member approval capability in the madmin section only
+      */
+      debug('Setting up maps api')
+      admin.use('/map/', madmin);
+      debug('set up to check member_approval capability')
+      madmin.use((req,res,next) => {
+        debugapi('checking member_approval');
+        if (req.user.global_admin === 1 || req.user.member_approval === 1) { //global admin can do this too
+          next();
+        } else {
+          forbidden(req, res, `User uid ${req.user.uid} has not got member approval capability`);
+        }
+      });
+      const maps = loadServers(_dirname, 'adminm');
+      for (const m in maps) {
+        debugapi(`setting up /api/admin/map/${m} route`);
+        madmin.post(`/${m}`, (req,res) => {
+          debugapi(`received /api/admin/map/${m} request`);
+          try {
+            const responder = new Responder(res);
+            maps[m](req.user,req.body, responder);
+            responder.end();
+          } catch(e) {
+            errored(req, res, e.toString());
+          }
+        });
+      }
+      /*
+        Beyond here we are going to check for global admin capability in the gadmin section only
+      */
+      debug('Setting up gadm api')
+      admin.use('/gadm/', gadmin);
+      debug('set up to check global admin capability')
+      gadmin.use((req, res, next) => {
+        debugapi('checking global admin');
+        if (req.user.global_admin === 1) {
+          next();
+        } else {
+          forbidden(req, res, `User uid ${req.user.uid} has not got global admin capability`);
+        }
+      });
+
+      const gadm = loadServers(_dirname, 'adming');
+      for (const g in gadm) {
+        debugapi(`setting up /api/admin/gadm/${g} route`);
+        gadmin.post(`/${g}`, (req, res) => {
+          debugapi(`received /api/admin/gadm/${g} request`);
+          try {
+            const responder = new Responder(res);
+            gadm[g](req.user, req.body, responder);
+            responder.end();
+          } catch (e) {
+            errored(req, res, e.toString());
+          }
+        });
+      }
+
+      /*
         Quite a lot of the api calls will feature the cid (competition id) and rid(round id) as parameters to them
         although not strictly necessary, I am going to create two separate api sets for /api/:cid/xxx and /api/:cid/:rid/xxx
         urls to see how they work
       */
       debug('Setting Up cid and cidrid Apis');
       api.use('/:cid/', cid);
-      cid.use('/:rid/', cidrid);
-      const cids = loadServers(__dirname, 'cid');
-      const cidrids = loadServers(__dirname, 'cidrid');
+      /*
+        Beyond here we are going to check for user us this competitions admin in the cadmin section only
+      */
+      debug('Setting up cadmin api')
+      cid.use('/admin/', cadmin);
+      debug('set up to check competition admin capability')
+      cadmin.use((req, res, next) => {
+        debugapi(`checking user ${req.user.uid} is admin of competition ${req.parms.cid}`);
+        if (req.user.global_admin === 1) {
+          debugapi('global admin has access automatically')
+          next();
+        } else {
+          const admin = db.prepare('SELECT administrator FROM competition WHERE cid = ?').pluck().get(req.params.cid);
+          if (admin === req.user.uid) { 
+            debugapi('user is competition admin');
+            next();
+          } else {
+            forbidden(req, res, `User uid ${req.user.uid} has is not admin of competition ${req.params.cid}`);
+          }
+        }
+      });
+      const cadms = loadServers(_dirname, 'adminc');
+      for (const a in cadms) {
+        debugapi(`setting up /api/:cid/admin/${a} route`);
+        cadmin.post(`/${a}`, (req, res) => {
+          debugapi(`received /api/:cid/admin/${a} request`);
+          try {
+            const responder = new Responder(res);
+            cadms[a](req.user,req.params.cid,req.body, responder);
+            responder.end();
+          } catch (e) {
+            errored(req, res, e.toString());
+          }
+        });
+      }
+      cadmin.use('/:rid/', radmin);
+      const radms = loadServers(_dirname, 'adminr');
+      for (const a in radms) {
+        debugapi(`setting up /api/:cid/admin/:rid/${a} route`);
+        cadmin.post(`/${a}`, (req, res) => {
+          debugapi(`received /api/:cid/admin/:rid/${a} request`);
+          try {
+            const responder = new Responder(res);
+            radms[a](req.user, req.params.cid,req.params.rid,req.body, responder);
+            responder.end();
+          } catch (e) {
+            errored(req, res, e.toString());
+          }
+        });
+      }
+
+      const cids = loadServers(__dirname, 'cid');      
       for (const c in cids) {
         debugapi(`Setting up /api/:cid/${c} route`);
         cid.post(`/${c}`, (req, res) => {
@@ -384,6 +497,8 @@
           } 
         }); 
       }
+      cid.use('/:rid/', cidrid);
+      const cidrids = loadServers(__dirname, 'cidrid');
       for (const r in cidrids) {
         debugapi(`Setting up /api/:cid/:rid/${r} route`);
         cidrid.post(`/${r}`, (req, res) => {
