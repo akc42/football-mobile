@@ -23,13 +23,11 @@
   'use strict';
   const db = require('../utils/database');
 
-  module.exports = (user, params,responder) => {
-    db.transaction(() => {
-      const rounds = db.prepare(`SELECT rid, name, open FROM round WHERE cid = ? ORDER BY rid DESC`).all(params.cid);
-      responder.addSection('rounds', rounds);
-      const timestamp  = db.prepare(`SELECT MAX(update_date) as timestamp FROM round WHERE cid = ?`).pluck().get(params.cid);
-      responder.addSection('timestamp', timestamp);
+  module.exports = (user,params,responder) => {
+   
+    const cid = db.prepare(`SELECT cid FROM competition 
+      WHERE open = 1 OR administrator = ? OR ? = 1 ORDER BY cid DESC LIMIT 1`).pluck().get(user.uid, user.global_admin);
+    responder.addSection('cid', cid);  
 
-    })();
   };
 })();

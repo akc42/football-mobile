@@ -28,17 +28,8 @@
   module.exports = async function() {
       const config = {};
       const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
-      const topc = db.prepare(`SELECT cid, administrator FROM competition ORDER BY cid DESC LIMIT 1`);
-      const rounds = db.prepare(`SELECT rid FROM round WHERE cid = ? ORDER BY rid DESC LIMIT 1`).pluck();
       db.transaction(() => {
-        debug('About to Read Settings Values');
-        
-        config.dcid = s.get('default_competition');
-        config.pointsMap = s.get('pointsmap');
-        config.underdogMap = s.get('underdogmap');
-        config.playoffMap = s.get('playoffmap');
-        config.bonusMap = s.get('bonusmap');
-        config.defaultBonus = s.get('defaultbonus');
+        debug('About to Read Settings Values');      
         config.clientLog = s.get('client_log');
         config.clientLogUid = s.get('client_log_uid');
         config.cookieName = s.get('cookie_name');
@@ -50,27 +41,6 @@
         config.firstTimeMessage = s.get('first_time_message');
         config.minPassLen = s.get('min_pass_len');
         config.dwellTime = s.get('dwell_time');
-   
-        
-        const rowc = topc.get();
-        if (rowc !== undefined) {
-          debug('rowc found ', rowc);
-          config.lcid = rowc.cid;
-          config.luid = rowc.administrator;
-        } else {
-          debug('rowc undefined');
-          config.lcid = 0;
-          config.luid = 0;
-        }
-        const rowr = rounds.get(config.dcid);
-        if (rowr !== undefined) {
-          debug('rowr found', rowr);
-          config.drid = rowr.rid;
-        } else {
-          debug('rowr undefined');
-          config.drid = 0;
-        }
-
       })();
 
       const { version, year } = await versionPromise;

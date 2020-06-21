@@ -19,9 +19,6 @@
     along with football-mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-const { catch } = require('./version');
-
-
 (function() {
   'use strict';
   const debug = require('debug')('football:server');
@@ -381,7 +378,7 @@ const { catch } = require('./version');
           forbidden(req, res, `User uid ${req.user.uid} has not got member approval capability`);
         }
       });
-      const maps = loadServers(_dirname, 'adminm');
+      const maps = loadServers(__dirname, 'adminm');
       for (const m in maps) {
         debugapi(`setting up /api/admin/map/${m} route`);
         madmin.post(`/${m}`, (req,res) => {
@@ -410,7 +407,7 @@ const { catch } = require('./version');
         }
       });
 
-      const gadm = loadServers(_dirname, 'adming');
+      const gadm = loadServers(__dirname, 'adming');
       for (const g in gadm) {
         debugapi(`setting up /api/admin/gadm/${g} route`);
         gadmin.post(`/${g}`, (req, res) => {
@@ -453,7 +450,7 @@ const { catch } = require('./version');
           }
         }
       });
-      const cadms = loadServers(_dirname, 'adminc');
+      const cadms = loadServers(__dirname, 'adminc');
       for (const a in cadms) {
         debugapi(`setting up /api/:cid/admin/${a} route`);
         cadmin.post(`/${a}`, (req, res) => {
@@ -468,7 +465,7 @@ const { catch } = require('./version');
         });
       }
       cadmin.use('/:rid/', radmin);
-      const radms = loadServers(_dirname, 'adminr');
+      const radms = loadServers(__dirname, 'adminr');
       for (const a in radms) {
         debugapi(`setting up /api/:cid/admin/:rid/${a} route`);
         cadmin.post(`/${a}`, (req, res) => {

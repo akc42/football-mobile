@@ -19,15 +19,6 @@
 */
 let u = {uid:0};
 
-let lcid = 0;
-let luid = 0;
-let drid = 0;
-let dcid = 0;
-let pointsMap = '';
-let underdogMap = '';
-let playoffMap = '';
-let bonusMap = '';
-let defaultBonus = '';
 let clientLog = '';
 let clientLogUid = 0;
 let version = 'v0.0.0';
@@ -63,15 +54,6 @@ const global = {
       });
     }
     globalPromise.then(conf => {
-      lcid = conf.lcid;
-      luid = conf.luid;
-      drid = conf.drid;
-      dcid = conf.dcid;
-      pointsMap = conf.pointsMap;
-      underdogMap = conf.underdogMap;
-      playoffMap = conf.playoffMap;
-      bonusMap = conf.bonusMap;
-      defaultBonus = conf.defaultBonus;
       clientLog = conf.clientLog;
       clientLogUid = conf.clientLogUid;
       version = conf.version;
@@ -108,36 +90,6 @@ const global = {
   },
   set mockGlobal(v){
     globalPromise = v;
-  },
-  get lcid () {
-    return lcid;
-  },
-  get luid () {
-    return luid;
-  },
-  get drid () {
-    return drid;
-  },
-  get dcid () {
-    return dcid;
-  },
-  set dcid (v) {
-    dcid = v;
-  },
-  get pointsMap () {
-    return pointsMap;
-  },
-  get underdogMap () {
-    return underdogMap;
-  },
-  get playoffMap () {
-    return playoffMap;
-  },
-  get bonusMap () {
-    return bonusMap;
-  },
-  get defaultBonus () {
-    return defaultBonus;
   },
   get clientLog () {
     return clientLog;

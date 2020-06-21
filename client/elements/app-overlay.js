@@ -23,8 +23,12 @@ import { LitElement, html } from '../libs/lit-element.js';
 import AppFit from '../modules/fit.js';
 import activeElement from '../modules/activeElement.js';
 import { OverlayClosing, OverlayClosed } from '../modules/events.js';
+import dialog from '../styles/app-overlay.js';
 
 class AppOverlay extends AppFit(LitElement)  {
+  static get styles() {
+    return [dialog];
+  }
 
   static get properties() {
     return {

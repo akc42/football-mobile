@@ -122,7 +122,7 @@ export default class PageManager extends  LitElement {
 
         In order to do that, we take advantage of the fact that we  know that the
         url for out home page doesn't contain the value of the correct "page" in
-        the url, and therefore we can emulate what pas-route does without the complexity
+        the url, and therefore we can emulate what route does without the complexity
         that it uses
       */
       window.dispatchEvent(new RouteChanged({
@@ -138,7 +138,7 @@ export default class PageManager extends  LitElement {
     */
     e.stopPropagation();
     //see comment above to see why this works
-    window.dispatchEvent(new CustomEvent('route-updated',{
+    window.dispatchEvent(new RouteChanged({
       detail: {
         segment: this.route.segment,
         path: '/'

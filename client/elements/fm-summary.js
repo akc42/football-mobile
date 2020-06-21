@@ -20,6 +20,8 @@
 import { LitElement, html } from '../libs/lit-element.js';
 
 import api from '../modules/api.js';
+import Route from '../modules/route.js';
+
 import page from '../styles/page.js';
 
 import './fw-list.js';
@@ -36,16 +38,15 @@ class FmSummary extends LitElement {
   static get properties() {
     return {
       users: {type: Array},
-      cid: {type: Number},
-      route: {type: Object}
+      route: {type: Object},
+      name: {type: String}
     };
   }
   constructor() {
     super();
     this.users = [];
-    this.cid=0;
     this.route = {active: false};
-    this.fetchedCid = 0;
+    this.cRouter = new Route('/:cid','page:summary');
   }
   connectedCallback() {
     super.connectedCallback();
@@ -56,12 +57,9 @@ class FmSummary extends LitElement {
     super.disconnectedCallback();
   }
   update(changed) {
-    if ((changed.has('cid') || changed.has('route'))
-      && this.cid > 0 && this.route.active && this.route.params.page.length === 0 && this.fetchedCid !== this.cid) {
-        api(`${this.cid}/users_summary`).then(response => {
-          this.fetchCid = this.cid;
-          this.users = response.users;
-        });
+    if (changed.has('route') && this.route.active ) {
+      const cr = this.cRouter.routeChange(this.route);
+      if (cr.active) this._fetchUser(cr.params); 
     }
     super.update(changed);
   }
@@ -75,7 +73,7 @@ class FmSummary extends LitElement {
     <style>
       .container {
         background-color: var(--app-primary-color);
-        border:2px solid var(--app-accent-color);;
+        border:2px solid var(--app-accent-color);
         border-radius: 5px;
         box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
         margin:5px 5px 5px 3px;
@@ -85,6 +83,16 @@ class FmSummary extends LitElement {
         grid-template-areas:
           "user rs ps"
           "user ts ts";
+      }
+      .competition {
+        background-color: white;
+        border:2px solid var(--app-accent-color);
+        border-radius: 5px;
+        box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
+        margin:5px 5px 5px 3px;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;       
       }
       .un,.rs,.ps,.ts {
         background-color: white;
@@ -108,6 +116,9 @@ class FmSummary extends LitElement {
       }
     </style>
     <app-page heading="Summary">
+        <div class="competition">
+          <div>${this.name}</div>
+        </div>
         <fw-list custom="fw-user-summary"  .items=${this.users}>
         <div slot="header" class="container">
           <div class="un">Name</div>
@@ -118,6 +129,20 @@ class FmSummary extends LitElement {
       </fw-list>
     </app-page>
     `;
+  }
+  async _fetchUser(params) {
+    
+    if (params.cid === '') {
+      //no cid provided in url so we need to find it
+      const cid = await api('admin/default_comp');
+      this.cRouter.params = cid;
+    } else {
+      const name = await api(`${params.cid}/fetch_comp_name`);
+      this.name = name.name;
+      const users= await api(`${params.cid}/users_summary`);
+      this.users = users.users;
+    }
+    
   }
 }
 customElements.define('fm-summary', FmSummary);

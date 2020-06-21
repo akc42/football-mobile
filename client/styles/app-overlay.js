@@ -22,14 +22,14 @@
 import {css} from '../libs/lit-element.js';
 
 export default  css`
-    dialog {
+    #dialog {
       position: fixed;
-      background-color: var(--app-dialog-background-color, white);
-      color: var(--app-dialog-text-color, --app-default-text, black);
+      background-color: white;
+      color:  black;
       margin:5px;
       box-sizing: border-box;
       border: none;
-      border-radius: 2px;
+      border-radius: 5px;
       box-shadow: 0 0 40px rgba(0,0,0,0.1), 0 0 10px rgba(0,0,0,0.25);
       overflow-y: auto;
     }

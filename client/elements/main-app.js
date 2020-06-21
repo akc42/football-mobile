@@ -47,17 +47,11 @@ class MainApp extends LitElement {
       authorised: {type: Boolean},
       ready: {type:Boolean},
 
-      cid: {type: Number},
+      cid: {type: Number}, 
       competitions: {type: Array},  //array of {name,cid} 
-      lastCompTime: {type: Number},
-      rounds: {type: Array},  //array of {name,rid}
-      lastRoundTime: {type: Number},
-      rid: {type: Number},
-      dcid: {type: Number},
-      lcid: {type: Number}, //cid of latest competition
-      luid: {type: Number}, //admin of latest competition
-      drid: {type: Number},
-       serverError: {type: Boolean} //we received an error
+      rounds: {type: Array},
+      compversion: {type: Number},  //incremented if number of competitions has changed
+      serverError: {type: Boolean} //we received an error
     };
   }
   constructor() {
@@ -65,13 +59,11 @@ class MainApp extends LitElement {
     this.ready = false;
     this.serverError = false;
     this.authorised = false;
-    this.cid = 0;
-    this.rid = 0;
     this.competitions=[];
-    this.lastCompTime=0;
     this.rounds = [];
-    this.lastRoundTime = 0;
-    this.drid = 0;
+    this.compVersion=0;
+    this.cid = 0;
+
     window.fetch('/api/config/styles', { method: 'get' }).then(response => {
       if (response.status === 200) return response.json();
       return {};
@@ -79,12 +71,6 @@ class MainApp extends LitElement {
       for (let key in styles) {
         this.style.setProperty('--' + key.replace(/_/g,'-'), styles[key]);
       }
-    });
-    global.ready.then(() => {
-      this.ready = true;
-      this.cid = global.dcid; //we use dcid if cid not been set yet, else we leave it
-      this.rid = global.drid; 
-      this.requestUpdate();  //just make sure that any new global values on the display are shown  
     });
     this.serverError = false;
     this._keyPressed = this._keyPressed.bind(this);
@@ -108,32 +94,18 @@ class MainApp extends LitElement {
         } else {
           this.keys.connect();
         }
-        debug('authorised set')
-        api(`admin/fetch_competitions`).then(response => {
-          debug(`Competitions fetched; there are ${response.competitions.length} of them`)
-          this.competitions = response.competitions;
-          this.lastCompTime = response.timestamp;
-        });
-        if (this.cid !== 0) {
-          //we have a specific competition set, so get its rounds
-          debug('about to fetch rounds for cid ' + this.cid )
-          api('admin/fetch_rounds', { cid: this.cid }).then(response => {
-            debug(`Rounds fetched; there are ${response.rounds.length} of them`)
-
-            this.rounds = response.rounds;
-            this.lastRoundTime = response.timestamp;
-          });
-        }
+        this._fetchCompetitons();
       } else {
         if (this.keys !== undefined) this.keys.disconnect()
         document.body.removeEventListener('key-pressed', this._keyPressed);
       }
-    } else if (changed.has('cid') && this.authorised && this.cid !== 0) {
-      //we have a specific competition set, so get its rounds
-      api('admin/fetch_rounds',{cid: this.cid}).then(response => {
-        this.rounds = response.rounds;
-        this.lastRoundTime = response.timestamp;
-      });
+
+    }
+    if (changed.has('compVersion') && this.compVersion > 0 && this.authorised) {
+      this._fetchCompetitons();
+    }
+    if (changed.has('cid')) {
+      this.rounds = []; //clear out rounds as soon as we have a new cid. We'll get them again if needed.
     }
     super.update(changed);
   }
@@ -143,14 +115,17 @@ class MainApp extends LitElement {
     if (changed.has('authorised') && this.authorised) {
       this.mainmenu = this.shadowRoot.querySelector('#mainmenu');
       this.competitionMenu = this.shadowRoot.querySelector('#competitions');
-      this.roundsMenu = this.shadowRoot.querySelector('#rounds');
+
       this.menuicon = this.shadowRoot.querySelector('#menuicon');
+      this.cm=this.shadowRoot.querySelector('#cm');
+
     }
 
     super.updated(changed);
   }
   render() {
-    const admin = (global.luid !== 0 && (global.luid === global.user.uid) || global.user.global_admin) ;
+    const luid = this.competitions.length > 0 ? this.competitions[0].administrator:0;
+    const admin = (global.user.global_admin === 1 || global.user.uid === luid) ;
     return html`  
       <style>
 
@@ -182,16 +157,26 @@ class MainApp extends LitElement {
           --icon-size:30px;
         }
         #menuicon:active {
+          border: none;
+          padding: 5px;
+          border-radius:5px;
+          box-shadow: 2px 2px 5px 4px rgba(0,0,0,0.2);
           box-shadow:none;
         }
-        #mainmenu {
+        .menucontainer {
           display:flex;
           flex-direction: column-reverse;
         }
+
         [role="menuitem"] {
           --icon-size: 12px;
-          height: 12px;
-          font-weight: bold;
+          height: 20px;
+          display:flex;
+          flex-direction:row;
+          cursor: pointer;
+        }
+        [role="menuitem"] span:nth-of-type(2) {
+          margin-left:auto;
         }
         header {
           flex: 0 1 auto;
@@ -236,48 +221,108 @@ class MainApp extends LitElement {
         app-session[hidden], app-pages[hidden], app-error[hidden] {
           display: none !important;
         }
+        .admins{
+          margin: 10px 0;
+        }
+        .menuheading {
+          border-bottom-width:1px;
+          border-bottom-style: dashed;
+          text-align: center;
+          font-weight: bold;
+        }
+        .menugroup {
+          padding: 10px 0px;   
+          border-bottom:2px solid var(--app-accent-color);     
+        }
+        .menugroup.gadmin .menuheading {
+          border-color: red;
+        }
+        
+        .menugroup.admin .menuheading {
+          border-color: green;
+        }
+         .menugroup.approver .menuheading {
+          border-color: olivedrab;
+        }
+        hr {
+          width:100%;
+        }
+        hr.user {
+          border-top:2px solid var(--app-accent-color);
+        }
+        hr.sep {
+          border-top: 1px dotted red;
+        }
+        hr.admin {
+          border-top: 1px dashed green;
+        }
+        
 
         @media (min-width: 500px) {
-          :host, #mainmenu {
+          :host, .menucontainer {
             flex-direction: column;
             font-size:12pt;
+          }
+
+          [role="menuitem"] {
+            height: 20px;
           }
         }
 
       </style>
       ${cache(this.authorised ? html`
-        <app-overlay id="mainmenu" closeOnClick>
-          <div role="menuitem" @click=${this._goHome}>Home</div>
-          <div role="menuitem" @click=${this._roundsMenu}>Rounds</div>
-          <div role="menuitem" @click=${this._competitionsMenu}>Competitions</div>
+        <app-overlay id="mainmenu">
+          <div class="menucontainer">
+            <div role="menuitem" @click=${this._goHome}><span>Home<span><span>F1<material-icon>home</material-icon></div>
+            <hr class="sep"/>
+            ${cache(this.competitions.length > 0 ?html`
+              <div id="cm" role="menuitem" @click=${this._competitionsMenu}><span>Competitions</span>
+              <span><material-icon>navigate_next</material-icon></span></div>
+              <hr class="sep"/>
+            `:'')}
+            <div id="editprofile" role="menuitem" @click=${this._selectPage}><span>Edit Profile</span> <span>F12</span></div>
+            <hr class="user"/>            
           ${cache((admin || this.user.approve) ? html`
-            ${cache(admin ? html`
-              ${cache(global.user.global_admin ? html`
-                <div id="createcomp" role="menuitem" @click=${this._selectPage}>Create Competition</div>
-                <div role="menuitem" @click=${this._changeDcomp}>Default Competition</div>
+            <div class="admins">
+              <hr class="user"/>
+              ${cache(admin ? html`
+                ${cache(global.user.global_admin ? html`
+                  <div class="gadmin menugroup">
+                    <div class="menuheading">Global Admin</div>
+                    <div id="createcomp" role="menuitem" @click=${this._selectPage}>Create Competition</div>
+                    <hr class="sep"/>
+                    <div id="promoteuser" role="menuitem" @click=${this._selectPage}>Promote Users To Admin</div>
+                  </div>
+                `: '')}
+                <div class="admin menugroup">
+                  <div class="menuheading">Admin</div>
+                  <div id="editround" role="menuitem" @click=${this._selectPage}>Edit Latest Round</div>
+                  <hr class="sep"/>
+                  <div id="newround" role="menuitem" @click=${this._selectPage}>Create Round</div>
+                  <div id="editcomp" role="menuitem" @click=${this._selectPage}>Competition Details</div>
+                  <hr class="admin"/>
+                  <div id="rm" role="menuitem" @click=${this._roundsMenu}><span>Select Round to Edit</span>
+                    <span><material-icon>navigate_next</material-icon></span></div>
+                </div>
               `: '')}
-              <div role="menuitem" @click=${this._editRound}>Edit Round</div>
-              <div id="newround" role="menuitem" @click=${this._selectPage}>Create Round</div>
-              <div id="editcomp" role="menuitem" @click=${this._selectPage}>Edit Competition</div>
-            `: '')}
-            <div id="memberapprove" role="menuitem" @click=${this._selectPage}>Approve Members</div>           
+              <div class="approver menugroup">
+                <div class="menuheading">Approver</div>
+                <div id="memberapprove" role="menuitem" @click=${this._selectPage}>Approve Members</div>
+              </div>  
+            </div>         
           `:'')}
-          <div id="editprofile" role="menuitem" @click=${this._selectPage}>Edit Profile F12</div>
+          </div>
         </app-overlay>
-        <app-overlay id="competitions" closeOnClick @overlay-closed=${this._compClosed}>
-          ${cache(this.competitions.filter(competition => competition.open || this.globalAdmin ||  //Only a few can see hidden competitions
-              (admin && competition.cid === this.lcid)).map(competition => 
-            html`<div role="menuitem" data-cid=${competition.cid} @click=${this._competitionSelected}>${competition.name}${cache(
-                competition.cid === global.dcid ? html`<material-icon>home</material-icon>` : html`<div class="iconreplace"></div>`
-            )}${cache(
-              competition.cid === this.cid ? html`<material-icon>check_box</material-icon>` : html`<div class="iconreplace"></div>`
-            )}</div>
+        <app-overlay id="competitions" closeOnClick @overlay-closed=${this._compClosed} position="right">
+          ${cache(this.competitions.map(competition => 
+            html`<div role="menuitem" data-cid=${competition.cid} @click=${this._competitionSelected}><span>${competition.name}</span>
+            ${cache(competition.cid === this.cid ? html`<span><material-icon>check_box</material-icon></span>` : '')}</div>
           `))}
         </app-overlay>
-        <app-overlay id="rounds" closeOnClick>
-          ${cache(this.rounds.map(round => html`<div data-rid=${round.rid} @click=${this._roundSelected} role="menuitem">${round}${cache(
-            round.rid === this.rid ? html`<material-icon>check_box</material-icon>` : html`<div class="iconreplace"></div>`
-          )}</div>
+        <app-overlay id="rounds" closeOnClick @overlay-closed=${this._roundClosed} position="right">
+          ${cache(this.rounds.map(round => html`
+              <div data-rid=${round.rid} @click=${this._editRound} role="menuitem"><span>${round.name}</span>${cache(
+                round.rid === this.rid ? html`<span><material-icon>check_box</material-icon></span>` :'')}</div>
           `))}
         </app-overlay>       
         `:'')}
@@ -303,12 +348,7 @@ class MainApp extends LitElement {
         ${cache(this.authorised ? html`
           <app-pages
             ?hidden=${this.serverError}
-            .cid=${this.cid}
-            .rid=${this.rid}
-            @rid-changed=${this._ridChanged}
-            @dcid-changed=${this._globalChanged}
             @competitions-changed=${this._refreshComp}
-            @rounds-changed=${this._refreshRound}
             @auth-changed=${this._authChanged}>
           </app-pages>      
         `:'')}
@@ -325,29 +365,26 @@ class MainApp extends LitElement {
       this.competitionMenu.open();
     }
   }
-  _compChanged(e) {
-    this.cid = e.changed;
-  }
   _compClosed(e) {
-    this.editingDcid = false;  //we were either changing dcid or not, either way we aren't anymore
+    this.mainmenu.close();
   }
   _competitionSelected(e) {
-    const selected = parseInt(e.currentTarget.dataset.cid,10);
-    if (this.editingDcid) {
-      api(`${selected}/dcid`).then(response => {
-          global.dcid = response.dcid;
-          this.requestUpdate();
-      });
-    } else {
-      this.cid = selected;
+    this.cid = parseInt(e.currentTarget.dataset.cid,10);
+    this.mainmenu.close();
+  }
+  _competitionsMenu() {
+    if(this.competitionMenu) {
+      this.competitionMenu.positionTarget = this.cm;
+      this.competitionMenu.show();
     }
-    this.editingDcid = false;
   }
   _globalChanged() {
     this.requestUpdate();
   }
   _editRound(e){
-
+    const rid = parseInt(e.currentTarget.dataset.rid, 10);
+    this.mainmenu.close();
+    switchPath(`/editround/${this.cid}/${rid}`);
   }
   _errorChanged(e) {
     if (e.status.type === 'error') {
@@ -356,6 +393,11 @@ class MainApp extends LitElement {
     } else if (e.status.type === 'reset') {
       this.serverError = false;
     }
+  }
+  async _fetchCompetitons() {
+    const response = await api(`admin/fetch_competitions`);
+    this.competitions = response.competitions;
+    this.compVersion = 0;
   }
   _goHome() {
     switchPath('/');
@@ -368,6 +410,9 @@ class MainApp extends LitElement {
       this.mainmenu.positionTarget = this.menuicon;
       this.mainmenu.show();
     }
+  }
+  _refreshComp() {
+    this.compVersion++
   }
   async _reset(e) {
     this.serverError = false;
@@ -382,11 +427,17 @@ class MainApp extends LitElement {
   _ridChanged(e){
     this.rid = e.changed;
   }
-  _roundsMenu(e) {
-    if(this.roundsMenu) this.roundsMenu.show();
+  _roundClosed() {
+    this.mainmenu.close();
   }
-  _roundSelected(e) {
-    this.rid = parseInt(e.currentTarget.dataset.rid,10);
+  _roundsMenu() {
+    if(this.roundsMenu) {
+      this.roundsMenu.positionTarget = this.rm;
+      api(`${this.cid}/admin/fetch_rounds`).then(response => {
+        this.rounds = reponse.rounds;
+        this.roundsMenu.show();
+      });
+    }
   }
   _selectPage(e) {
     switchPath(`/${e.currentTarget.id}/${this.cid}`);

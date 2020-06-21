@@ -27,6 +27,7 @@ import {connectUrl, disconnectUrl} from '../modules/location.js';
 import PageManager from './page-manager.js';
 
 import page from '../styles/page.js';
+import { switchPath } from '../modules/utils.js';
 
 export class AppPages extends PageManager {
   static get styles() {
@@ -61,7 +62,8 @@ export class AppPages extends PageManager {
 
       <app-waiting ?waiting=${this.waiting}></app-waiting>
       ${cache({
-        home: html`<fm-summary 
+        home:'',
+        summary: html`<fm-summary 
           managed-page
           .cid=${this.cid}
           .route=${this.subRoute}>Summary Loading ...</fm-summary>`,
@@ -71,16 +73,15 @@ export class AppPages extends PageManager {
 
     `;
   }
-  homePage() {
-    return 'home';
-  }
+
   loadPage(page) {
     this.waiting = true;
     switch (page) {
       case 'home':
+        switchPath('/summary'); //fall through, since we know its coming and we might as well get ready asap
+      case 'summary':
         import('./fm-summary.js').then(this.waiting = false);
         break;
-        
       case 'profile':
         import('./app-profile.js').then(this.waiting = false);
         break;
@@ -89,31 +90,12 @@ export class AppPages extends PageManager {
   _keyAppointmentFile(e) {
     e.stopPropagation();
     switch (e.entity) {
-      case 'appointment':
-        if (this.pasAppointments) this.pasAppointments.keyUpdate(e.entity, e.key);
-        break;
-      case 'diary':
-        if (this.pasAppointments) this.pasAppointments.keyUpdate(e.entity, e.key);
-        break;
-      case 'patient':
-        if (this.pasAppointments) this.pasAppointments.keyUpdate(e.entity, e.key);
-        if (this.pasFilemove) this.pasFilemove.keyUpdate(e.entity, e.key);
-        break;
       default:
     }
   }
   _keyDiaryPatient(e) {
     e.stopPropagation();
     switch(e.entity) {
-      case 'appointment':
-        if (this.pasPatients) this.pasPatients.keyUpdate(e.entity, e.key);
-        break;
-      case 'diary':
-        if (this.pasDiary) this.pasDiary.keyUpdate(e.entity, e.key);
-        break;
-      case 'patient':
-        if (this.pasPatients) this.pasPatients.keyUpdate(e.entity, e.key);
-        break;
       default:
     }
   }

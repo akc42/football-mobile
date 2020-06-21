@@ -99,12 +99,13 @@ DROP TABLE competition;
 CREATE TABLE competition (
     cid integer PRIMARY KEY ASC, --Competition ID - 
     name character varying,--This is the name that appears in the header for the competition
+    administrator integer  NOT NULL DEFAULT 0, --The uid of the administrator
+    open boolean NOT NULL DEFAULT 0 , --Says whether a user may see the competition
+    closed boolean NOT NULL DEFAULT 0, --Says where a user may  still register 
     condition text DEFAULT NULL,	--This is the text that a user has to agree to in order to register himself for the competition
-    administrator integer DEFAULT 0 NOT NULL, --The uid of the administrator
-    open boolean DEFAULT 0 NOT NULL, --Says whether a user may register for the competion or not
     pp_deadline bigint DEFAULT 0 NOT NULL, --Playoff Selection Deadline 0 if no selection
     gap integer DEFAULT 300 NOT NULL, --Seconds to go before match to make pick deadline
-    update_date bigint DEFAULT (strftime('%s','now')) NOT NULL, --Date Competition Created or data other than results_cache updated
+    update_date bigint NOT NULL DEFAULT (strftime('%s','now')), --Date Competition Created or data other than results_cache updated
     pointsmap text NOT NULL DEFAULT '[1,2,4,6,8,12,16]', -- map of slider position to output result
     underdogmap text NOT NULL DEFAULT '[0,1,2,4,6,8]', --map of absolute slider positions to underdog points
     playoffmap text NOT NULL DEFAULT '[1,2,4,6,8]',  --map of playoff points slider position to points allocated
@@ -114,8 +115,8 @@ CREATE TABLE competition (
     cache_store_date bigint DEFAULT (strftime('%s','now'))
 );
 
-INSERT INTO competition (cid, name, condition, administrator, open, pp_deadline, gap, update_date) 
-    SELECT cid, description, condition, administrator, open, pp_deadline, gap, creation_date FROM old_competition;
+INSERT INTO competition (cid, name, condition, administrator, open, pp_deadline, gap, update_date, closed) 
+    SELECT cid, description, condition, administrator, open, pp_deadline, gap, creation_date, 1 As closed FROM old_competition;
 
 DROP TABLE old_competition;
 

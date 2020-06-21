@@ -17,16 +17,22 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-(function() {
+(function () {
   'use strict';
+  const debug = require('debug')('football:timing');
 
-  const debug = require('debug')('football:api:dcid');
-  const db = require('../utils/database');
-  
-  module.exports = function(user, cid, params, responder) {
-    db.prepare(`UPDATE settings SET value = ? WHERE name = 'default_competition';`).run(cid);
-    responder.addSection('dcid',cid);
-    debug('Success dcid');
-  };
+  const path = require('path');
+  require('dotenv').config({ path: path.resolve(__dirname, '../server/db-init', 'football.env') });
+  const db = require('../server/utils/database');
+
+  debug('test reading via limit')
+  for (let i = 0; i < 100000; i++) {
+    const byorder = db.prepare('SELECT cid FROM competition WHERE open = 1 ORDER BY cid DESC LIMIT 1').pluck().get()
+  }
+  debug('finished via limit');
+  for (let i = 0; i < 100000; i++) {
+    const bymax = db.prepare('SELECT MAX(cid) FROM competition WHERE open = 1').pluck().get()
+  }
+  debug('finished by max')
+
 })();

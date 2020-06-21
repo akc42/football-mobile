@@ -23,12 +23,12 @@
   'use strict';
   const db = require('../utils/database');
 
-  module.exports = (user,params,responder) => {
+  module.exports = (user, cid, params,responder) => {
     db.transaction(() => {
-      const competitions = db.prepare(`SELECT cid, name, open, administrator FROM competition 
-        WHERE open = 1 OR administrator = ? OR ? = 1 ORDER BY cid DESC`).all(user.uid, user.global_admin);
-      responder.addSection('competitions', competitions);  
-    })();
+      const rounds = db.prepare(`SELECT rid, name, open FROM round WHERE cid = ? ORDER BY rid DESC`).all(cid);
+      responder.addSection('rounds', rounds);
 
+
+    })();
   };
 })();

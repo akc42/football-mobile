@@ -28,7 +28,7 @@
   The element listens for resize event
 */
 import '../elements/dialog-polyfill.js';
-import dialog from '../styles/dialog.js';
+import dialog from '../styles/app-overlay.js';
 
 
 const AppFit = superClass => class extends superClass {
