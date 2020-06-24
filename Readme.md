@@ -83,7 +83,7 @@ packages, namely:-
 2.  `sqlite` which is a wrapper around `sqlite3`, but provides promises rather than callbacks, and
 3.  `better-sqlite3` which touts itself as a faster (and therefore better) version than `sqlite3`
 
-I have bouncing between the technologies.  Initially I thought `better-sqlite3`
+I have been bouncing between the technologies.  Initially I thought `better-sqlite3`
 was the way to go, but I thought I would write a comparison benchmark test using
 the actual query the *PHP* version used to to provide the first page.  This
 showed `better-sqlite3` was faster and took about 0.5 seconds on my (fast)
@@ -103,6 +103,35 @@ cause some interesting dynamics between the transaction and `bcrypt` (which
 needs to use callbacks or promises) which I am using to manage passwords.  But
 I've thought through the implications of not using transactions in that fairly
 specialist case and I can get by. 
+
+### Cookies
+
+The application uses three cookies to simplify many aspects of the operation.
+The names of these cookies are settings in the database, with the expectation that
+each installation will use different names.  Although this is not essential and 
+the defaults loaded into the initial database are fine, it allows an added level
+of customisation that doesn't incur much penalty.  
+
+The cookies are:-
+
+* A "visit" cookie, effectively allowing an unauthorised user to be walked
+  through the registration and login process in the correct order.  Because, at
+  the moment, all current users don't yet have a password, and some may have to
+  apply for membership because their email address has changed since they last
+  played, and the membership process has multiple steps to it, we need to keep
+  track of where a user is across multiple visits.  This cookie does that.
+* A "user" cookie, is created when a user logs in.  Dependant whether that user
+  wants to be remembered or not determines whether we create a session cookie or
+  one with a longer lifetime.  The cookie holds user details and also a usage
+  parameter.  This allows a user to be *temporarily* logged in to edit their
+  profile, but then logged out automatically when when they have finished and
+  brought to the log on screen again.
+* A "cid" cookie, which is also created when the user first fully logs in.  It
+  records the competition id (cid) of the competition he is working with.  This
+  normally starts as the latest "open" competition, but the user is able to
+  modify that from a menu.  In particular, administrators can also see
+  competitions that are not yet open and may wish to switch to work on that from
+  an admin perspective.
 
 ### API structure
 
@@ -130,13 +159,11 @@ different ways of being called)
   const api = Router(routerOpts);
   const conf = Router();
   const ses = Router(routerOpts);
+  const prof = Router(routerOpts);
+  const usr = Router(routerOpts);
+  const approv = Router(routerOpts);
   const admin = Router(routerOpts);
-  const madmin = Router(routerOpts);
-  const gadmin = Router(routerOpts);
-  const cid = Router(routerOpts);
-  const cadmin = Router(routerOpts);
-  const cidrid = Router(routerOpts);
-  const radmin = Router(routerOpts);
+  const gadm = Router(routerOpts);
   router.use('/api/', api);
 
 ```
@@ -168,20 +195,16 @@ So the directories I use are:-
   <dd>Configuration Variabls and Style CSS variables</dd>
   <dt>session</dt>
   <dd>Functions related to establishing a authorised user, including the sending of emails with links</dd>
+  <dt>profile</dt>
+  <dd>Functions User to allow user to edit his profile</dd>
+  <dt>user</dt>
+  <dd>Functions to allow the user to display data and make their picks</dd>
+  <dt>approve</dt>
+  <dd>Functions to allow an approver to approve new memberships</dd>
   <dt>admin</dt>
-  <dd>Functions necessary to manage provide initial information for a partially authorised user.  A partially authorised
-  user is one who has logged in via the use of a short term pin sent to him via e-mail.  It only allows him to access his
-  profile, where he may edit his password so he can then use it to log on properly.</dd>
-  <dt>adminm</dt>
-  <dd>All the member approval function, only accessessible if the user is a global admin or has member_approval set it their profile</dd>
-  <dt>adminc</dt>
-  <dd>Functions that are to administer a competition, the user must either be a global admin or have a uid that matches the administrator field in the competition record</dd>
-  <dt>adming</dt>
-  <dd>Functions that only a global admin can perform</dd>
-  <dt>cid</dt>
-  <dd>Functions were the input key to the database required just the competition id (cid).</dd>
-  <dt>cidrid</dt>
-  <dd>Function where both the cid and the round id (rid) are required as keys to the database.
+  <dd>Functions used by the competition administrator to manage the competition</dd>
+  <dt>gadm</dt>
+  <dd>Global Admin Function</dd>
 </dl>
 
 Various levels of middleware (no brackets) and apis (with [] brackets) are provided down the chain which goes as follows:-
@@ -191,23 +214,43 @@ Various levels of middleware (no brackets) and apis (with [] brackets) are provi
                                                                                             |
     <----------------------------------------------------------------------------------------
     |
-    -->bodyparser -->[/api/session/*]-->fullCookieCheck-->[/api/admin/*]-->
+    -->bodyparser -->[/api/session/*]-->fullCookieCheck-->[/api/profile/*]-->
                                                                            |
     <-----------------------------------------------------------------------
     |
-    -->fullCookieAuthorisedCheck-->[/api/:cid/*]-->[/api/:cid/:rid/*]-->404
-                                 |               |
-                                 |               -->[/api/:cid/admin] -->userIsCompetitionAdmin-->
-                                 |                                                               |  
-                                 |    <-----------------------------------------------------------
-                                 |    |
-                                 |    -->[/api/:cid/admin/*]-->[/api/:cid/admin/:rid/*]-->404
+    -->fullCookieAuthorisedCheck-->[/api/user/*]-->404
                                  |
-                                 -->[/api/admin/map]-->userHasMemberApproval-->[/api/admin/map/*]-->404
+                                 |-->[/api/approve]-->userHasMemberApproval-->[/api/approve/*]-->404
+                                 |               
+                                 |-->[/api/admin] -->userIsCompetitionAdmin-->[/api/admin/*]-->404
                                  |
-                                 -->/[/api/admin/gadm]-->userIsGlobalAdmin-->[/api/admin/gadm/*]-->404
+                                 -->/[/api/gadm]-->userIsGlobalAdmin-->[/api/gadm/*]-->404
 ```
-### Client Page Management and Client Side Routing
+
+The middleware referenced above is
+<dl>
+  <dt>visitorCookieCheck</dt>
+  <dd>Checks that the visitor has a visitor cookie set - which implies he has given consent for limited purposes</dd>
+  <dt>Body parser</dt>
+  <dd>A standard module which parses a stringifyed json set of parameters in the request body into a params object</dd>
+  <dt>fullCookieCheck</dt>
+  <dd>This checks for the presence of a full cookie holding user logon details</dd>
+  <dt>fullCookieAuthorisedCheck</dt>
+  <dd>This has two checks:-
+    1. The user is fully logged in, and therefore is fully authorised to be a user in the competitions, and
+    2. The is a "cid" cookie that says which competition this user is currently working on.
+  </dd>
+  <dt>userHasMemberApproval</dt>
+  <dd>Checks that this user is allowed to approve new members</dd>
+  <dt>userIsCompetitionAdmin</dt>
+  <dd>Checks that this user is the administrator of the competition in the "cid" cookie</dd>
+  <dt>userIsGlobalAdmin</dt>
+  <dd>User is a Global Admin</dd>
+</dl>
+
+
+
+### Client Page Management
 
 In an appliation like this we need to have control of what the user sees, being sure before he has been properly authorised that
 he is not able to access any of the core information.  As this is an application based on web components I provide web components
@@ -254,8 +297,73 @@ This setup is fundementally controlled by 4 variables
   <dd>Set when an error needs to be displayed.  `<app-error>` listens to window `error` event</dd>
 </dl>
 
+### Client Side Routing
+
 Two modules, `location.js` and `route.js` work in combination with each other to manage routing.  The former picks up changes to browser url if its been initialised via a call to `connectUrl(route => this.route)` function. This is done by `<app-pages>` The `<app-page-manager>` is an element that is extended
-by any other element (for instance `<fw-admin>` as well as `<app-pages>`) that needs to manage routing to subpages and uses the route changes to set the *page* variable to the correct value.
+by any other element (for instance `<fw-admin>` as well as `<app-pages>`) that needs to manage routing to subpages and uses the route changes to set the *page* variable to the correct value.  Routes don't just have page segments, but also parameter segments. 
+
+What this effectively means that a client site route is a definition of which page to display in the hierarchy at any one time. So for example if we have a route /user/12/picks/99/view this could be interpreted as the top level "user" page for round 12 in the current competition, show the "picks" page (which initially might provide an option to show a summary for all users, but then might also set the parameter to 99 to select a particular user and have a "view" page under that).  The  `<app-pages>` controls a selection of the "home" page (url /), and the "user" page, but then the "user" page is also derived from the `<app-page-manager>` element as is the "picks" page.
+
+Our client side route are as follows:-
+
+```
+/-   - home page selects one of four subroutes as the default dependant on condition (/register, /picks /results, /scores in order.)
+  |
+  /register  - show registration page if not already registered and competition is not closed
+  /pick - at least one match, maybe more is not passed the pick deadline for the competition you are registered for
+  /results - match results for the last round, with your personal scores against it (only default if latest open competition)
+  /scores - show top level results summary (total score as a list of users)
+    |
+    /:uid/summary - top level view of that user (:uid) showing their scores in each round to date and the total
+         /:rid/picks  - show all the picks of that user for the round in the url
+         /playoff - show play off picks for user   
+  /matches/:rid - match results for given round (defaults to last), by team
+  /teams - List teams in competition (and user playoff picks)
+    |
+    /:confid/:divid/users  - shows all user playoff picks by
+  /approve - shows list of users awaiting approval, with ability to approve (or reject)
+  /admin - details of competition (from admin perspective)
+    |
+    /teams - selection of teams for the competition.
+    /rounds - list of rounds in competition so far
+      |
+      /:rid/ - details of the round
+            |
+            /teams - select teams to form matches
+            /matches - list of matches
+              |
+              /:aid - details of a match
+            /bonus - details of bonus question
+    /users - list of registered users
+  /promote- show list of participants with options to make approver or global admin  
+  /newcomp - create a new competion, name it and assign an administrator
+  /profile
+     
+```
+
+Moving around the hierarchy of routes will either by a selection of one item from a list leading to the next level of detail or selection,
+or by a dynamic menu under the mainmenu button, which will always have
+
+* Home
+* Dynamically added items here
+* Change Competition
+* Edit Profile
+
+but may acquire other options added where appropriate given current context
+
+* Scores - Shown if user is automatically taken to /register, /pick, or /results as their home option
+* Matches - If at least one open round with matches defined
+* Teams - If at least one open round with teams defined
+* Approve - if user is a approver and there is at least one member awaiting approval
+* Admin - If user is competition admin, dynamic sub menus
+  * Teams  -- either list of teams that can be added to competition or list in competition to select for matches.
+  * Rounds
+  * Matches
+  * Bonus
+  * Users
+* Promote - If user is global Admin
+* Create Competion - If user is global admin
+
 
 ### Client Globals Management
 
