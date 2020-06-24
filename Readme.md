@@ -106,7 +106,7 @@ specialist case and I can get by.
 
 ### Cookies
 
-The application uses three cookies to simplify many aspects of the operation.
+The application uses two cookies to simplify many aspects of the operation.
 The names of these cookies are settings in the database, with the expectation that
 each installation will use different names.  Although this is not essential and 
 the defaults loaded into the initial database are fine, it allows an added level
@@ -120,18 +120,21 @@ The cookies are:-
   apply for membership because their email address has changed since they last
   played, and the membership process has multiple steps to it, we need to keep
   track of where a user is across multiple visits.  This cookie does that.
+  However this cookie is used to store other info.  In order that it is actually
+  a JSON.stringified string on an object with three properties:-
+  1. **step** where the user is through the process
+  2. **consent** a marker to indicate that the user has seen the consent
+     notification assoicated with  the main "user" cookie described below, and
+  3. **cid** the id of the users working competition.
+
+
 * A "user" cookie, is created when a user logs in.  Dependant whether that user
   wants to be remembered or not determines whether we create a session cookie or
   one with a longer lifetime.  The cookie holds user details and also a usage
   parameter.  This allows a user to be *temporarily* logged in to edit their
   profile, but then logged out automatically when when they have finished and
   brought to the log on screen again.
-* A "cid" cookie, which is also created when the user first fully logs in.  It
-  records the competition id (cid) of the competition he is working with.  This
-  normally starts as the latest "open" competition, but the user is able to
-  modify that from a menu.  In particular, administrators can also see
-  competitions that are not yet open and may wish to switch to work on that from
-  an admin perspective.
+
 
 ### API structure
 
@@ -230,16 +233,14 @@ Various levels of middleware (no brackets) and apis (with [] brackets) are provi
 The middleware referenced above is
 <dl>
   <dt>visitorCookieCheck</dt>
-  <dd>Checks that the visitor has a visitor cookie set - which implies he has given consent for limited purposes</dd>
+  <dd>Checks that the visitor has a visitor cookie set - which implies he has given consent for limited purposes.  It aslo includes
+  a cid parameter which is added to the request to be passed through the other routers to the final</dd>
   <dt>Body parser</dt>
   <dd>A standard module which parses a stringifyed json set of parameters in the request body into a params object</dd>
   <dt>fullCookieCheck</dt>
   <dd>This checks for the presence of a full cookie holding user logon details</dd>
   <dt>fullCookieAuthorisedCheck</dt>
-  <dd>This has two checks:-
-    1. The user is fully logged in, and therefore is fully authorised to be a user in the competitions, and
-    2. The is a "cid" cookie that says which competition this user is currently working on.
-  </dd>
+  <dd>This checks that the user is fully logged in, and therefore is fully authorised to be a user in the competitions.</dd>
   <dt>userHasMemberApproval</dt>
   <dd>Checks that this user is allowed to approve new members</dd>
   <dt>userIsCompetitionAdmin</dt>
