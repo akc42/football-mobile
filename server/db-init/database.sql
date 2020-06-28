@@ -71,7 +71,11 @@ CREATE TABLE division (
     divid character(1) PRIMARY KEY,
     name character varying(6)
 );
-
+--Emoticons used in the application
+CREATE TABLE emoticons (
+    code char varying PRIMARY KEY, --code used in text preceed by ":" that user can use to include the emoticon
+    icon char varying ---The base64 image data for this emoticon
+);
 
 CREATE TABLE match (
     cid integer NOT NULL, -- Competition ID
@@ -188,11 +192,7 @@ CREATE TABLE styles (
     name character varying PRIMARY KEY, --style variable name without the leading double dashes
     style character varying DEFAULT NULL --the value of the style.  Note it could refer to another style using 'var(--my-other-style)'
 );
---Emoticons used in the application
-CREATE TABLE emoticons (
-    code char varying PRIMARY KEY, --code used in text preceed by ":" that user can use to include the emoticon
-    icon char varying --The filename to be displayed as an image for that emoticon 
-);
+
 
 CREATE TABLE team (
     tid varchar(3) PRIMARY KEY,
@@ -424,14 +424,11 @@ CREATE INDEX registration_cid_idx ON registration(cid);
 
 INSERT INTO settings (name,value) VALUES('version',14); --version of this configuration
 -- values for client config
-INSERT INTO settings (name,value) VALUES('pointsmap','[1,2,4,6,8,12,16]'); -- map of slider position to output result
-INSERT INTO settings (name,value) VALUES('underdogmap','[0,1,2,4,6,8]'); --map of absolute slider positions to underdog points
-INSERT INTO settings (name,value) VALUES('playoffmap','[1,2,4,6,8]'); --map of playoff points slider position to points allocated
-INSERT INTO settings (name,value) VALUES('bonusmap','[1,2,4,6,8,12,16]');--map of bonus question points slider position to points allocated
-INSERT INTO settings (name,value) VALUES('defaultbonus',2); --default value of question bonus when new round created
+
 INSERT INTO settings (name,value) VALUES('client_log',''); --if none empty string should specify colon separated function areas client should log or 'all' for every thing.
 INSERT INTO settings (name,value) VALUES('client_log_uid',0); --if non zero limit client logging to that uid.
 INSERT INTO settings (name,value) VALUES('cookie_visit_name','FMVISIT'); --name used for a cookie to record a visit where the user logged on.
+
 INSERT INTO settings (name,value) VALUES('main_menu_icon','menu'); --character from material icon font to use as the main menu.
 INSERT INTO settings (name,value) VALUES('webmaster','webmaster@example.com'); --site webmaster.
 INSERT INTO settings (name,value) VALUES('site_logo','/appimages/site_logo.png'); --url of the site_logo image to be used on info pages and in mail
@@ -468,8 +465,12 @@ INSERT INTO styles (name,style) VALUES('app-button-color', 'var(--app-accent-col
 INSERT INTO styles (name,style) VALUES('app-cancel-button-color', 'lightsteelblue'); --Cancel Button Colour
 INSERT INTO styles (name,style) VALUES('button-text-color', 'var(--app-accent-text)'); --Color of text on primary buttons
 INSERT INTO styles (name,style) VALUES('cancel-button-text-color', '#212121'); --Color of text on cancel buttons
-INSERT INTO styles (name,style) VALUES('fw-win-color', '#ffcc99'); --Color of cells to indicate a win
 INSERT INTO styles (name,style) VALUES('app-form-color', '#fcffc0'); --Background Color of Forms;
+INSERT INTO styles (name,style) VALUES('fm-win-color', 'darkorange'); --Color of icon to indicate a match win or an over/under result.
+INSERT INTO styles (name,style) VALUES('fm-in-playoff','gold'); -- colour of trophy indicating a team in the playoff
+INSERT INTO styles (name,style) VALUES('fm-correct-pick', 'orangered'); --colour of a correct pick
+INSERT INTO styles (name,style) VALUES('fm-incorrect-pick', 'mediumorchid'); --colour of incorrect pick
+INSERT INTO styles (name,style) VALUES('fm-indeterminate-pick', 'lawngreen'); --colour of pick where result not yet available.
 
 --- FIELD SIZES
 INSERT INTO styles (name,style) VALUES('email-input-length','240px'); --input field width for e-mail input 

@@ -1,6 +1,6 @@
 {
   "name": "football-mobile",
-  "version": "4.0.0-alpha1",
+  "version": "4.0.0-alpha",
   "description": "American Football results picking competition manager",
   "keywords": [
     "football",
@@ -37,7 +37,8 @@
     "server-destroy": "^1.0.1"
   },
   "scripts": {
-    "prepare": "rollup --config"
+    "prepare": "rollup --config",
+    "release": "./release.sh"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^7.1.1",

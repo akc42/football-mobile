@@ -22,7 +22,7 @@
   const fs = require('fs').promises;
   const path = require('path');
   const child = require('child_process');
-  const root = path.resolve(__dirname, '..');
+  const root = path.resolve(__dirname, '../..');
 
   function shCmd(cmd) {
     debug('About to execute Command ', cmd);

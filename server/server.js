@@ -39,7 +39,7 @@
 
   const logger = require('./utils/logger');
   const Responder = require('./utils/responder');
-  const versionPromise = require('./version');
+  const versionPromise = require('./utils/version');
   
   const bcrypt = require('bcrypt');
 
@@ -108,15 +108,25 @@
         if (dbVersion > footVersion) throw new Error('Setting Version in Database too high');
         db.pragma('foreign_keys = OFF');
         const upgradeVersions = db.transaction(() => {
+          
           for (let version = dbVersion; version < footVersion; version++) {
-            const update = fs.readFileSync(path.resolve(process.env.FOOTBALL_DB_DIR, `update_${version}.sql`),{ encoding: 'utf8' });
+            if (fs.existsSync(path.resolve(__dirname, 'db-init', `pre-upgrade_${version}.sql`))) {
+              //if there is a site specific update we need to do before running upgrade do it
+              const update = fs.readFileSync(path.resolve(__dirname, 'db-init', `pre-upgrade_${version}.sql`), { encoding: 'utf8' });
+              db.exec(update);
+            }
+            const update = fs.readFileSync(path.resolve(__dirname, 'db-init', `upgrade_${version}.sql`),{ encoding: 'utf8' });
             db.exec(update);
+            if (fs.existsSync(path.resolve(__dirname, 'db-init', `post-upgrade_${version}.sql`))) {
+              //if there is a site specific update we need to do after running upgrade do it
+              const update = fs.readFileSync(path.resolve(__dirname, 'db-init', `post-upgrade_${version}.sql`), { encoding: 'utf8' });
+              db.exec(update);
+            }
           }
         });
         upgradeVersions.exclusive();
         db.exec('VACUUM');
         db.pragma('foreign_keys = ON');
-        
         debug('Committed Updates, ready to go')
       }
       /*
@@ -143,13 +153,11 @@
       const api = Router(routerOpts);
       const conf = Router();
       const ses = Router(routerOpts);
+      const prof = Router(routerOpts);
+      const usr = Router(routerOpts);
+      const approv = Router(routerOpts);
       const admin = Router(routerOpts);
-      const madmin = Router(routerOpts);
-      const gadmin = Router(routerOpts);
-      const cid = Router(routerOpts);
-      const cadmin = Router(routerOpts);
-      const cidrid = Router(routerOpts);
-      const radmin = Router(routerOpts);
+      const gadm = Router(routerOpts);
       
     
       debug('tell router to use api router for /api/ routes');
@@ -263,6 +271,10 @@
           const matches = cookies.match(mbvisited);
           if (matches) {
             debugapi('Visit Cookie found');
+            //extract cid from it
+            const {cid} = JSON.parse(matches[2]);
+            req.cid = cid;
+
             next();
           } else {
             forbidden(req,res,'no Visit Cookie Found');
@@ -334,19 +346,21 @@
       });
 
       /*
-          we now need to process the admin type api calls
+          we now need to process the profile api calls
       */
-      api.use('/admin/',admin);
-      debug('Setting up Admin Apis');
-      const adms = loadServers(__dirname, 'admin');
-      for (const adm in adms) {
-        debugapi(`Setting up /api/${adm} route`);
-        admin.post(`/${adm}`, (req,res) => {
-          debugapi(`Received /api/${adm} request`);
+      api.use('/profile/',prof);
+      debug('Setting up Profile Apis');
+      const profs = loadServers(__dirname, 'profile');
+      for (const p in profs) {
+        debugapi(`Setting up /api/profile/${p} route`);
+        prof.post(`/${p}`, async (req,res) => {
+          debugapi(`Received /api/profile/${p} request`);
           try {
-            const responder = new Responder(res);
-            adms[adm](req.user,req.body,responder);
-            responder.end();            
+            const data = await profs[p](req.user,req.body);
+            if (data.usage !== undefined) {
+              res.setHeader('Set-Cookie', generateCookie(data.user, data.usage)); //get ourselves a cookie
+            }
+            res.end(JSON.stringify(data));
           } catch(e) {
             errored(req,res,e.toString());
           }
@@ -367,10 +381,10 @@
       /*
         Beyond here we are going to check for member approval capability in the madmin section only
       */
-      debug('Setting up maps api')
-      admin.use('/map/', madmin);
+      debug('Setting up approve api')
+      api.use('/approve/', approv);
       debug('set up to check member_approval capability')
-      madmin.use((req,res,next) => {
+      approv.use((req,res,next) => {
         debugapi('checking member_approval');
         if (req.user.global_admin === 1 || req.user.member_approval === 1) { //global admin can do this too
           next();
@@ -378,11 +392,11 @@
           forbidden(req, res, `User uid ${req.user.uid} has not got member approval capability`);
         }
       });
-      const maps = loadServers(__dirname, 'adminm');
+      const maps = loadServers(__dirname, 'approve');
       for (const m in maps) {
-        debugapi(`setting up /api/admin/map/${m} route`);
-        madmin.post(`/${m}`, (req,res) => {
-          debugapi(`received /api/admin/map/${m} request`);
+        debugapi(`setting up /api/approve/${m} route`);
+        approv.post(`/${m}`, (req,res) => {
+          debugapi(`received /api/approve/${m} request`);
           try {
             const responder = new Responder(res);
             maps[m](req.user,req.body, responder);
@@ -396,9 +410,9 @@
         Beyond here we are going to check for global admin capability in the gadmin section only
       */
       debug('Setting up gadm api')
-      admin.use('/gadm/', gadmin);
+      api.use('/gadm/', gadm);
       debug('set up to check global admin capability')
-      gadmin.use((req, res, next) => {
+      gadm.use((req, res, next) => {
         debugapi('checking global admin');
         if (req.user.global_admin === 1) {
           next();
@@ -407,14 +421,14 @@
         }
       });
 
-      const gadm = loadServers(__dirname, 'adming');
-      for (const g in gadm) {
-        debugapi(`setting up /api/admin/gadm/${g} route`);
+      const gadms = loadServers(__dirname, 'gadm');
+      for (const g in gadms) {
+        debugapi(`setting up /api/gadm/${g} route`);
         gadmin.post(`/${g}`, (req, res) => {
-          debugapi(`received /api/admin/gadm/${g} request`);
+          debugapi(`received /api/gadm/${g} request`);
           try {
             const responder = new Responder(res);
-            gadm[g](req.user, req.body, responder);
+            gadms[g](req.user, req.body, responder);
             responder.end();
           } catch (e) {
             errored(req, res, e.toString());
@@ -422,93 +436,62 @@
         });
       }
 
-      /*
-        Quite a lot of the api calls will feature the cid (competition id) and rid(round id) as parameters to them
-        although not strictly necessary, I am going to create two separate api sets for /api/:cid/xxx and /api/:cid/:rid/xxx
-        urls to see how they work
-      */
-      debug('Setting Up cid and cidrid Apis');
-      api.use('/:cid/', cid);
+      debug('Setting Up Competition Administration');
+      api.use('/admin/', admin);
       /*
         Beyond here we are going to check for user us this competitions admin in the cadmin section only
       */
-      debug('Setting up cadmin api')
-      cid.use('/admin/', cadmin);
+
       debug('set up to check competition admin capability')
-      cadmin.use((req, res, next) => {
-        debugapi(`checking user ${req.user.uid} is admin of competition ${req.parms.cid}`);
+      admin.use((req, res, next) => {
+        debugapi(`checking user ${req.user.uid} is admin of competition ${req.cid}`);
         if (req.user.global_admin === 1) {
           debugapi('global admin has access automatically')
           next();
         } else {
-          const admin = db.prepare('SELECT administrator FROM competition WHERE cid = ?').pluck().get(req.params.cid);
+          const admin = db.prepare('SELECT administrator FROM competition WHERE cid = ?').pluck().get(req.cid);
           if (admin === req.user.uid) { 
             debugapi('user is competition admin');
             next();
           } else {
-            forbidden(req, res, `User uid ${req.user.uid} has is not admin of competition ${req.params.cid}`);
+            forbidden(req, res, `User uid ${req.user.uid} has is not admin of competition ${req.cid}`);
           }
         }
       });
-      const cadms = loadServers(__dirname, 'adminc');
-      for (const a in cadms) {
-        debugapi(`setting up /api/:cid/admin/${a} route`);
-        cadmin.post(`/${a}`, (req, res) => {
-          debugapi(`received /api/:cid/admin/${a} request`);
+      const admins = loadServers(__dirname, 'admin');
+      for (const a in admins) {
+        debugapi(`setting up /api/admin/${a} route`);
+        admin.post(`/${a}`, (req, res) => {
+          debugapi(`received /api/admin/${a} request for cid = ${req.cid}`);
           try {
             const responder = new Responder(res);
-            cadms[a](req.user,req.params.cid,req.body, responder);
+            cadms[a](req.user,req.cid,req.body, responder);
             responder.end();
           } catch (e) {
             errored(req, res, e.toString());
           }
         });
       }
-      cadmin.use('/:rid/', radmin);
-      const radms = loadServers(__dirname, 'adminr');
-      for (const a in radms) {
-        debugapi(`setting up /api/:cid/admin/:rid/${a} route`);
-        cadmin.post(`/${a}`, (req, res) => {
-          debugapi(`received /api/:cid/admin/:rid/${a} request`);
-          try {
-            const responder = new Responder(res);
-            radms[a](req.user, req.params.cid,req.params.rid,req.body, responder);
-            responder.end();
-          } catch (e) {
-            errored(req, res, e.toString());
-          }
-        });
-      }
+      /*
+        Finally just the simple user apis
+      */
+      api.use('/user/',usr);
 
-      const cids = loadServers(__dirname, 'cid');      
-      for (const c in cids) {
-        debugapi(`Setting up /api/:cid/${c} route`);
-        cid.post(`/${c}`, (req, res) => {
-          debugapi(`Received /api/:cid/${c} request, cid=`,req.params.cid);
+      const users = loadServers(__dirname, 'user');      
+      for (const u in users) {
+        debugapi(`Setting up /api/user/${u} route`);
+        usr.post(`/${u}`, (req, res) => {
+          debugapi(`Received /api/user/${u} request, cid= ${req.cid}`);
           try {
             const responder = new Responder(res);
-            cids[c](req.user, req.params.cid, req.body, responder);
+            users[u](req.user, req.cid, req.body, responder);
             responder.end(); 
           } catch (e) {
             errored(req,res,e.toString());
           } 
         }); 
       }
-      cid.use('/:rid/', cidrid);
-      const cidrids = loadServers(__dirname, 'cidrid');
-      for (const r in cidrids) {
-        debugapi(`Setting up /api/:cid/:rid/${r} route`);
-        cidrid.post(`/${r}`, (req, res) => {
-          debugapi(`Received /api/:cid/:rid/${r} request, cid= ${req.params.cid} rid= ${req.params.rid}`);
-          try {
-            const responder = new Responder(res);
-            cidrids[r](req.user, req.params.cid, req.params.rid, req.body, responder);
-            responder.end();
-          } catch (e) {
-            errored(req, res, e.toString());
-          }
-        })
-      }
+
      debug('Creating Web Server');
       server = http.createServer((req,res) => {
         //standard values (although status code might get changed and other headers added);

@@ -1,6 +1,8 @@
 *~
 client/libs
 client/images
+server/db-init/pre-upgrade_*.sql
+server/db-init/post-upgrade_*.sql
 docs/**/*.aux
 docs/**/*.fdb_latexmk
 docs/**/*.fls
@@ -18,3 +20,4 @@ keys
 npm-debug.log
 .vscode/launch.json
 release.info
+release.sh
