@@ -22,25 +22,31 @@
   'use strict';
 
   const debug = require('debug')('football:api:config');
-  const versionPromise = require('../version');
+  const versionPromise = require('../utils/version');
   const db = require('../utils/database');
 
   module.exports = async function() {
       const config = {};
       const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
+      const d = db.prepare('SELECT cid FROM competition WHERE open = 1 ORDER BY cid DESC LIMIT 1').pluck();
+      const last = db.prepare('SELECT cid, administrator FROM competition ORDER BY cid DESC LIMIT 1');
       db.transaction(() => {
         debug('About to Read Settings Values');      
         config.clientLog = s.get('client_log');
         config.clientLogUid = s.get('client_log_uid');
         config.cookieName = s.get('cookie_name');
         config.cookieVisitName = s.get('cookie_visit_name');
-        config.mainMenuIcon = s.get('main_menu_icon');
         config.webmaster = s.get('webmaster');
         config.siteLogo = s.get('site_logo');
         config.verifyExpires = s.get('verify_expires');
         config.firstTimeMessage = s.get('first_time_message');
         config.minPassLen = s.get('min_pass_len');
         config.dwellTime = s.get('dwell_time');
+        config.dcid = d.get();
+
+        const row = last.get();
+        config.lcid = row.cid;
+        config.luid = row.administrator;
       })();
 
       const { version, year } = await versionPromise;
