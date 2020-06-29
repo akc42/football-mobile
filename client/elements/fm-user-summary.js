@@ -20,14 +20,14 @@
 import { LitElement, html } from '../libs/lit-element.js';
 import {classMap} from '../libs/class-map.js';
 
-import style from '../styles/fw-user-summary.js';
+import style from '../styles/fm-user-summary.js';
 
 import global from '../modules/globals.js';
 
 /*
      <fw-user-summary>
 */
-class FwUserSummary extends LitElement {
+class FmUserSummary extends LitElement {
   static get styles() {
     return [style];
   }
@@ -50,4 +50,4 @@ class FwUserSummary extends LitElement {
     `;
   }
 }
-customElements.define('fw-user-summary', FwUserSummary);
+customElements.define('fm-user-summary', FmUserSummary);

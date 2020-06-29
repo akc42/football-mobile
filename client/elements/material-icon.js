@@ -25,31 +25,27 @@ link.rel = 'stylesheet';
 link.type = 'text/css';
 link.crossOrigin = 'anonymous';
 //eslint-disable-next-line max-len
-link.href =  'https://fonts.googleapis.com/icon?family=Material+Icons';
+link.href =  'https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined';
 document.head.appendChild(link);
 
+import style from '../styles/material-icon.js';
+
 class MaterialIcon extends LitElement {
+  static get styles() {
+    return [style]
+  }
+  static get properties() {
+    return {
+      outlined: {type: Boolean} //force outlined font
+    }
+  }
+  constructor() {
+    super();
+    this.outlined = false;
+  }
   render() {
     return html`
-    <style>
-      :host{
-        font-family:"Material Icons";
-        font-weight:normal;
-        font-style:normal;
-        font-size:var(--icon-size, 24px);
-        line-height:1;
-        letter-spacing:
-        normal;
-        text-transform:none;
-        display:inline-block;
-        white-space:nowrap;
-        word-wrap:normal;
-        direction:ltr;
-        font-feature-settings:'liga';
-        -webkit-font-smoothing:antialiased;
-      }
-    </style>
-    <slot></slot>
+    <span  class="material-icons${this.outlined ? '-outlined' : ''}"><slot></slot></span>
     `;
   }
 }

@@ -36,17 +36,26 @@ export default  css`
     flex-direction: row;
     flex:0 1 0;
   }
-  header .heading {
+  #hcont {
+    color: var(--app-primary-text);
     margin-left: 10px;
     font-weight: bold;
+    display:flex;
+    flex-direction: column;
+    justify-content:flex-start;
+    flex: 1 1 auto;
+    align-items: center;
+  }
+  header .heading {
     font-size:18px;
     text-transform: uppercase;
     flex:1 1 auto;
-    text-align: center;
-    vertical-align:middle;
-    background-color: var(--app-primary-color);
-    color: var(--app-primary-text);
-    border-radius: 5px;
+
+  }
+  header .subheading {
+    font-size: 10pt;
+    flex:1 1 auto;
+
   }
   section {
     flex: 1 0 0;

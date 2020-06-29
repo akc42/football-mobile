@@ -160,7 +160,7 @@ class AppLogon extends LitElement {
   async _forgotten(e) {
     if (!this.emInput.invalid) {
       this.waiting = true;
-      const response = await api('session/request_pin',{email:this.email});
+      const response = await api('session/request_pin',{email:this.email, verify:false});
       this.waiting = false;
       if (response.found) {
         const type = response.password ? (response.remember ? 'markrem': 'markpass'): 'await';

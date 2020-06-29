@@ -24,14 +24,14 @@ import Route from '../modules/route.js';
 
 import page from '../styles/page.js';
 
-import './fw-list.js';
-import './fw-user-summary.js';
+import './fm-list.js';
+import './fm-user-summary.js';
 import './app-page.js';
 
 /*
-     <fm-summary>
+     <fm-scores>
 */
-class FmSummary extends LitElement {
+class FmScores extends LitElement {
   static get styles() {
     return [page];
   }
@@ -46,7 +46,7 @@ class FmSummary extends LitElement {
     super();
     this.users = [];
     this.route = {active: false};
-    this.cRouter = new Route('/:cid','page:summary');
+    this.cRouter = new Route('/:cid','page:scores');
   }
   connectedCallback() {
     super.connectedCallback();
@@ -145,4 +145,4 @@ class FmSummary extends LitElement {
     
   }
 }
-customElements.define('fm-summary', FmSummary);
+customElements.define('fm-scores', FmScores);

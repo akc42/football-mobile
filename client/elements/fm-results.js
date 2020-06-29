@@ -19,40 +19,43 @@
 */
 import { LitElement, html } from '../libs/lit-element.js';
 
+import './app-page.js';
+import page from '../styles/page.js';
 
-import style from '../styles/app-page.js';
-import global from '../modules/globals.js';
 /*
-     <app-page>
+     <fm-results>
 */
-class AppPage extends LitElement {
+class FmResults extends LitElement {
   static get styles() {
-    return [style];
+    return [page];
   }
   static get properties() {
     return {
-      heading: {type: String},
-      subheading: {type: String}
+    
     };
   }
   constructor() {
     super();
-    this.heading='';
-    this.subheading = '';
+  }
+  connectedCallback() {
+    super.connectedCallback();
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+  }
+  update(changed) {
+    super.update(changed);
+  }
+  firstUpdated() {
+  }
+  updated(changed) {
+    super.updated(changed);
   }
   render() {
     return html`
-      <header>
-        <img src="${global.siteLogo}" height="64px"/>
-        <div id="hcont">
-          <div class="heading">${this.heading}</div>
-          <div class="subheading">${this.subheading}</div>
-        </div>
-      </header>
-      <section><slot class="container"></slot></section>
-  
-      <div class="action"><slot name="action"></slot></div>
+        <app-page id="page" heading="Your Results">
+        </app-page>
     `;
   }
 }
-customElements.define('app-page', AppPage);
+customElements.define('fm-results', FmResults);

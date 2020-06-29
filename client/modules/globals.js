@@ -25,13 +25,16 @@ let version = 'v0.0.0';
 let copyrightYear = '2020';
 let cookieName = '';
 let cookieVisitName = '';
-let mainMenuIcon = 'menu';
 let webmaster = '';
 let siteLogo = '/appimages/site-logo.png';
 let verifyExpires = 12;
 let firstTimeMessage = `Welcome to the <strong>Football Mobile Results Picking Competition</strong>.This appears to be your first visit to the site.You will be have to provide your email address and later your password but, with your permission, we can remember you so you won't have to keep entering it.`;
 let minPassLen = 6;
 let dwellTime = 2000;
+let dcid = 0;
+let lcid = 0;
+let luid = 0;
+let cid = 0;
 
 let usage = '';
 let cookieConsent = false;
@@ -60,13 +63,15 @@ const global = {
       copyrightYear = conf.copyrightYear;
       cookieName = conf.cookieName;
       cookieVisitName = conf.cookieVisitName;
-      mainMenuIcon = conf.mainMenuIcon;
       webmaster = conf.webmaster;
       siteLogo = conf.siteLogo;
       verifyExpires = conf.verifyExpires;
       firstTimeMessage = conf.firstTimeMessage;
       minPassLen = conf.minPassLen;
       dwellTime = conf.dwellTime;
+      dcid = conf.dcid;
+      lcid = conf.lcid;
+      luid = conf.luid;
     })
     return globalPromise;
   },
@@ -87,6 +92,12 @@ const global = {
   },
   set cookieConsent(v) {
     cookieConsent = v;
+  },
+  get cid () {
+    return cid;
+  },
+  set cid(v) {
+    cid = v;
   },
   set mockGlobal(v){
     globalPromise = v;
@@ -109,9 +120,6 @@ const global = {
   get cookieVisitName () {
     return cookieVisitName;
   },
-  get mainMenuIcon () {
-    return mainMenuIcon;
-  },
   get webmaster () {
     return webmaster;
   },
@@ -129,6 +137,15 @@ const global = {
   },
   get dwellTime () {
     return dwellTime;
+  },
+  get dcid () {
+    return dcid;
+  },
+  get luid() {
+    return luid;
+  },
+  get lcid() {
+    return lcid;
   }
 }
 

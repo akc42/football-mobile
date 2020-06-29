@@ -157,6 +157,51 @@ export class LocationAltered extends Event {
   }
 };
 
+export class LogoffRequest extends Event {
+  static eventType = 'logoff-request';
+
+  /*
+     The following are the fields provided by this event
+
+     none:   
+
+  */
+
+  constructor() {
+    super('logoff-request',{composed: true, bubbles: true});
+  }
+};
+export class MenuAdd extends Event {
+  static eventType = 'menu-add';
+
+  /*
+     The following are the fields provided by this event
+
+     menu: name of a menu item to be dynamically added
+
+  */
+
+  constructor(menu) {
+    super('add-menu', { composed: true, bubbles: true });
+    this.menu = menu;
+  }
+};
+
+
+export class MenuReset extends Event {
+  static eventType = 'menu-reset';
+
+  /*
+     The following are the fields provided by this event
+
+     none: 
+
+  */
+
+  constructor() {
+    super('menu-reset',{composed: true, bubbles: true});
+  }
+};
 export class OverlayClosed  extends Event {
   static eventType = 'overlay-closed';
 

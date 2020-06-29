@@ -18,41 +18,52 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
+import {cache} from '../libs/cache.js';
+
+import page from '../styles/page.js';
+import style from '../styles/fm-list.js';
 
 
-import style from '../styles/app-page.js';
-import global from '../modules/globals.js';
 /*
-     <app-page>
+     <fm-user-list>
 */
-class AppPage extends LitElement {
+class FmList extends LitElement {
   static get styles() {
-    return [style];
+    return [page, style];
   }
   static get properties() {
     return {
-      heading: {type: String},
-      subheading: {type: String}
+      items: {type: Array},    //at least uid and name fields in each entry
+      custom: {type: String}
     };
   }
   constructor() {
     super();
-    this.heading='';
-    this.subheading = '';
+    this.items = [];
+    this.custom = '';
+  }
+
+
+  updated(changed) {
+    super.updated(changed);
   }
   render() {
     return html`
+   
+     
       <header>
-        <img src="${global.siteLogo}" height="64px"/>
-        <div id="hcont">
-          <div class="heading">${this.heading}</div>
-          <div class="subheading">${this.subheading}</div>
-        </div>
+        <slot name="header"></slot>
       </header>
-      <section><slot class="container"></slot></section>
-  
-      <div class="action"><slot name="action"></slot></div>
+      <section id="list" class="scrollable">
+        ${cache(this.items.map(item =>this._build(item)))}
+      </section>
     `;
   }
+  _build(item) {
+    if (this.custom.length === 0) return;
+    //This works really well to introduce a templated string which can then later be interpretted as an html templated string
+    const strings = [`<div class="item"><${this.custom} .item=`, `></${this.custom}></div>`];
+    return html(strings,item);
+  } 
 }
-customElements.define('app-page', AppPage);
+customElements.define('fm-list', FmList);

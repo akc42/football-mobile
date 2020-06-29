@@ -23,16 +23,17 @@ import global from '../modules/globals.js';
 import {switchPath} from '../modules/utils.js';
 import './app-error.js';
 import './app-overlay.js';
-import './app-pages.js';
+import './fm-pages.js';
 import './app-session.js';
 import './material-icon.js';
 
 import tooltip from '../styles/tooltip.js';
 
-import { SessionStatus } from '../modules/events.js';
+import { SessionStatus, PageClose, LogoffRequest } from '../modules/events.js';
 import AppKeys from '../modules/keys.js';
 import api from '../modules/api.js';
 import Debug from '../modules/debug.js';
+import { updateCid } from '../modules/visit.js';
 const debug = Debug('main');
 
 /*
@@ -46,12 +47,12 @@ class MainApp extends LitElement {
     return {
       authorised: {type: Boolean},
       ready: {type:Boolean},
-
-      cid: {type: Number}, 
       competitions: {type: Array},  //array of {name,cid} 
       rounds: {type: Array},
       compversion: {type: Number},  //incremented if number of competitions has changed
-      serverError: {type: Boolean} //we received an error
+      serverError: {type: Boolean}, //we received an error
+      scores: {type: Boolean}, //We need an "Overall Scores option in the menu"
+      close: {type: Boolean} //need return to previous page icon in toolbar
     };
   }
   constructor() {
@@ -62,7 +63,8 @@ class MainApp extends LitElement {
     this.competitions=[];
     this.rounds = [];
     this.compVersion=0;
-    this.cid = 0;
+    this.scores = false;
+    this.close = false;
 
     window.fetch('/api/config/styles', { method: 'get' }).then(response => {
       if (response.status === 200) return response.json();
@@ -99,13 +101,10 @@ class MainApp extends LitElement {
         if (this.keys !== undefined) this.keys.disconnect()
         document.body.removeEventListener('key-pressed', this._keyPressed);
       }
-
+      
     }
     if (changed.has('compVersion') && this.compVersion > 0 && this.authorised) {
       this._fetchCompetitons();
-    }
-    if (changed.has('cid')) {
-      this.rounds = []; //clear out rounds as soon as we have a new cid. We'll get them again if needed.
     }
     super.update(changed);
   }
@@ -119,10 +118,16 @@ class MainApp extends LitElement {
       this.menuicon = this.shadowRoot.querySelector('#menuicon');
       this.cm=this.shadowRoot.querySelector('#cm');
 
+      this.fmPages = this.shadowRoot.querySelector('fm-pages');
+
     }
 
     super.updated(changed);
   }
+  firstUpdated() {
+    this.sessionMgr = this.shadowRoot.querySelector('#session');
+  }
+
   render() {
     const luid = this.competitions.length > 0 ? this.competitions[0].administrator:0;
     const admin = (global.user.global_admin === 1 || global.user.uid === luid) ;
@@ -145,7 +150,7 @@ class MainApp extends LitElement {
           font-size:12px;
           --icon-size:24px;
         }
-        #menuicon {
+        #menuicon, #closeicon {
           display: flex;
           flex-direction: row;
           cursor:pointer;
@@ -156,7 +161,7 @@ class MainApp extends LitElement {
           box-shadow: 2px 2px 5px 4px rgba(0,0,0,0.2);
           --icon-size:30px;
         }
-        #menuicon:active {
+        #menuicon:active, #closeicon.active {
           border: none;
           padding: 5px;
           border-radius:5px;
@@ -193,7 +198,7 @@ class MainApp extends LitElement {
           background-color: var(--app-primary-color);
           display: flex;
           flex-direction: row;
-          justify-content: space-between;
+          justify-content: flex-start;
           align-items:center;
         }
 
@@ -202,15 +207,23 @@ class MainApp extends LitElement {
           height:var(--icon-size);
           background-color: transparent;
         }
+        #logocontainer {
+          display: flex;
+          flex-direction: row;
+          justify-content: center;
+          flex: 1 0 auto;
+        }
         #logo {
           height: 64px;
           width: 64px;
+          
         }
         #appinfo {
           display:flex;
           flex-direction: column;
           justify-content: center;
           align-items: center;
+          flex: 1 0 auto;
         }
         #version {
           font-size: 12px;
@@ -218,7 +231,7 @@ class MainApp extends LitElement {
         #copy {
           font-size: 8px;
         }
-        app-session[hidden], app-pages[hidden], app-error[hidden] {
+        app-session[hidden], fm-pages[hidden], app-error[hidden] {
           display: none !important;
         }
         .admins{
@@ -273,14 +286,21 @@ class MainApp extends LitElement {
       ${cache(this.authorised ? html`
         <app-overlay id="mainmenu">
           <div class="menucontainer">
-            <div role="menuitem" @click=${this._goHome}><span>Home<span><span>F1<material-icon>home</material-icon></div>
+            <div role="menuitem" @click=${this._goHome}><span>Home</span><span>F1</span></div>
+            ${cache(this.scores? html`
+              <div id="scores" role="menuitem" @click=${this._selectPage}><span>Overall Scores</span><span>F2</span></div>
+            `:'')}
             <hr class="sep"/>
             ${cache(this.competitions.length > 0 ?html`
               <div id="cm" role="menuitem" @click=${this._competitionsMenu}><span>Competitions</span>
               <span><material-icon>navigate_next</material-icon></span></div>
               <hr class="sep"/>
             `:'')}
+            <div role="menuitem" @click=${this._logoff}>Log Off</div>
             <div id="editprofile" role="menuitem" @click=${this._selectPage}><span>Edit Profile</span> <span>F12</span></div>
+            <hr class="sep"/>
+            <div role="menuitem" @click=${this._navigationHelp}><span>Navigation Help</span><span>F1</span></div>
+            <div role="menuitem" @click=${this._howToPlay}><span>How To Play</span></div>
             <hr class="user"/>            
           ${cache((admin || this.user.approve) ? html`
             <div class="admins">
@@ -316,7 +336,7 @@ class MainApp extends LitElement {
         <app-overlay id="competitions" closeOnClick @overlay-closed=${this._compClosed} position="right">
           ${cache(this.competitions.map(competition => 
             html`<div role="menuitem" data-cid=${competition.cid} @click=${this._competitionSelected}><span>${competition.name}</span>
-            ${cache(competition.cid === this.cid ? html`<span><material-icon>check_box</material-icon></span>` : '')}</div>
+            ${cache(competition.cid === global.cid ? html`<span><material-icon>check_box</material-icon></span>` : '')}</div>
           `))}
         </app-overlay>
         <app-overlay id="rounds" closeOnClick @overlay-closed=${this._roundClosed} position="right">
@@ -329,10 +349,16 @@ class MainApp extends LitElement {
       <header class="primary fixed">
         ${cache(this.authorised? html`
             <div id="menuicon"  class="right" @click=${this._menu} data-tooltip="Main Menu">
-              <material-icon>${global.mainMenuIcon}</material-icon>
-            </div>        
+              <material-icon>menu</material-icon>
+            </div>
+            ${cache(this.close? html`
+              <div id="closeicon"  class="right" @click=${this._close} data-tooltip="Back a Level">
+                <material-icon>reply</material-icon>
+              </div>
+            `:'')}
+                    
         `:html`<div class="iconreplace"></div>` )}
-        <img id="logo" src="/appimages/football-logo.svg" alt="football logo"/>
+        <div id="logocontainer" ><img id="logo" src="/appimages/football-logo.svg" alt="football logo"/></div>
         <div id="appinfo">
           <div id="version">${global.version}</div>
           <div id="copy">&copy; 2008-${global.copyrightYear} Alan Chandler</div>
@@ -346,11 +372,13 @@ class MainApp extends LitElement {
           .authorised=${this.authorised} 
           @auth-changed=${this._authChanged}></app-session>
         ${cache(this.authorised ? html`
-          <app-pages
+          <fm-pages
             ?hidden=${this.serverError}
             @competitions-changed=${this._refreshComp}
+            @menu-reset=${this._menuReset}
+            @menu-add=${this._menuAdd}
             @auth-changed=${this._authChanged}>
-          </app-pages>      
+          </fm-pages>      
         `:'')}
       </section>
     `;
@@ -365,12 +393,18 @@ class MainApp extends LitElement {
       this.competitionMenu.open();
     }
   }
+  _close() {
+    this.close = false;
+    this.fmPages.dispatchEvent(new PageClose());
+  }
   _compClosed(e) {
     this.mainmenu.close();
   }
   _competitionSelected(e) {
-    this.cid = parseInt(e.currentTarget.dataset.cid,10);
+    const cid = parseInt(e.currentTarget.dataset.cid,10);
+    updateCid(cid);
     this.mainmenu.close();
+    switchPath('/');
   }
   _competitionsMenu() {
     if(this.competitionMenu) {
@@ -395,8 +429,9 @@ class MainApp extends LitElement {
     }
   }
   async _fetchCompetitons() {
-    const response = await api(`admin/fetch_competitions`);
-    this.competitions = response.competitions;
+    this.competitions = await api(`profile/fetch_competitions`);
+    if (this.competitions.length > 0 && global.dcid === 0) global.dcid = this.competitions[0].cid;
+    if (global.cid === 0) updateCid(global.dcid);
     this.compVersion = 0;
   }
   _goHome() {
@@ -405,11 +440,30 @@ class MainApp extends LitElement {
   _keyPressed(e) {
 
   }
+  _logoff() {
+    //the difference between the following and just changing authorised, is that we clear the cookie
+    this.sessionMgr.dispatchEvent(new LogoffRequest());
+  }
   _menu(e) {
     if (this.mainmenu) {
       this.mainmenu.positionTarget = this.menuicon;
       this.mainmenu.show();
     }
+  }
+  _menuAdd(e) {
+    switch(e.menu) {
+      case 'scores':
+        this.scores = true;
+        break;
+      case 'close':
+        this.close = true;
+        break;
+      //add others later
+    }
+  }
+  _menuReset() {
+    this.scores = false;
+    //add others later
   }
   _refreshComp() {
     this.compVersion++
@@ -440,7 +494,7 @@ class MainApp extends LitElement {
     }
   }
   _selectPage(e) {
-    switchPath(`/${e.currentTarget.id}/${this.cid}`);
+    switchPath(`/${e.currentTarget.id}`);
   }
 }
 customElements.define('main-app', MainApp);

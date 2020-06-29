@@ -20,50 +20,43 @@
 import { LitElement, html } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
-import page from '../styles/page.js';
-import style from '../styles/fw-list.js';
-
-
 /*
-     <fw-user-list>
+     <fm-scores>
 */
-class FwList extends LitElement {
+class FmScores extends PageManager {
   static get styles() {
-    return [page, style];
+    return [];
   }
   static get properties() {
     return {
-      items: {type: Array},    //at least uid and name fields in each entry
-      custom: {type: String}
+    
     };
   }
   constructor() {
     super();
-    this.items = [];
-    this.custom = '';
   }
-
-
+  connectedCallback() {
+    super.connectedCallback();
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+  }
+  update(changed) {
+    super.update(changed);
+  }
+  firstUpdated() {
+  }
   updated(changed) {
     super.updated(changed);
   }
   render() {
     return html`
-   
-     
-      <header>
-        <slot name="header"></slot>
-      </header>
-      <section id="list" class="scrollable">
-        ${cache(this.items.map(item =>this._build(item)))}
-      </section>
+    ${cache({
+        home: html`<fm-summary managed-page></fm-summary>`,
+        round: html`<fm-round managed-page></fm-round>`,
+        teams: html`<fm-teams managed-page></fm-teams>`
+    })}
     `;
   }
-  _build(item) {
-    if (this.custom.length === 0) return;
-    //This works really well to introduce a templated string which can then later be interpretted as an html templated string
-    const strings = [`<div class="item"><${this.custom} .item=`, `></${this.custom}></div>`];
-    return html(strings,item);
-  } 
 }
-customElements.define('fw-list', FwList);
+customElements.define('fm-scores', FmScores);

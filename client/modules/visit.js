@@ -23,25 +23,30 @@ export function manageVisitCookie() {
   const mbvisited = new RegExp(`^(.*; +)?${global.cookieVisitName}=([^;]+)(.*)?$`);
   const matches = document.cookie.match(mbvisited);
   if (matches && matches.length > 2 && typeof matches[2] === 'string') {
-    if (matches[2].slice(-1) === '%') {
-      global.cookieConsent = true;
-      //loose global consent marker if its there.
-      matches[2] = matches[2].slice(0, -1);
-    }
-    return matches[2];
+    const cookieContents = JSON.parse(matches[2]);
+    global.cookieConsent = cookieContents.consent;
+    global.cid = cookieContents.cid;
+    return cookieContents.step;
   }
   return false;
 }
 export function makeVisitCookie(value) {
-  let content = value;
-  if (global.cookieConsent) content += '%';
+  const cookieContents = {step: value};
+  cookieContents.cid = global.cid;
+  cookieContents.consent = global.cookieConsent;
   const expiryDate = new Date();
   expiryDate.setTime(expiryDate.getTime() + (90 * 24 * 60 * 60 * 1000))
-  document.cookie = `${global.cookieVisitName}=${content}; expires=${expiryDate.toGMTString()}; Path=/`; 
+  document.cookie = `${global.cookieVisitName}=${JSON.stringify(cookieContents)}; expires=${expiryDate.toGMTString()}; Path=/`; 
 } 
 
 export function markSeen() {
   const current = manageVisitCookie();
   global.cookieConsent = true;
+  
+}
+
+export function updateCid(cid) {
+  const current = manageVisitCookie();
+  global.cid = cid;
   if (current) makeVisitCookie(current);
 }

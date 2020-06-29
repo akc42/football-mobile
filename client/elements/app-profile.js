@@ -176,7 +176,7 @@ class AppProfile extends LitElement {
         <div class="form">
           <app-form
             id="doprofile" 
-            action="session/update_profile" 
+            action="profile/update_profile" 
             class="inputs" 
             @form-response=${this._formResponse}>
               <input type="hidden" name="uid" value="${global.user.uid}" />
@@ -301,7 +301,9 @@ class AppProfile extends LitElement {
     e.stopPropagation();
     markSeen();
     this.waiting = false;
-    if (e.response.usage !== 'authorised') {
+    if (e.response.usage === 'authorised') {
+      global.scope = 'authorised'; //just in case it wasn't before
+    } else {
       this.dispatchEvent(new AuthChanged(false)); //authorised so time to leave
     }
     switchPath('/');

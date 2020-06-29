@@ -26,6 +26,7 @@ import page from '../styles/page.js';
 import { SessionStatus } from '../modules/events.js';
 import api from '../modules/api.js';
 import './app-waiting.js';
+import './app-page.js';
 import AppKeys from '../modules/keys.js';
 
 
@@ -110,10 +111,10 @@ class AppEmailVerify extends LitElement {
   async _sendData() {
     if (!this.input.invalid) {
       this.waiting = true;
-      const data = await api('session/request_pin',{email:this.email});
+      const data = await api('session/request_pin',{email:this.email, verify:true});
       this.waiting = false;
       if (data.found) {
-        const type = data.password? (data.remember == 1? 'markrem': 'markpass'): 'await';
+        const type = data.password? (data.remember == 1? 'logonrem': 'logon'): 'await';
         this.dispatchEvent(new SessionStatus({type: type, email: this.email}));
         this.email = '';
       } else {

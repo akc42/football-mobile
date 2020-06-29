@@ -116,7 +116,7 @@ class AppSession extends LitElement {
                 if (response.usage.substring(0,6) === 'member') {
                   //we are in the membership cycle, so set visit cookie as this cookie is only a session thing
                   makeVisitCookie('memberapprove:' + response.user.uid);
-                }
+                } 
                 this.state = response.usage;
               }
             });
@@ -158,7 +158,6 @@ class AppSession extends LitElement {
           break;
         case 'logoff':
           document.cookie = `${global.cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
-          global.scope = '';
           this.state = 'consent';
           break;
         case 'logonrem':
@@ -242,8 +241,9 @@ class AppSession extends LitElement {
         break;
       case 'logonrem':
       case 'logon':
+        if (global.cid === 0) updateCid(global.dcid);
         makeVisitCookie(e.status.type);
-        this.state = global.scope;
+        this.state = 'consent'; //just act like we are coming in afresh
         break;
       default:
         makeVisitCookie(e.status.type);

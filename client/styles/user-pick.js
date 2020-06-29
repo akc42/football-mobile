@@ -17,14 +17,16 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
+import { css } from '../libs/lit-element.js';
 
-
-export default function domHost(self) {
-  let parent = self.parentNode;
-  while(parent && parent.nodeType !== 11) {
-    parent = parent.parentNode;  //work up the hierarchy
+export default css`
+  .unknown {
+    color: var(--fm-indeterminate-pick);
   }
-
-  return parent ? parent.host : self;
-}
-
+  .correct {
+    color: var(--fm-correct-pick);
+  }
+  .incorrect {
+    color: var(--fm-incorrect-pick);
+  }
+`;
