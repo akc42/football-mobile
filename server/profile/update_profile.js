@@ -29,17 +29,17 @@
   const jwt = require('jwt-simple');
   const db = require('../utils/database');
 
-  module.exports = async function(params) {
+  module.exports = async function(olduser, params) {
     const mail = await mailPromise;
-    debug('send a pin to allow user',params.uid,'to change their e-mail to',params.email);
+    debug('calculate a pin for  user',olduser.uid,' to potentially have changed their email to',params.email);
     const pin = ('000000' + (Math.floor(Math.random() * 999999)).toString()).slice(-6); //make a new pin 
     debug('going to use pin', pin);
     let rateLimitExceeded = false;
     let needEmail = false;
     let hasPassword = false;
-    let hasVerificationKey = false;
-    let returnValue = { found: false };
+
     let user;
+    let usage = params.usage === 'authorised' ? 'authorised' : params.remember ? 'logonrem' : 'logon';
     const sqlParams = [params.name, params.remember? 1:0];
     let sql = 'UPDATE participant SET name = ? , remember = ?';
 
@@ -49,6 +49,7 @@
       sql += ', password = ?'
       sqlParams.push(hashedPassword);
       hasPassword = true;
+      debug('have a new password, so have (already) hashed it');
     }   
     if (params.email && params.email.length > 0) {
       hashedPin = await bcrypt.hash(pin, 10);
@@ -58,13 +59,13 @@
     const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
 
     db.transaction(() => {
-      debug('in transaction about to check participant with uid', params.uid);
-      const result = checkParticipant.get(params.uid);
-      if (result === undefined) throw new Error('Invalid Participant uid ' + params.uid);
+      debug('in transaction about to check participant with uid', olduser.uid);
+      const result = checkParticipant.get(olduser.uid);
+      if (result === undefined) throw new Error('Invalid Participant uid ' + olduser.uid);
       user = { ...result, password: !!result.password || hasPassword, verification_key: !!result.verification_key, 
         name: params.name, remember: params.remember? 1 : 0 };
       debug('found user', result.uid);
-      if (params.email && params.email !== email) {
+      if (params.email !== undefined  && params.email !== user.email) {
         sql += `, verification_sent = (strftime(' % s','now'))`; //we are changing e-mail, so going at least mark a verification sent time
         const cookieKey = s.get('cookie_key');
         const webmaster = s.get('webmaster');
@@ -114,8 +115,12 @@
     })();
     //outside of the transaction, which needs to remain synchronous.
     debug('finished transaction, with email needed ', needEmail);
-    if (needEmail) await mail.send('Change of Email', params.email);
-    const usage = params.usage === 'authorised' ? 'authorised' : params.remember? 'logonrem': 'logon';
+
+    if (needEmail) {
+      await mail.send('Change of Email', params.email);
+    } else if (hasPassword){
+      usage = 'authorised';
+    } 
     return {user: user, usage: usage};
   };
 })();

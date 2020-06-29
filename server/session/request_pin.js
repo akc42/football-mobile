@@ -29,6 +29,7 @@
   const db = require('../utils/database');
 
   module.exports = async function(params) {
+    debug('request received for email', params.email, 'with verify', params.verify);
     const mail = await mailPromise;
     const pin = ('000000' + (Math.floor(Math.random() * 999999)).toString()).slice(-6); //make a new pin 
     debug('going to use pin', pin);
@@ -56,47 +57,52 @@
 
 
         user = { ...result, password: !!result.password, verification_key: !!result.verification_key };
-        
-        rateLimitExceeded = (user.verification_key && (user.verification_sent + (rateLimit * 60)) > now);
-        debug(
-          'verification_sent rate end @ ', user.verification_sent + (rateLimit * 60),
-          'rate limit = ', rateLimit,
-          'now is', now,
-          'verification_key', user.verification_key,
-          'exceeded', rateLimitExceeded);
+        debug('user password is ', user.password);
+        if (!(user.password && params.verify)) {
+          //we need the pin, this wasn;t just an exploratory trial
+          rateLimitExceeded = (user.verification_key && (user.verification_sent + (rateLimit * 60)) > now);
+          debug(
+            'verification_sent rate end @ ', user.verification_sent + (rateLimit * 60),
+            'rate limit = ', rateLimit,
+            'now is', now,
+            'verification_key', user.verification_key,
+            'exceeded', rateLimitExceeded);
 
-        if (!rateLimitExceeded) {
-          //not doing this too fast since last time
-          const payload = {
-            exp: new Date().setTime(now + (verifyExpires * 60 * 60)),
-            user: user.uid,
-            pin: pin,
-            usage: 'profile'
+          if (!rateLimitExceeded) {
+            //not doing this too fast since last time
+            const payload = {
+              exp: new Date().setTime(now + (verifyExpires * 60 * 60)),
+              user: user.uid,
+              pin: pin,
+              usage: 'profile'
+            }
+            debug('with user', user.uid, 'so about to send pin', pin, 'with expiry in', verifyExpires, 'hours');
+            const token = jwt.encode(payload, cookieKey);
+            debug('made token', token);
+            const html = `<h3>Hi ${user.name}</h3><p>Someone requested a short term password to log on to <a href="${siteBaseref}">${siteBaseref}</a>. They
+            requested for it to be sent to this email address. If it was not you, you can safely ignore this email but might like to inform 
+            <a href="mailto:${webmaster}">${webmaster}</a> that you were not expecting it.</p>
+            <p>Click on the link <a href="${siteBaseref}/api/pin/${token}">${siteBaseref}/api/pin/${token}</a> to log on
+            and access your profile. There you may reset your passwords or make other changes to your account.</p>
+            <p>This link will only work <strong>once</strong>, and it will <strong>not</strong> work after <strong>${verifyExpires} hours</strong> from
+            the time you requested it.</p>
+            <p>Regards</p>`;        
+            mail.setHtmlBody('Temporary Password', html);
+            updateParticipant.run(hashedPin, user.uid); //update user with new hashed pin we just sent
+
+          } else {
+            //silently do nothing if rateLimit is exceeded
+            updateParticipant.run(result.verification_key, user.uid); //change the time, but just update with the same key as we already had
           }
-          debug('with user', user.uid, 'so about to send pin', pin, 'with expiry in', verifyExpires, 'hours');
-          const token = jwt.encode(payload, cookieKey);
-          debug('made token', token);
-          const html = `<h3>Hi ${user.name}</h3><p>Someone requested a short term password to log on to <a href="${siteBaseref}">${siteBaseref}</a>. They
-          requested for it to be sent to this email address. If it was not you, you can safely ignore this email but might like to inform 
-          <a href="mailto:${webmaster}">${webmaster}</a> that you were not expecting it.</p>
-          <p>Click on the link <a href="${siteBaseref}/api/pin/${token}">${siteBaseref}/api/pin/${token}</a> to log on
-          and access your profile. There you may reset your passwords or make other changes to your account.</p>
-          <p>This link will only work <strong>once</strong>, and it will <strong>not</strong> work after <strong>${verifyExpires} hours</strong> from
-          the time you requested it.</p>
-          <p>Regards</p>`;        
-          mail.setHtmlBody('Temporary Password', html);
-          updateParticipant.run(hashedPin, user.uid); //update user with new hashed pin we just sent
-
-        } else {
-          //silently do nothing if rateLimit is exceeded
-          updateParticipant.run(result.verification_key, user.uid); //change the time, but just update with the same key as we already had
         }
         returnValue = { found: true, password: user.password, remember: user.remember };
       }
     })();
-    //outside of the transaction, which needs to remain synchronous.
+    //outside of the transaction, so can now be asynchonouse again.
     debug('finished transaction, with found as ', returnValue.found);
-    if (!rateLimitExceeded && returnValue.found) await mail.send('Your Temporary Password', user.email);
+    if (!rateLimitExceeded && returnValue.found && !(user.password && params.verify)) {
+      await mail.send('Your Temporary Password', user.email);
+    }
     return returnValue;
   };
 })();

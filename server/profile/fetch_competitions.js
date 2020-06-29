@@ -18,14 +18,13 @@
     along with Football-Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-  this is a dummy file, do not remove unless there is at least one other real file in the directory
-*/
 
 (function () {
   'use strict';
+  const db = require('../utils/database');
 
-  module.exports = async (user,cid, rid, params,responder) => {
-
+  module.exports = (user) => {
+      return db.prepare(`SELECT cid, name, open, administrator FROM competition 
+        WHERE open = 1 OR administrator = ? OR ? = 1 ORDER BY cid DESC`).all(user.uid, user.global_admin);
   };
 })();
