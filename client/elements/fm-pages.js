@@ -23,30 +23,18 @@ import { html } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
 import {connectUrl, disconnectUrl} from '../modules/location.js';
+import global from '../modules/globals.js';
 
 import PageManager from './page-manager.js';
+import './app-waiting.js';
 
 import page from '../styles/page.js';
-import { switchPath } from '../modules/utils.js';
 
-export class AppPages extends PageManager {
+export class FmPages extends PageManager {
   static get styles() {
     return [page];
   }
-  static get properties() {
-    return {
-      cid: {type: Number},
-      rid: {type: Number}
-    };
-  }
 
-
-  constructor() {
-    super();
-    this.cid = 0;
-    this.rid = 0;
-
-  }
   connectedCallback() {
     super.connectedCallback();
     connectUrl(route => this.route = route);
@@ -62,13 +50,18 @@ export class AppPages extends PageManager {
 
       <app-waiting ?waiting=${this.waiting}></app-waiting>
       ${cache({
-        home:'',
-        summary: html`<fm-summary 
-          managed-page
-          .cid=${this.cid}
-          .route=${this.subRoute}>Summary Loading ...</fm-summary>`,
-        profile: html`<app-profile
-          managed-page>Profile Loading ...</app-profile>`
+        home:html`<fm-home managed-page></fm-home>`,
+        register: html`<fm-register managed-page></fm-register>`,
+        pick: html`<fm-pick managed-page></fm-pick>`,
+        scores:html`<fm-scores managed-page .route=${this.subRoute}></fm-scores>`,
+        matches: html`<fm-matches managed-page .route=${this.subRoute}></fm-matches>`,
+        approve: html`<fm-approve managed-page></fm-approve>`,
+        admin: html`<fm-admin managed-page .route=${this.subRoute}></fm-admin>`,
+        promote: html`<fm-promote managed-page></fm-promote>`,
+        newcomp: html`<fm-newcomp managed-page></fm-newcomp>`,
+        profile: html`<app-profile managed-page></app-profile>`,
+        navigationhelp: html`<fm-help managed-page></fm-help>`,
+        howtoplay: html`<fm-how managed-page></fm-how>`
       }[this.page])}
 
     `;
@@ -76,17 +69,12 @@ export class AppPages extends PageManager {
 
   loadPage(page) {
     this.waiting = true;
-    switch (page) {
-      case 'home':
-        switchPath('/summary'); //fall through, since we know its coming and we might as well get ready asap
-      case 'summary':
-        import('./fm-summary.js').then(this.waiting = false);
-        break;
-      case 'profile':
-        import('./app-profile.js').then(this.waiting = false);
-        break;
+    if (page === 'profile') {
+      import('./app-profile.js').then(this.waiting = false);
+    } else {
+      import(`./fm-${page}.js`).then(this.waiting = false);
     }
-  }
+   }
   _keyAppointmentFile(e) {
     e.stopPropagation();
     switch (e.entity) {
@@ -100,4 +88,4 @@ export class AppPages extends PageManager {
     }
   }
 }
-customElements.define('app-pages',AppPages);
+customElements.define('fm-pages',FmPages);

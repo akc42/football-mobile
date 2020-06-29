@@ -253,6 +253,9 @@ The middleware referenced above is
 
 ### Client Page Management
 
+Before discussing this in any depth I want to make a brief comment on the names I am using for custom elements.  The spec requires that they
+by in at least two parts, so I am using the first part to characterise their place in the application.  `<app-xxxx>` is reserved for elements that would generally be applicable in any application and which I might port to other places.  This is really all about session management and getting the user to a position where they are logged on and ready to progress with the app.  From this point on `<fm-xxxx>` elements take over as the main framework of the application.  Where UI components are generic, they will be named to best describe their role (e.g. `<fancy-input>`).
+
 In an appliation like this we need to have control of what the user sees, being sure before he has been properly authorised that
 he is not able to access any of the core information.  As this is an application based on web components I provide web components
 in a nested hierachy to provide that. Note with `lit-element` a render function with back ticked strings allows the inclusion of variables 
@@ -273,7 +276,7 @@ with the `${variable}` construct
     }
   </app-session>
   ${authorised?
-    <app-pages>
+    <fw-pages>
       ${
         {
           home: <fw-summary></fw-summary>
@@ -282,7 +285,7 @@ with the `${variable}` construct
           ...
         }[page];
       }
-    </app-pages>
+    </fw-pages>
   }
 ```
 This setup is fundementally controlled by 4 variables
@@ -292,7 +295,7 @@ This setup is fundementally controlled by 4 variables
   <dt>state</dt>
   <dd>session controls the state when not yet authorises and uses it to display a single page using the Object Selection Method shown</dd>
   <dt>page</dt>
-  <dd>a variable controlled by the first level of the route using the `<app-page-manager>` which `<app-pages>` extends (we can
+  <dd>a variable controlled by the first level of the route using the `<app-page-manager>` which `<fw-pages>` extends (we can
   have multiple levels of route as shown with the admin page)</dd>
   <dt>anError</dt>
   <dd>Set when an error needs to be displayed.  `<app-error>` listens to window `error` event</dd>
@@ -308,37 +311,44 @@ What this effectively means that a client site route is a definition of which pa
 Our client side route are as follows:-
 
 ```
-/-   - home page selects one of four subroutes as the default dependant on condition (/register, /picks /results, /scores in order.)
+/-   - home page selects one of four subroutes as the default dependant on condition 
+  |        (/register, /picks, /scores/results/:rid,
+   /scores/team, /scores in order.)
   |
   /register  - show registration page if not already registered and competition is not closed
-  /pick - at least one match, maybe more is not passed the pick deadline for the competition you are registered for
-  /results - match results for the last round, with your personal scores against it (only default if latest open competition)
-  /scores - show top level results summary (total score as a list of users)
-    |
-    /:uid/summary - top level view of that user (:uid) showing their scores in each round to date and the total
-         /:rid/picks  - show all the picks of that user for the round in the url
-         /playoff - show play off picks for user   
-  /matches/:rid - match results for given round (defaults to last), by team
-  /teams - List teams in competition (and user playoff picks)
-    |
-    /:confid/:divid/users  - shows all user playoff picks by
+  /pick - at least one match or a playoff, maybe more is not passed the pick deadline for the competition you are registered for
+  /scores - show top level results summary (total score as a list of users) 
+    | (pick a particular user)
+    /round/:rid/:uid - match results for a round (defaults to last, changed from menu), 
+      |                  with :uid personal scores against it (only default if latest open competition)
+      |
+      /match/:aid - all users for a particular match (round selected in above)
+      /bonus - all users response to bonus question 
+    /teams/:uid - List teams in competition (and user playoff picks)
+      |
+      users/:confid/:divid  - shows all user playoff picks by division  
+  
   /approve - shows list of users awaiting approval, with ability to approve (or reject)
   /admin - details of competition (from admin perspective)
     |
     /teams - selection of teams for the competition.
     /rounds - list of rounds in competition so far
+    /details/:rid/ - details of the round
       |
-      /:rid/ - details of the round
-            |
-            /teams - select teams to form matches
-            /matches - list of matches
-              |
-              /:aid - details of a match
-            /bonus - details of bonus question
+      /teams - select teams to form matches
+      /matches - list of matches
+        |
+        /:aid - details of a match
+      /bonus - details of bonus question
     /users - list of registered users
-  /promote- show list of participants with options to make approver or global admin  
-  /newcomp - create a new competion, name it and assign an administrator
+  /gadm - menu of choices for global admins
+    |
+    /promote- show list of participants with options to make approver or global admin  
+    /new - create a new competion, name it and assign an administrator
+    /email - send some or all participants an email 
   /profile
+  /navigationhelp - navigation help
+  /howtoplay - instructions for playing.
      
 ```
 
