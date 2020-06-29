@@ -36,7 +36,7 @@
         debug ('could not open database as it did not exist - so now going to create it');
         db = new Database(dbfilename, { fileMustExist: false, timeout: parseInt(process.env.FOOTBALL_DB_BUSY,10) });
         debug('Opened database - ready to start creating structure');
-        const database = fs.readFileSync(path.resolve(__dirname, process.env.FOOTBALL_DB_DIR, 'database.sql'), 'utf8');
+        const database = fs.readFileSync(path.resolve(__dirname, '../db-init', 'database.sql'), 'utf8');
         db.exec(database);
         debug('Successfully updated blank database with script')
       } catch (e) {
