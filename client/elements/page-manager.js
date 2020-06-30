@@ -38,7 +38,7 @@ export default class PageManager extends  LitElement {
     this.router = new Route('/:page');
     this.route = {active: false};
     this.subRoute = {active: false};
-    this.page = this.homePage();
+    this.page = '';
   }
   connectedCallback() {
     super.connectedCallback();

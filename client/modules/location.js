@@ -26,7 +26,7 @@ export function connectUrl(callback) {
   window.addEventListener('hashchange',urlChanged);
   window.addEventListener('popstate', urlChanged);
   window.addEventListener('location-altered',urlChanged);
-  window.addEventListener('route-updated', routeUpdated);
+  window.addEventListener('route-changed', routeChanged);
   Promise.resolve().then(() => {
     urlChanged();
     lastChangedAt = window.performance.now() - (global.dwellTime - 200); //first time we need to adjust for dwell time
@@ -38,7 +38,7 @@ export function disconnectUrl() {
   window.removeEventListener('hashchange',urlChanged);
   window.removeEventListener('popstate', urlChanged);
   window.removeEventListener('location-altered',urlChanged);
-  window.removeEventListener('route-updated', routeUpdated);
+  window.removeEventListener('route-changed', routeChanged);
 }
 
 function urlChanged() {
@@ -60,22 +60,21 @@ function urlChanged() {
     active: true
   };
 
-  if (routeCallback) routeCallback(route);
-  
+  if (routeCallback) routeCallback(route); 
   if (!mbball.test(document.cookie)) window.dispatchEvent(new AuthChanged(false));
 }
-function routeUpdated(e) {
+function routeChanged(e) {
   let newPath = route.path;
-  if(e.detail.path !== undefined) {
-    if (Number.isInteger(e.detail.segment)) {
+  if(e.changed.path !== undefined) {
+    if (Number.isInteger(e.changed.segment)) {
       let segments = route.path.split('/');
       if (segments[0] === '') segments.shift(); //loose leeding
-      if(segments.length < e.detail.segment) {
+      if(segments.length < e.changed.segment) {
         throw new Error('routeUpdated with a segment longer than current route');
       }
-      if(segments.length > e.detail.segment) segments.length = e.detail.segment; //truncate to just before path
-      if (e.detail.path.length > 1) {
-        const newPaths = e.detail.path.split('/');
+      if(segments.length > e.changed.segment) segments.length = e.changed.segment; //truncate to just before path
+      if (e.changed.path.length > 1) {
+        const newPaths = e.changed.path.split('/');
         if (newPaths[0] === '') newPaths.shift(); //ignore blank if first char of path is '/'
         segments = segments.concat(newPaths);
       }
@@ -87,8 +86,8 @@ function routeUpdated(e) {
     }
   }
   let query = Object.assign({}, route.query);
-  if (e.detail.query !== undefined) {
-    query = e.detail.query;
+  if (e.changed.query !== undefined) {
+    query = e.changed.query;
   }
   let newUrl = window.encodeURI(newPath).replace(/#/g, '%23').replace(/\?/g, '%3F');
   if (Object.keys(query).length > 0) {

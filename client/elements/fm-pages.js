@@ -60,8 +60,8 @@ export class FmPages extends PageManager {
         promote: html`<fm-promote managed-page></fm-promote>`,
         newcomp: html`<fm-newcomp managed-page></fm-newcomp>`,
         profile: html`<app-profile managed-page></app-profile>`,
-        navigationhelp: html`<fm-help managed-page></fm-help>`,
-        howtoplay: html`<fm-how managed-page></fm-how>`
+        help: html`<fm-help managed-page></fm-help>`,
+        howto: html`<fm-how managed-page></fm-how>`
       }[this.page])}
 
     `;

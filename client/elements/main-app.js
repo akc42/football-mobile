@@ -154,6 +154,7 @@ class MainApp extends LitElement {
           display: flex;
           flex-direction: row;
           cursor:pointer;
+          background-color: white;
           margin: 0 0 0 40px;
           border: none;
           padding: 5px;
@@ -184,7 +185,7 @@ class MainApp extends LitElement {
           margin-left:auto;
         }
         header {
-          flex: 0 1 auto;
+          flex: 0 1 0;
         }
          section {
           flex:1 0 0;
@@ -299,8 +300,8 @@ class MainApp extends LitElement {
             <div role="menuitem" @click=${this._logoff}>Log Off</div>
             <div id="editprofile" role="menuitem" @click=${this._selectPage}><span>Edit Profile</span> <span>F12</span></div>
             <hr class="sep"/>
-            <div role="menuitem" @click=${this._navigationHelp}><span>Navigation Help</span><span>F1</span></div>
-            <div role="menuitem" @click=${this._howToPlay}><span>How To Play</span></div>
+            <div id="help" role="menuitem" @click=${this._selectPage}><span>Navigation Help</span><span>F1</span></div>
+            <div id="howto" role="menuitem" @click=${this._selectPage}><span>How To Play</span></div>
             <hr class="user"/>            
           ${cache((admin || this.user.approve) ? html`
             <div class="admins">
@@ -412,9 +413,6 @@ class MainApp extends LitElement {
       this.competitionMenu.show();
     }
   }
-  _globalChanged() {
-    this.requestUpdate();
-  }
   _editRound(e){
     const rid = parseInt(e.currentTarget.dataset.rid, 10);
     this.mainmenu.close();
@@ -434,6 +432,10 @@ class MainApp extends LitElement {
     if (global.cid === 0) updateCid(global.dcid);
     this.compVersion = 0;
   }
+  _globalChanged() {
+    this.requestUpdate();
+  }
+
   _goHome() {
     switchPath('/');
   }
@@ -463,8 +465,10 @@ class MainApp extends LitElement {
   }
   _menuReset() {
     this.scores = false;
+    this.close = false;
     //add others later
   }
+
   _refreshComp() {
     this.compVersion++
   }
@@ -494,6 +498,7 @@ class MainApp extends LitElement {
     }
   }
   _selectPage(e) {
+    this.mainmenu.close();
     switchPath(`/${e.currentTarget.id}`);
   }
 }

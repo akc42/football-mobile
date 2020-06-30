@@ -182,7 +182,7 @@ export class MenuAdd extends Event {
   */
 
   constructor(menu) {
-    super('add-menu', { composed: true, bubbles: true });
+    super('menu-add', { composed: true, bubbles: true });
     this.menu = menu;
   }
 };
