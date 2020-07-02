@@ -23,8 +23,10 @@
   'use strict';
   const db = require('../utils/database');
 
-  module.exports = (user) => {
-      return db.prepare(`SELECT cid, name, open, administrator FROM competition 
-        WHERE open = 1 OR administrator = ? OR ? = 1 ORDER BY cid DESC`).all(user.uid, user.global_admin);
+  module.exports = () => {
+    return db.prepare(`SELECT  c.cid, c.name, c.open, c.administrator, CASE WHEN r.rid IS NULL THEN 0 ELSE r.rid END AS rid 
+        FROM competition c LEFT JOIN round r ON r.cid = c.cid AND r.rid = (
+          SELECT rid FROM round WHERE open = 1 AND cid = c.cid ORDER BY rid DESC LIMIT 1
+        ) ORDER BY c.cid DESC;`).all();
   };
 })();
