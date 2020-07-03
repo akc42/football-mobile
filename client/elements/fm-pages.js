@@ -51,17 +51,17 @@ export class FmPages extends PageManager {
       <app-waiting ?waiting=${this.waiting}></app-waiting>
       ${cache({
         home:html`<fm-home managed-page></fm-home>`,
+        soon: html`<fm-soon namaged-page></fm-soon>`,
         register: html`<fm-register managed-page></fm-register>`,
-        pick: html`<fm-pick managed-page></fm-pick>`,
-        scores:html`<fm-scores managed-page .route=${this.subRoute}></fm-scores>`,
-        matches: html`<fm-matches managed-page .route=${this.subRoute}></fm-matches>`,
+        teams: html`<fm-teams managed-page .route=${this.subRoute}></fm-teams>`,
+        rounds:html`<fm-rounds managed-page .route=${this.subRoute}></fm-rounds>`,
+        summary: html`<fm-summary managed-page .route=${this.subRoute}></fm-summary>`,
         approve: html`<fm-approve managed-page></fm-approve>`,
         admin: html`<fm-admin managed-page .route=${this.subRoute}></fm-admin>`,
-        promote: html`<fm-promote managed-page></fm-promote>`,
-        newcomp: html`<fm-newcomp managed-page></fm-newcomp>`,
+        gadm: html`<fm-gadm managed-page .route=${this.subRoute}></fm-gadm>`,
         profile: html`<app-profile managed-page></app-profile>`,
-        help: html`<fm-help managed-page></fm-help>`,
-        howto: html`<fm-how managed-page></fm-how>`
+        navref: html`<fm-navref managed-page></fm-navref>`,
+        help: html`<fm-help managed-page></fm-help>`
       }[this.page])}
 
     `;

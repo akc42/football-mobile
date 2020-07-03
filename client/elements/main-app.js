@@ -34,6 +34,7 @@ import AppKeys from '../modules/keys.js';
 import api from '../modules/api.js';
 import Debug from '../modules/debug.js';
 import { updateCid } from '../modules/visit.js';
+
 const debug = Debug('main');
 
 /*
@@ -47,7 +48,7 @@ class MainApp extends LitElement {
     return {
       authorised: {type: Boolean},
       ready: {type:Boolean},
-      competitions: {type: Array},  //array of {name,cid} 
+      competitions: {type: Array},  //array of {name,cid, adminstrator,open, rid - latest round} 
       rounds: {type: Array},
       compversion: {type: Number},  //incremented if number of competitions has changed
       serverError: {type: Boolean}, //we received an error
@@ -88,11 +89,12 @@ class MainApp extends LitElement {
   }
   update(changed) {
     if (changed.has('authorised')) {
+      debug('authorised changed to ' + this.authorised);
       if (this.authorised) {
         //once authorised, the menu key invokes the main menu
         document.body.addEventListener('key-pressed', this._keyPressed);
         if (this.keys === undefined) {
-          this.keys= new AppKeys(document.body, 'Enter F12');
+          this.keys= new AppKeys(document.body, 'f1 f2 f12');
         } else {
           this.keys.connect();
         }
@@ -129,8 +131,8 @@ class MainApp extends LitElement {
   }
 
   render() {
-    const luid = this.competitions.length > 0 ? this.competitions[0].administrator:0;
-    const admin = (global.user.global_admin === 1 || global.user.uid === luid) ;
+    
+    const admin = (global.user.global_admin === 1 || global.user.uid === global.luid && global.cid === global.lcid) ;
     return html`  
       <style>
 
@@ -155,7 +157,7 @@ class MainApp extends LitElement {
           flex-direction: row;
           cursor:pointer;
           background-color: white;
-          margin: 0 0 0 40px;
+          margin: 0 15px;
           border: none;
           padding: 5px;
           border-radius:5px;
@@ -287,9 +289,9 @@ class MainApp extends LitElement {
       ${cache(this.authorised ? html`
         <app-overlay id="mainmenu">
           <div class="menucontainer">
-            <div role="menuitem" @click=${this._goHome}><span>Home</span><span>F1</span></div>
+            <div role="menuitem" @click=${this._goHome}><span>Home</span></div>
             ${cache(this.scores? html`
-              <div id="scores" role="menuitem" @click=${this._selectPage}><span>Overall Scores</span><span>F2</span></div>
+              <div id="summary" role="menuitem" @click=${this._selectPage}><span>Summary</span><span>F2</span></div>
             `:'')}
             <hr class="sep"/>
             ${cache(this.competitions.length > 0 ?html`
@@ -298,10 +300,10 @@ class MainApp extends LitElement {
               <hr class="sep"/>
             `:'')}
             <div role="menuitem" @click=${this._logoff}>Log Off</div>
-            <div id="editprofile" role="menuitem" @click=${this._selectPage}><span>Edit Profile</span> <span>F12</span></div>
+            <div id="profile" role="menuitem" @click=${this._selectPage}><span>Edit Profile</span> <span>F12</span></div>
             <hr class="sep"/>
-            <div id="help" role="menuitem" @click=${this._selectPage}><span>Navigation Help</span><span>F1</span></div>
-            <div id="howto" role="menuitem" @click=${this._selectPage}><span>How To Play</span></div>
+            <div id="navref" role="menuitem" @click=${this._selectPage}><span>Navigation Reference</span></div>
+            <div id="help" role="menuitem" @click=${this._selectPage}><span>How To Play</span><span>F1</span></div>
             <hr class="user"/>            
           ${cache((admin || this.user.approve) ? html`
             <div class="admins">
@@ -342,8 +344,7 @@ class MainApp extends LitElement {
         </app-overlay>
         <app-overlay id="rounds" closeOnClick @overlay-closed=${this._roundClosed} position="right">
           ${cache(this.rounds.map(round => html`
-              <div data-rid=${round.rid} @click=${this._editRound} role="menuitem"><span>${round.name}</span>${cache(
-                round.rid === this.rid ? html`<span><material-icon>check_box</material-icon></span>` :'')}</div>
+              <div data-rid=${round.rid} @click=${this._showRound} role="menuitem"><span>${round.name}</span></div>
           `))}
         </app-overlay>       
         `:'')}
@@ -404,6 +405,7 @@ class MainApp extends LitElement {
   _competitionSelected(e) {
     const cid = parseInt(e.currentTarget.dataset.cid,10);
     updateCid(cid);
+    debug('competition cid ' + cid + ' selected');
     this.mainmenu.close();
     switchPath('/');
   }
@@ -428,8 +430,13 @@ class MainApp extends LitElement {
   }
   async _fetchCompetitons() {
     this.competitions = await api(`profile/fetch_competitions`);
-    if (this.competitions.length > 0 && global.dcid === 0) global.dcid = this.competitions[0].cid;
-    if (global.cid === 0) updateCid(global.dcid);
+    if (this.competitions.length > 0) {
+      global.lcid = this.competitions[0].cid;
+      global.luid = this.competitions[0].administrator;
+      global.lrid = this.competitions[0].rid;
+    }
+    if (global.cid === 0) updateCid(global.lcid);
+
     this.compVersion = 0;
   }
   _globalChanged() {
@@ -440,9 +447,21 @@ class MainApp extends LitElement {
     switchPath('/');
   }
   _keyPressed(e) {
-
+    debug('key press from key ' + e.key);
+    switch (e.key) {
+      case 'f1':
+        switchPath('/help');
+        break;
+      case 'f2':
+        switchPath('/summary');
+        break;
+      case 'f12':
+        switchPath('/profile');
+        break;
+    }
   }
   _logoff() {
+    debug('logoff request about to be sent to session manager');
     //the difference between the following and just changing authorised, is that we clear the cookie
     this.sessionMgr.dispatchEvent(new LogoffRequest());
   }
@@ -453,6 +472,7 @@ class MainApp extends LitElement {
     }
   }
   _menuAdd(e) {
+    debug(e.menu + ' being added to menu');
     switch(e.menu) {
       case 'scores':
         this.scores = true;
@@ -464,12 +484,14 @@ class MainApp extends LitElement {
     }
   }
   _menuReset() {
+    debug('menu reset received');
     this.scores = false;
     this.close = false;
     //add others later
   }
 
   _refreshComp() {
+    debug('refresh competition data received');
     this.compVersion++
   }
   async _reset(e) {
@@ -491,7 +513,7 @@ class MainApp extends LitElement {
   _roundsMenu() {
     if(this.roundsMenu) {
       this.roundsMenu.positionTarget = this.rm;
-      api(`${this.cid}/admin/fetch_rounds`).then(response => {
+      api(`user/fetch_rounds`).then(response => {
         this.rounds = reponse.rounds;
         this.roundsMenu.show();
       });

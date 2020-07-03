@@ -312,43 +312,43 @@ Our client side route are as follows:-
 
 ```
 /-   - home page selects one of four subroutes as the default dependant on condition 
-  |        (/register, /picks, /scores/results/:rid,
-   /scores/team, /scores in order.)
   |
   /register  - show registration page if not already registered and competition is not closed
-  /pick - at least one match or a playoff, maybe more is not passed the pick deadline for the competition you are registered for
-  /scores - show top level results summary (total score as a list of users) 
-    | (pick a particular user)
-    /round/:rid/:uid - match results for a round (defaults to last, changed from menu), 
-      |                  with :uid personal scores against it (only default if latest open competition)
-      |
-      /match/:aid - all users for a particular match (round selected in above)
-      /bonus - all users response to bonus question 
-    /teams/:uid - List teams in competition (and user playoff picks)
-      |
-      users/:confid/:divid  - shows all user playoff picks by division  
-  
-  /approve - shows list of users awaiting approval, with ability to approve (or reject)
-  /admin - details of competition (from admin perspective)
-    |
-    /teams - selection of teams for the competition.
-    /rounds - list of rounds in competition so far
-    /details/:rid/ - details of the round
-      |
-      /teams - select teams to form matches
-      /matches - list of matches
-        |
-        /:aid - details of a match
-      /bonus - details of bonus question
-    /users - list of registered users
+  /teams - a page the current user can make their playoff picks, or just view the results
+  | |
+  | /user/:uid - show pics for a specific user
+  | /division/:confid/:divid - use all users playoff scores for that partiular conference and division
+  /rounds - A page to allow the user to enter (or just see the results if past the deadline) of their 
+  | |       picks for the latest round in the competition
+  | /:rid - displays a list of users and their scores for the particular round (match and details of bonus selection) 
+  |     |
+  |     /user/:uid -display the results for a particular user (same display as /rounds, but for round and user specified) 
+  |    /match/:aid - all users for a particular match (round selected in above)
+  |              
+  /summary - shows the totals scores in the competition to date for all users
+  | |
+  | /user/:uid - list of all the round plus playoff scores for a partiular user  
+  /approve - shows list of users awaiting approval, with ability to approve, request more info, reject, or delete (silent rejection);
+  /admin - details of competition (from admin perspective) and ability to create new round
+  | |
+  | /round - editing details of the latest round of the competition
+  | | |
+  | | /:rid - as above but for a specific round
+  | /email - email addresses of users in competition, with ability to send selected users a short message. 
+  | /help - a menu from which the following topics can be access to tell the user how to administer the competition
+  |     |
+  |     /competition - what all the facilites at competition level do
+  |     /teams - understanding and manipulating the team panel (team in competition and forming matches)
+  |     /matches - understanding and manipulating the match panel
+  |     /bonus - undertanding and manipulating the bonus panel
   /gadm - menu of choices for global admins
-    |
-    /promote- show list of participants with options to make approver or global admin  
-    /new - create a new competion, name it and assign an administrator
-    /email - send some or all participants an email 
-  /profile
-  /navigationhelp - navigation help
-  /howtoplay - instructions for playing.
+  | |  
+  | /new - create a new competion, name it and assign an administrator
+  | /promote - show a list of users with ability to up or downgrde approval status or upgrade to global admin status   
+  | /email - send a short message to a selected set of users  
+  /profile - a page for users to edit their details.
+  /help - navigation help
+  /howto - instructions for playing.
      
 ```
 

@@ -62,11 +62,11 @@ class FmHome extends LitElement {
         if (response.matches) {
           switchPath('/pick');
         } else if (response.canPick) {
-          switchPath('/teams')
+          switchPath('/scores/teams')
         } else if (response.hasPicked) {
-          switchPath('/results')
+          switchPath('/scores/rounds')
         } else {
-          switchPath('/teams');
+          switchPath('/scores/teams');
         }
       } else if (response.canRegister) {
         switchPath('/register');

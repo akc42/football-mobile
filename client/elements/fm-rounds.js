@@ -17,41 +17,47 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { html } from '../libs/lit-element.js';
+import { html, LitElement } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
-import PageManager from './page-manager.js';
+import Route from '../modules/route.js';
+import './app-page.js';
+import page from '../styles/page.js';
 
 /*
-     <fm-scores>
+     <fm-Rounds>: A Page to allow user to make pics
 */
 
-class FmScores extends PageManager {
+class FmRounds extends LitElement {
+    static get styles() {
+      return [page];
+    }
+  
+  static get properties() {
+    return {
+      route: {type: Object}
+    };
+  }
+  constructor() {
+    super();
+    this.route = {active: false};
+    this.uRouter = new Route('/:uid', 'page: rounds');
+  }
+  update(changed) {
+    if (changed.has('route')) {
+      if (this.route.active) {
+        const uRoute = this.uRouter.routeChange(this.route);
+
+      }
+    }
+  }
+
   render() {
     return html`
-    <style>
-      :host {
-        height: 100%;
-      }
-    </style>
-    ${cache({
-        home: html`<fm-summary managed-page></fm-summary>`,
-        round: html`<fm-rounds .route=${this.subRoute} managed-page></fm-rounds>`,
-        teams: html`<fm-teams .route=${this.subRoute} managed-page></fm-teams>`
-    }[this.page])}
+    <app-page heading="Rounds">
+      <p>Still to Implement</p>
+    </app-page>
     `;
   }
-  loadPage(page) {
-      switch(page) {
-        case 'home':
-          import('./fm-summary.js');
-          break;
-        case 'round':
-          import('./fm-rounds.js');
-          break;
-        case 'teams':
-          import('./fm-teams.js');
-          break;
-      }
-  }
+  
 }
-customElements.define('fm-scores', FmScores);
+customElements.define('fm-rounds', FmRounds);

@@ -55,7 +55,8 @@ class FmTeams extends PageManager {
     this.divs = [];
     this.picks = [];
     this.deadline = 0;
-    this.uRouter = new Route('/:cfid/:divid','page:users');
+    this.dRouter = new Route('/:cofid/:divid','page:division');
+    this.uRouter = new Route(':uid','page:user');
     this.showAllUsers = false;
     this.userPicks=[];
   }

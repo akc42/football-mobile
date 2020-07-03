@@ -70,6 +70,22 @@ export class AuthChanged extends Event {
   }
 };
 
+
+export class CompetitionsChanged extends Event {
+  static eventType = 'competitions-changed';
+
+  /*
+     The following are the fields provided by this event
+
+     none: some aspect of the competitions list has changed, suggesting it is re-read 
+
+  */
+
+  constructor() {
+    super('competitions-changed',{composed: true, bubbles: true});
+  }
+};
+
 export class FormError extends Event {
   static eventType = 'form-error';
 
