@@ -93,12 +93,12 @@ class AppConsent extends LitElement {
 
         <p> We use cookies on this site for two purposes:-</p>
         <ol>
-          <li>To know if you have visited before, in order to securely process pre-login functions.</li>
+          <li>To keep track of where you are in the sign up and email verification stages of becoming a verified member of this site.</li>
           <li>To remember your log-on details, to avoid you having to log on at each visit.</li>
         </ol>
         <p>Accepting this notice will allow us to use cookies for the 1st purpose only. This cookie will expire in 90 days after your
           last visit. If you do not wish to accept, I am afraid we can proceed no further.</p>
-        <p>You will have an opportunity to indicate your preference for the 2nd purpose when you come to log on.</p>
+        <p>You will have an opportunity to indicate your preference for the 2nd purpose when you come to log on, and it is totally your choice whether to log on every visit or to be remembered and avoid the log on stage.  You will be reminded about this cookie the first time (only) you are shown the remember me option during logon.</p>
                 
         <button slot="action" @click=${this._accept}>Accept visit tracking</button>
       </app-page>
