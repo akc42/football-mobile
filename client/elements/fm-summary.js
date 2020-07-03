@@ -20,7 +20,7 @@
 import { LitElement, html } from '../libs/lit-element.js';
 
 import api from '../modules/api.js';
-import Route from '../modules/route.js';
+
 
 import page from '../styles/page.js';
 
@@ -29,9 +29,9 @@ import './fm-user-summary.js';
 import './app-page.js';
 
 /*
-     <fm-scores>
+     <fm-summary>
 */
-class FmScores extends LitElement {
+class FmSummary extends LitElement {
   static get styles() {
     return [page];
   }
@@ -46,23 +46,16 @@ class FmScores extends LitElement {
     super();
     this.users = [];
     this.route = {active: false};
-    this.cRouter = new Route('/:cid','page:scores');
   }
   connectedCallback() {
     super.connectedCallback();
-
-
+    api(`user/fetch_comp_name`).then(response => this.name = response.name);
+    api(`user/users_summary`).then(response => this.users = response.users);
   }
   disconnectedCallback() {
     super.disconnectedCallback();
   }
-  update(changed) {
-    if (changed.has('route') && this.route.active ) {
-      const cr = this.cRouter.routeChange(this.route);
-      if (cr.active) this._fetchUser(cr.params); 
-    }
-    super.update(changed);
-  }
+
   firstUpdated() {
   }
   updated(changed) {
@@ -119,30 +112,16 @@ class FmScores extends LitElement {
         <div class="competition">
           <div>${this.name}</div>
         </div>
-        <fw-list custom="fw-user-summary"  .items=${this.users}>
+        <fm-list custom="fm-user-summary"  .items=${this.users}>
         <div slot="header" class="container">
           <div class="un">Name</div>
           <div class="rs">Round Score</div>
           <div class="ps">Playoff Score</div>
           <div class="ts">Total Score</div>
         </div>
-      </fw-list>
+      </fm-list>
     </app-page>
     `;
   }
-  async _fetchUser(params) {
-    
-    if (params.cid === '') {
-      //no cid provided in url so we need to find it
-      const cid = await api('admin/default_comp');
-      this.cRouter.params = cid;
-    } else {
-      const name = await api(`${params.cid}/fetch_comp_name`);
-      this.name = name.name;
-      const users= await api(`${params.cid}/users_summary`);
-      this.users = users.users;
-    }
-    
-  }
 }
-customElements.define('fm-scores', FmScores);
+customElements.define('fm-summary', FmSummary);
