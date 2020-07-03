@@ -28,8 +28,11 @@
   module.exports = async function() {
       const config = {};
       const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
-      const d = db.prepare('SELECT cid FROM competition WHERE open = 1 ORDER BY cid DESC LIMIT 1').pluck();
-      const last = db.prepare('SELECT cid, administrator FROM competition ORDER BY cid DESC LIMIT 1');
+      const last = db.prepare(`SELECT c.cid, c.administrator, CASE WHEN r.rid IS NULL THEN 0 ELSE r.rid END AS rid 
+        FROM competition c LEFT JOIN round r ON  r.cid = c.cid AND r.rid = (
+          SELECT rid FROM round WHERE cid = c.cid AND r.open = 1 ORDER BY rid DESC LIMIT 1
+        ) ORDER BY c.
+        cid DESC LIMIT 1`);
       db.transaction(() => {
         debug('About to Read Settings Values');      
         config.clientLog = s.get('client_log');
@@ -40,13 +43,14 @@
         config.siteLogo = s.get('site_logo');
         config.verifyExpires = s.get('verify_expires');
         config.firstTimeMessage = s.get('first_time_message');
+        config.comingSoonMessage = s.get('comming_soon_message');
         config.minPassLen = s.get('min_pass_len');
         config.dwellTime = s.get('dwell_time');
-        config.dcid = d.get();
 
         const row = last.get();
         config.lcid = row.cid;
         config.luid = row.administrator;
+        config.lrid = row.rid ;
       })();
 
       const { version, year } = await versionPromise;

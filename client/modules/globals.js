@@ -29,9 +29,10 @@ let webmaster = '';
 let siteLogo = '/appimages/site-logo.png';
 let verifyExpires = 12;
 let firstTimeMessage = `Welcome to the <strong>Football Mobile Results Picking Competition</strong>.This appears to be your first visit to the site.You will be have to provide your email address and later your password but, with your permission, we can remember you so you won't have to keep entering it.`;
+let comingSoonMessage = 'Your new picking competition will be coming soon, get ready to register and join.';
 let minPassLen = 6;
 let dwellTime = 2000;
-let dcid = 0;
+let lrid = 0;
 let lcid = 0;
 let luid = 0;
 let cid = 0;
@@ -67,9 +68,10 @@ const global = {
       siteLogo = conf.siteLogo;
       verifyExpires = conf.verifyExpires;
       firstTimeMessage = conf.firstTimeMessage;
+      comingSoonMessage = conf.comingSoonMessage;
       minPassLen = conf.minPassLen;
       dwellTime = conf.dwellTime;
-      dcid = conf.dcid;
+      lrid = conf.lrid;
       lcid = conf.lcid;
       luid = conf.luid;
     })
@@ -132,20 +134,32 @@ const global = {
   get firstTimeMessage () {
     return firstTimeMessage;
   },
+  get comingSoonMessage() {
+    return comingSoonMessage;
+  },
   get minPassLen () {
     return minPassLen;
   },
   get dwellTime () {
     return dwellTime;
   },
-  get dcid () {
-    return dcid;
+  get lrid () {
+    return lrid;
+  },
+  set lrid (v) {
+    lrid = v;
   },
   get luid() {
     return luid;
   },
+  set luid(v) {
+    luid = v;
+  },
   get lcid() {
     return lcid;
+  },
+  set lcid(v) {
+    lcid = v;
   }
 }
 
