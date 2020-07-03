@@ -102,6 +102,7 @@ CREATE TABLE competition (
     administrator integer  NOT NULL DEFAULT 0, --The uid of the administrator
     open boolean NOT NULL DEFAULT 0 , --Says whether a user may see the competition
     closed boolean NOT NULL DEFAULT 0, --Says where a user may  still register 
+    expected_date bigint NOT NULL DEFAULT 0, --expected open date (0 if we don't know) only valid if not open
     condition text DEFAULT NULL,	--This is the text that a user has to agree to in order to register himself for the competition
     pp_deadline bigint DEFAULT 0 NOT NULL, --Playoff Selection Deadline 0 if no selection
     gap integer DEFAULT 300 NOT NULL, --Seconds to go before match to make pick deadline
@@ -295,6 +296,7 @@ INSERT INTO settings (name,value) VALUES('mail_wordwrap',130); --word wrap colum
 INSERT INTO settings (name,value) VALUES('mail_signature', '/appimages/signature.png;Name of Signature'); --email signature if starts with a slash is an image url which maybe followed by a semi-colon and then caption, else html
 INSERT INTO settings (name,value) VALUES('site_baseref','https://example.com'); -- basic site url without trailing slash to be added to hostless image urls to make complete
 INSERT INTO settings (name,value) VALUES('first_time_message','Welcome to the <strong>Football Mobile Results Picking Competition</strong>.  This appears to be your first visit to the site. You will be have to provide your email address and later your password but, with your permission, we can remember you so you won''t have to keep entering it.'); -- First Paragraph of text for First time Users
+INSERT INTO settings (name,value) VALUES('coming_soon_message','Your new picking competition will be coming soon, get ready to register and join.'); -- First Paragraph of text for a coming soon page
 
 
 ------------------------------------------------------------------------------------------ STYLES

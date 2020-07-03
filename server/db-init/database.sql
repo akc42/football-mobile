@@ -32,7 +32,8 @@ CREATE TABLE competition (
     name character varying,--This is the name that appears in the header for the competition
     administrator integer  NOT NULL DEFAULT 0, --The uid of the administrator
     open boolean NOT NULL DEFAULT 0 , --Says whether a user may see the competition
-    closed boolean NOT NULL DEFAULT 0, --Says where a user may  still register 
+    closed boolean NOT NULL DEFAULT 0, --Says where a user may  still register
+    expected_date bigint NOT NULL DEFAULT 0, --expected open date (0 if we don't know) only valid if not open
     condition text DEFAULT NULL,	--This is the text that a user has to agree to in order to register himself for the competition
     pp_deadline bigint DEFAULT 0 NOT NULL, --Playoff Selection Deadline 0 if no selection
     gap integer DEFAULT 300 NOT NULL, --Seconds to go before match to make pick deadline
