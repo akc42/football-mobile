@@ -27,13 +27,14 @@ import global from '../modules/globals.js';
 import { AuthChanged } from '../modules/events.js';
 import Debug from '../modules/debug.js';
 import {switchPath} from '../modules/utils.js';
-import {manageVisitCookie, makeVisitCookie} from '../modules/visit.js'
+import {manageVisitCookie, makeVisitCookie, updateCid} from '../modules/visit.js'
 
 
 const debug = Debug('session');
 
 import './app-waiting.js';
 import './app-overlay.js';
+
 
 /*
      <app-session>
@@ -159,6 +160,7 @@ class AppSession extends LitElement {
         case 'logoff':
           document.cookie = `${global.cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
           this.state = 'consent';
+          this.authorised = false;
           break;
         case 'logonrem':
         case 'logon':
@@ -241,7 +243,7 @@ class AppSession extends LitElement {
         break;
       case 'logonrem':
       case 'logon':
-        if (global.cid === 0) updateCid(global.dcid);
+        if (global.cid === 0) updateCid(global.lcid);
         makeVisitCookie(e.status.type);
         this.state = 'consent'; //just act like we are coming in afresh
         break;

@@ -177,7 +177,7 @@ class MainApp extends LitElement {
         }
 
         [role="menuitem"] {
-          --icon-size: 12px;
+          --icon-size: 18px;
           height: 20px;
           display:flex;
           flex-direction:row;
@@ -185,6 +185,9 @@ class MainApp extends LitElement {
         }
         [role="menuitem"] span:nth-of-type(2) {
           margin-left:auto;
+        }
+        [role="menuitem"]>material-icon {
+          margin-right: 4px;
         }
         header {
           flex: 0 1 0;
@@ -259,9 +262,9 @@ class MainApp extends LitElement {
       ${cache(this.authorised ? html`
         <app-overlay id="mainmenu">
           <div class="menucontainer">
-            <div role="menuitem" @click=${this._goHome}><span>Home</span></div>
+            <div role="menuitem" @click=${this._goHome}><material-icon>home</material-icon><span>Home</span></div>
             ${cache(this.scores? html`
-              <div id="summary" role="menuitem" @click=${this._selectPage}><span>Summary</span><span>F2</span></div>
+              <div id="summary" role="menuitem" @click=${this._selectPage}><material-icon>people_outline</material-icon><span>Summary</span><span>F2</span></div>
             `:'')}
             <hr class="sep"/>
             ${cache(this.competitions.length > 0 ?html`
@@ -269,20 +272,22 @@ class MainApp extends LitElement {
               <span><material-icon>navigate_next</material-icon></span></div>
               <hr class="sep"/>
             `:'')}
-            <div role="menuitem" @click=${this._logoff}>Log Off</div>
-            <div id="profile" role="menuitem" @click=${this._selectPage}><span>Edit Profile</span> <span>F12</span></div>
+            <div role="menuitem" @click=${this._logoff}><material-icon>exit_to_app</material-icon>Log Off</div>
+            <div id="profile" role="menuitem" @click=${this._selectPage}><material-icon>account_box</material-icon><span>Edit Profile</span> <span>F12</span></div>
             <hr class="sep"/>
-            <div id="navref" role="menuitem" @click=${this._selectPage}><span>Navigation Reference</span></div>
-            <div id="help" role="menuitem" @click=${this._selectPage}><span>How To Play</span><span>F1</span></div>
+            <div id="navref" role="menuitem" @click=${this._selectPage}><material-icon>place</material-icon><span>Navigation Help</span></div>
+            <div id="help" role="menuitem" @click=${this._selectPage}><material-icon>help</material-icon><span>How To Play</span><span>F1</span></div>
             ${cache((admin || this.user.approve) ? html`
               <hr class="sep"/>
+              <div id="approve" role="menuitem" @click=${this._selectPage}>
+                <material-icon>grading</material-icon>Approve Members</div>         
               ${cache(admin ? html`
                 ${cache(global.user.global_admin ? html`
-                  <div id="gadm" role="menuitem" @click=${this._selectPage}>Global Admin Menu</div>
+                  <div id="gadm" role="menuitem" @click=${this._selectPage}><material-icon>public</material-icon>Global Admin</div>
                 `: '')}
-                <div id="admin" role="menuitem" @click=${this._selectPage}>Admin Menu</div>
+                <div id="admin" role="menuitem" @click=${this._selectPage}>
+                  <material-icon>admin_panel_settings</material-icon>Competition Admin</div>
               `: '')}
-              <div id="approve" role="menuitem" @click=${this._selectPage}>Approve Members</div>         
             `:'')}
           </div>
         </app-overlay>
