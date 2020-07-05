@@ -22,6 +22,7 @@ import { unsafeHTML } from '../libs/unsafe-html.js';
 import {cache} from '../libs/cache.js';
 
 import api from '../modules/api.js';
+import {switchPath} from '../modules/utils.js';
 
 import './date-format.js';
 import './app-page.js';
@@ -54,22 +55,17 @@ class FmSoon extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     api('user/coming_soon').then(response => {
-      this.soon = response.message;
-      this.expected = response.date;
-      this.condition = response.condition;
+      if (response.open) {
+        //we should not be in this page, lets switch back to home
+        switchPath('/');
+      } else {
+        this.soon = response.message;
+        this.expected = response.date;
+        this.condition = response.condition;
+      }
     });
   }
-  disconnectedCallback() {
-    super.disconnectedCallback();
-  }
-  update(changed) {
-    super.update(changed);
-  }
-  firstUpdated() {
-  }
-  updated(changed) {
-    super.updated(changed);
-  }
+
   render() {
     return html`
       <style>
@@ -85,15 +81,8 @@ class FmSoon extends LitElement {
         `:'')}
         ${cache(this.condition? html`<p>When open, the condition for registering will be:- </p>
         <p class="condition">${this.condition}.</p>`:'')}
-
-        <p>Temporary trial of <calendar-input .value=${this.expected} withtime @value-changed=${this._newExpected}></calendar-input></p>
-        
       </app-page>
     `;
-  }
-  _newExpected(e) {
-    e.stopPropagation();
-    console.log('got an value changed event from calendar input',e.changed)
   }
 }
 customElements.define('fm-soon', FmSoon);

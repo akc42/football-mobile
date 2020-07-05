@@ -27,12 +27,20 @@
   module.exports = function (user, cid, params, responder) {
     debug('got request');
     const s = db.prepare(`SELECT value FROM settings WHERE name = 'coming_soon_message'`).pluck();
-    const e = db.prepare('SELECT expected_date, condition FROM competition WHERE cid = ?');
+    const e = db.prepare('SELECT expected_date, condition, open FROM competition WHERE cid = ?');
     db.transaction(() => {
-      responder.addSection('message', s.get());
+      
       const row = e.get(cid);
-      responder.addSection('date', row.expected_date);
-      responder.addSection('condition', row.condition);
+      if (row.open !== 1) {
+        debug('competition not open, so send data about when it might be')
+        responder.addSection('open', false);
+        responder.addSection('date', row.expected_date);
+        responder.addSection('condition', row.condition);
+        responder.addSection('message', s.get());
+      } else {
+        debug('competiion is open, so just say so');
+        responder.addSection('open', true);
+      }
     })();
     debug('Success');
 
