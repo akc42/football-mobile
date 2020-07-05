@@ -118,7 +118,6 @@ class MainApp extends LitElement {
       this.competitionMenu = this.shadowRoot.querySelector('#competitions');
 
       this.menuicon = this.shadowRoot.querySelector('#menuicon');
-      this.cm=this.shadowRoot.querySelector('#cm');
 
       this.fmPages = this.shadowRoot.querySelector('fm-pages');
 
@@ -174,6 +173,7 @@ class MainApp extends LitElement {
         .menucontainer {
           display:flex;
           flex-direction: column-reverse;
+          padding: 10px;
         }
 
         [role="menuitem"] {
@@ -240,40 +240,11 @@ class MainApp extends LitElement {
         .admins{
           margin: 10px 0;
         }
-        .menuheading {
-          border-bottom-width:1px;
-          border-bottom-style: dashed;
-          text-align: center;
-          font-weight: bold;
-        }
-        .menugroup {
-          padding: 10px 0px;   
-          border-bottom:2px solid var(--app-accent-color);     
-        }
-        .menugroup.gadmin .menuheading {
-          border-color: red;
-        }
-        
-        .menugroup.admin .menuheading {
-          border-color: green;
-        }
-         .menugroup.approver .menuheading {
-          border-color: olivedrab;
-        }
-        hr {
-          width:100%;
-        }
-        hr.user {
-          border-top:2px solid var(--app-accent-color);
-        }
+
         hr.sep {
+          width:100%;
           border-top: 1px dotted red;
         }
-        hr.admin {
-          border-top: 1px dashed green;
-        }
-        
-
         @media (min-width: 500px) {
           :host, .menucontainer {
             flex-direction: column;
@@ -303,48 +274,32 @@ class MainApp extends LitElement {
             <hr class="sep"/>
             <div id="navref" role="menuitem" @click=${this._selectPage}><span>Navigation Reference</span></div>
             <div id="help" role="menuitem" @click=${this._selectPage}><span>How To Play</span><span>F1</span></div>
-            <hr class="user"/>            
-          ${cache((admin || this.user.approve) ? html`
-            <div class="admins">
-              <hr class="user"/>
+            ${cache((admin || this.user.approve) ? html`
+              <hr class="sep"/>
               ${cache(admin ? html`
                 ${cache(global.user.global_admin ? html`
-                  <div class="gadmin menugroup">
-                    <div class="menuheading">Global Admin</div>
-                    <div id="createcomp" role="menuitem" @click=${this._selectPage}>Create Competition</div>
-                    <hr class="sep"/>
-                    <div id="promoteuser" role="menuitem" @click=${this._selectPage}>Promote Users To Admin</div>
-                  </div>
+                  <div id="gadm" role="menuitem" @click=${this._selectPage}>Global Admin Menu</div>
                 `: '')}
-                <div class="admin menugroup">
-                  <div class="menuheading">Admin</div>
-                  <div id="editround" role="menuitem" @click=${this._selectPage}>Edit Latest Round</div>
-                  <hr class="sep"/>
-                  <div id="newround" role="menuitem" @click=${this._selectPage}>Create Round</div>
-                  <div id="editcomp" role="menuitem" @click=${this._selectPage}>Competition Details</div>
-                  <hr class="admin"/>
-                  <div id="rm" role="menuitem" @click=${this._roundsMenu}><span>Select Round to Edit</span>
-                    <span><material-icon>navigate_next</material-icon></span></div>
-                </div>
+                <div id="admin" role="menuitem" @click=${this._selectPage}>Admin Menu</div>
               `: '')}
-              <div class="approver menugroup">
-                <div class="menuheading">Approver</div>
-                <div id="memberapprove" role="menuitem" @click=${this._selectPage}>Approve Members</div>
-              </div>  
-            </div>         
-          `:'')}
+              <div id="approve" role="menuitem" @click=${this._selectPage}>Approve Members</div>         
+            `:'')}
           </div>
         </app-overlay>
         <app-overlay id="competitions" closeOnClick @overlay-closed=${this._compClosed} position="right">
-          ${cache(this.competitions.map(competition => 
-            html`<div role="menuitem" data-cid=${competition.cid} @click=${this._competitionSelected}><span>${competition.name}</span>
-            ${cache(competition.cid === global.cid ? html`<span><material-icon>check_box</material-icon></span>` : '')}</div>
-          `))}
+          <div class="menucontainer">
+            ${cache(this.competitions.map(competition => 
+              html`<div role="menuitem" data-cid=${competition.cid} @click=${this._competitionSelected}><span>${competition.name}</span>
+              ${cache(competition.cid === global.cid ? html`<span><material-icon>check_box</material-icon></span>` : '')}</div>
+            `))}
+          </div>
         </app-overlay>
         <app-overlay id="rounds" closeOnClick @overlay-closed=${this._roundClosed} position="right">
-          ${cache(this.rounds.map(round => html`
-              <div data-rid=${round.rid} @click=${this._showRound} role="menuitem"><span>${round.name}</span></div>
-          `))}
+          <div class="menucontainer">
+            ${cache(this.rounds.map(round => html`
+                <div data-rid=${round.rid} @click=${this._showRound} role="menuitem"><span>${round.name}</span></div>
+            `))}
+          </div>
         </app-overlay>       
         `:'')}
       <header class="primary fixed">
@@ -407,10 +362,11 @@ class MainApp extends LitElement {
     debug('competition cid ' + cid + ' selected');
     this.mainmenu.close();
     switchPath('/');
+    this.requestUpdate(); //refresh needed in particular competitions menu.
   }
   _competitionsMenu() {
     if(this.competitionMenu) {
-      this.competitionMenu.positionTarget = this.cm;
+      this.competitionMenu.positionTarget = this.shadowRoot.querySelector('#cm');
       this.competitionMenu.show();
     }
   }

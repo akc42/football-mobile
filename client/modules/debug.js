@@ -46,6 +46,7 @@ export default function(t) {
       const now = new Date().getTime();
       const gap = now - timestamp;
       timestamp = now;
+      console.log(`+${gap}ms`,topic, message);
       const cookie = manageVisitCookie();
       if (cookie) api('session/log',{topic:topic, message: message, gap: gap}); //no interest in reply
     }

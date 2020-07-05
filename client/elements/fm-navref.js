@@ -167,7 +167,7 @@ class FmNavref extends LitElement {
                   etc; silently delete the request)</li>`:'')}
                 <li><strong>/admin</strong> - ${cache(global.user.uid === global.luid || global.user.global_admin === 1)? html`
                   a page that shows an overview of the competition details that the adminstrator can edit, including a button for 
-                  creating a new round.  
+                  creating a new round.  There is also a button to select the latest round.
                   <ul>
                     <li><strong>/round</strong> - a page that allows the editing of details for the latest round of the competition.
                       <ul>

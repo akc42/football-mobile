@@ -27,6 +27,7 @@ import page from '../styles/page.js';
 import './fm-list.js';
 import './fm-user-summary.js';
 import './app-page.js';
+import { MenuReset } from '../modules/events.js';
 
 /*
      <fm-summary>
@@ -49,6 +50,7 @@ class FmSummary extends LitElement {
   }
   connectedCallback() {
     super.connectedCallback();
+    this.dispatchEvent(new MenuReset());
     api(`user/fetch_comp_name`).then(response => this.name = response.name);
     api(`user/users_summary`).then(response => this.users = response.users);
   }

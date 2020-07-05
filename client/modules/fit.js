@@ -41,8 +41,10 @@ const AppFit = superClass => class extends superClass {
        * position the sizingTarget according to the string.  Possible Values are
        *
        *  'target'  look for a "positionTarget" object and fit it near that
+       *  'right'   look for a "positionTarget" onject and try and fit just to the right of it, matching tops if possible.
        *  'centre'  centre the item in the "fitInto" element
        *  'bottom'  align to the bottom center of the fitInto element
+       *  'top'     align to the to centre of the fitInto element (but a this.topOffset Down)
        */
       position: {type: String},
       /*
@@ -130,6 +132,9 @@ const AppFit = superClass => class extends superClass {
       } else if (positionRect.left > intoRect.right) {
         //position is off to the right, so we align right
         left = intoRect.right - width;
+      } else if (this.position === 'right') {
+        left = positionRect.right;  //ideally we would like to be here, but the right may push us in
+        if (left + width > intoRect.right) left = intoRect.right - width;
       } else {
         // natural position will be aligned center to centre with target, but may alter later
         left = (positionRect.right + positionRect.left - width )/ 2;
@@ -140,6 +145,17 @@ const AppFit = superClass => class extends superClass {
       } else if (positionRect.top > intoRect.bottom) {
         //position below bottom so align to bottom
         top = intoRect.bottom - height;
+      } else if (this.position === 'right') {
+        if (positionRect.top < intoRect.top) {
+          //the top of our positioning target is above the top of are limit, so adjust to the limit;
+          top = intoRect.top
+        } else if ( positionRect.top + height > intoRect.bottom) {
+          //our bottom would be below the button, so we need to come up a bit
+          top = intoRect.bottom - height;
+        } else {
+          //ideally we align our tops
+          top = positionRect.top;
+        }
       } else {
         /*
           This is more complex we first try to align below our position target

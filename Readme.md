@@ -329,7 +329,7 @@ Our client side route are as follows:-
   | |
   | /user/:uid - list of all the round plus playoff scores for a partiular user  
   /approve - shows list of users awaiting approval, with ability to approve, request more info, reject, or delete (silent rejection);
-  /admin - details of competition (from admin perspective) and ability to create new round
+  /admin - menu of options and details of competition (from admin perspective) and ability to create new round
   | |
   | /round - editing details of the latest round of the competition
   | | |
