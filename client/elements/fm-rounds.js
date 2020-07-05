@@ -45,10 +45,12 @@ class FmRounds extends LitElement {
   update(changed) {
     if (changed.has('route')) {
       if (this.route.active) {
+
         const uRoute = this.uRouter.routeChange(this.route);
 
       }
     }
+    super.update(changed);
   }
 
   render() {
