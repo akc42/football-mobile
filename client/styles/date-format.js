@@ -28,12 +28,12 @@ export default css`
   .date {
     display: flex;
     flex-direction: row;
-    width: 90px;
+    width: 94px;
     justify-content: center;
     padding: 2px;
   }
   .date.time {
-    width: 130px;
+    width: 168px;
   }
         
 `;

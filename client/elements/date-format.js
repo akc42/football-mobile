@@ -26,7 +26,8 @@ const dateFormatter = Intl.DateTimeFormat('default', {
 });
 const dateTimeFormatter = Intl.DateTimeFormat('default', {
   dateStyle: 'medium',
-  timeStyle: 'short'
+  timeStyle: 'short',
+  hour12: true,
 });
 import style from '../styles/date-format.js';
 /*

@@ -23,7 +23,7 @@ import {classMap} from '../libs/class-map.js';
 import {guard} from '../libs/guard.js';
 
 
-import calendar from '../styles/calendar.js';
+import style from '../styles/calendar-input.js';
 import button from '../styles/button.js';
 
 import { ValueChanged } from '../modules/events.js';
@@ -56,23 +56,35 @@ for (let i = 0; i < 12; i++) {
 }
 
 
-
-
-
 /*
-     <app-calendar>
+     <calendar-input>: this is the main calendar picking widget for the entire app.
+              The only required property is "value".  This is the unix epoch value, which
+              is assumed to represent time in the database.
+
+              Optional properties are "name" which can be set and read back so that it appears like
+              a form, and "withTime" (set as attribute withtime ?) which means include the time of day
+              to nearest 5 minutes as part of the selection algorithmn.
+
+              The calendar does have a "validate" method which will validate if a value is set, but will fail
+              if the value is not set.
+
+              It will fire a value changed event when the pop up dialog closes, not when the value is changing
+              because of selection in the picker.
+
+
 */
 class CalendarInput extends LitElement {
   static get styles() {
-    return [calendar, button];
+    return [style, button];
   }
 
   static get properties() {
     return {
       value: {type: Number}, //seconds since 1970 - provided by the outside
       name: {type: String, reflect: true},  //can be used in forms.
-      month: {type: String},
+      month: {type: Number},
       year:{type:Number},
+      monthName: {type: String},
       withTime: {type: Boolean},
       pm: {type: Boolean},  //set if time triggered to pm
       minuteGuard: {type: Number},
@@ -90,36 +102,31 @@ class CalendarInput extends LitElement {
     this.dayGuard = -2;
     this.minuteGuard = -2;
     this.name = '';
-    this.month = monthFormatter.format(d);
+    this.month = d.getMonth();
     this.year = d.getFullYear();
+    this.monthName = monthFormatter.format(d);
     this.pm = false;
     this.weeks = [];
   }
-  connectedCallback() {
-    super.connectedCallback();  
-  }
-  disconnectedCallback() {
-    super.disconnectedCallback();
-  }
   update(changed) {
     if (changed.has('month') || changed.has('year')) {
-      const d = new Date();
-      if (this.value !== 0) d.setTime(this.value * 1000); //If date is not set, we are using today, but if it set we need to adjust to it.
-      const dayMaker = new Date(d.getFullYear(), d.getMonth(), 1, 0, 0, 0); //0 on 1st day of month
+      const td = new Date();
+      const dayMaker = new Date(this.year, this.month, 1, 0, 0, 0); //0 on 1st day of month
+      this.monthName = monthFormatter.format(dayMaker);
       const day = dayMaker.getDay();
       dayMaker.setDate(1 - day);  //we are now at the first sunday
       this.weeks = [];
-      const m = (d.getFullYear() * 100) + d.getMonth();  //remember the month we are in
-      while (((dayMaker.getFullYear() * 100) + dayMaker.getMonth()) <= m) {
+      
+      for (let j = 0; j < 6; j++) { //we are always doing 6 weeks (otherwise calendar grows and shrinks annoyingly)
         const week = [];
         for (let i = 0; i < 7; i++) {
 
           week.push({
-            date: Math.floor(dayMaker.getTime() / 1000),
-            today: dayMaker.getFullYear() === d.getFullYear() && dayMaker.getMonth() === d.getMonth() && 
-                    dayMaker.getDate() === d.getDate(), //used to select day if value not set.
+            date: (((dayMaker.getFullYear() * 100) + dayMaker.getMonth()) * 100) + dayMaker.getDate(),
+            today: dayMaker.getFullYear() === td.getFullYear() && dayMaker.getMonth() === td.getMonth() &&
+                    dayMaker.getDate() === td.getDate(),
             day: dayMaker.getDate(),
-            inMonth: ((dayMaker.getFullYear() * 100) + dayMaker.getMonth()) === m
+            inMonth: dayMaker.getFullYear() === this.year &&  dayMaker.getMonth() === this.month
           });
           dayMaker.setDate(dayMaker.getDate() + 1);
         }
@@ -134,145 +141,27 @@ class CalendarInput extends LitElement {
   }
   updated(changed) {
     if (changed.has('value')) {
-      const d = new Date();
-      d.setTime(this.value * 1000);
-      this.month = monthFormatter.format(d);
-      this.year = d.getFullYear();
-      this.hourGuard = this.value === 0 ? -1 : Math.floor((this.value % 43200) / 3600);
-      this.minuteGuard = this.value === 0 ? -1 : Math.floor((this.value % 3600)/300);
-      this.dayGuard = this.value === 0 ? -1 : d.getDate();
-      this.pm = (this.value % 86400) >= 43200; 
+      if (this.value !== 0) {
+        const d = new Date();
+        d.setTime(this.value * 1000);
+        this.monthName = monthFormatter.format(d);
+        this.year = d.getFullYear();
+        this.month = d.getMonth();
+        this.hourGuard = d.getHours();
+        this.minuteGuard =  Math.floor(d.getMinutes()/5);
+        this.dayGuard = (((this.year * 100) + this.month) * 100) + d.getDate();
+        this.pm = d.getHours() >= 12;
+      } else {
+        this.dayGuard = -1;
+        this.hourGuard = -1;
+        this.minuteGuard = -1;
+        this.pm = false;
+      }
     }
     super.updated(changed);
   }
   render() {
-    const dValue = new Date();
-    dValue.setTime(this.value * 1000);
     return html`
-    <style> 
-      :host {
-        display: inline-block;
-        --icon-size:20px;
-        --line-color: #404040;
-      }
-      .input {
-        display: flex;
-        flex-direction: row;
-        justify-content:space-evenly;
-        align-items: center;
-        border: 2px solid var(--app-accent-color);
-        background-color: white;
-        cursor: pointer;
-      }
-      .container {
-        padding: 5px;
-        box-shadow: 2px 2px 6px 0px rgba(0,0,0,0.5);
-        border-radius: 4px;
-        border:2px solid white;
-        background-color: var(--app-accent-color);
-        color: var(--app-accent-text);
-        width: 160px;
-      }
-      .datepanel {
-        display: grid;
-        grid-gap: 1px;
-        grid-template-columns: repeat(7, 1fr);
-        --icon-size: 16px;
-        text-align: right;
-        margin: 2px 0;
-        background-color: var(--line-color);
-      }
-      .datepanel>.month {
-        grid-column: 2 / 7;
-        grid-row: 1 / 2;
-        text-align: center;
-        cursor: default !important;
-      }
-      .timepanel {
-        display: grid;
-        grid-gap: 1px;
-        grid-template-areas:
-          "am am am am pm pm pm"
-          "hr hp hp hp hp hp hp"
-          "hr  hp hp hp hp hp hp"
-          "mi mn mn mn mn mn mn"
-          "mi mn mn mn mn mn mn";
-        border-top: 2px solid white;
-        margin: 2px 0;
-        background-color: var(--line-color);
-      }
-      .datepanel>*, .timepanel>* {
-        background-color: var(--app-accent-color);
-      }
-      .datepanel>* {
-        cursor: pointer;
-      }
-      .datepanel>.wd {
-        cursor: default !important;
-      }
-      .datepanel>.day {
-        color: grey;
-      }
-      .day.inmonth {
-        color: white;
-      }
-      .day.selected, .day.day.inmonth.selected {
-        color: #cf0;
-      }
-      .am, .pm, .hr, .mi , .month{
-        color: #cf0;
-      }
-      .am.selected, .pm.selected {
-        color:red;
-      }
-      .am {
-        grid-area: am;
-        text-align: right;
-        padding-right: 30px;
-        cursor:pointer;
-      }
-      .pm {
-        grid-area: pm;
-        text-align: left;
-        padding-left:30px;
-        cursor: pointer;
-      }
-      .hr {
-        grid-area: hr;
-      }
-      .mi {
-        grid-area: mi;
-      } 
-      .hours {
-        grid-area: hp;
-      }
-      .minutes {
-        grid-area: mn;
-      }
-      .hours, .minutes{
-        display: grid;
-        grid-gap: 1px;
-        grid-template-columns: repeat(6, 1fr);
-        text-align: right;
-        background-color: var(--line-color);
-      }
-      .hours>*, .minutes>* {
-        background-color: var(--app-accent-color);
-        cursor: pointer;
-      }
-      .unset {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        padding: 4px;
-        border-top: 2px solid white;
-      }
-      .unset button {
-
-        width: 70px;
-      }
-
-    </style>
     <div class="input" @click=${this._show}>
       <date-format .date=${this.value}  .withTime=${this.withTime}></date-format><material-icon>date_range</material-icon>
     </div>
@@ -281,35 +170,37 @@ class CalendarInput extends LitElement {
       <div class="container">
         <div class="datepanel">
           <material-icon class="prev" @click=${this._previousMonth}>navigate_before</material-icon>
-          <div class="month"><span>${this.month}</span>  <span>${this.year}</span></div>
+          <div class="month"><span>${this.monthName}</span>  <span>${this.year}</span></div>
           <material-icon class="next" @click=${this._nextMonth}>navigate_next</material-icon>
-            ${guard([weekdays],() => weekdays.map(day => html`<div class="wd">[${day}]</div>`))}
+            ${guard([weekdays],() => weekdays.map(day => html`<div class="wd">${day}</div>`))}
             ${guard([this.dayGuard, this.month],() => this.weeks.map(week => week.map(day => html`
               <div class="day ${classMap({
                   inmonth: day.inMonth, 
-                  selected:  day.today 
+                  selected:  day.date === this.dayGuard,
+                  today: day.today
                 })}" data-date="${day.date}" @click=${this._selectDay}>${day.day}</div> 
             `)))}      
         </div>
         ${cache(this.withTime? html`
           <div class="timepanel">
-            <div class="am ${classMap({ selected: !this.pm })}" @click=${this._selectAm}>am</div>
-            <div class="pm ${classMap({ selected: this.pm })}" @click=${this._selectPm}>pm</div>
+            <div class="am ${classMap({ selected: this.value !==0 && !this.pm })}" @click=${this._selectAm}>am</div>
+            <div class="pm ${classMap({ selected: this.value !== 0 && this.pm })}" @click=${this._selectPm}>pm</div>
             <div class="hr">Hr</div><div class="mi">Mi</div>
             <div class="hours">
               ${guard([this.hourGuard, hours], () => hours.map(h => html`
                 <div class="hour ${classMap({
-                  selected: this.value !== 0 && this.pm? h.offset + 12 : h.offset === dvalue.getHours() 
+                  selected: this.value !== 0 && (this.pm? h.offset + 12 : h.offset) === this.hourGuard 
                 })}" data-hour=${h.offset} @click=${this._selectHour}>${h.hour}</div>
               `))}
             </div>
             <div class="minutes">
               ${guard([this.minuteGuard, mins], () => mins.map(m => html`
                 <div class="minute ${classMap({
-                  selected: this.value !== 0 && Math.floor(dValue.getMinutes()/5) === m.offset
+                  selected: this.value !== 0 && m.offset === this.minuteGuard
                 })}" data-minute=${m.offset} @click=${this._selectMinute}>${m.min}</div>
               `))}      
             </div>
+            <div></div>
           </div>
         `:'')}
         <div class="unset">
@@ -329,27 +220,18 @@ class CalendarInput extends LitElement {
   }
   _nextMonth(e) {
     e.stopPropagation();
-    const d = new Date();
-    d.setTime(this.value * 1000);
-    const td = d.getDate();  //save the day of the month
-    d.setMonth(d.getMonth() + 1);
-    const nd = d.getDate();
-    if (td !== nd) {
-      //this means that the month we have moved to is shorter than the current month so we probably jumped two months
-      d.setDate(-1); //so switch us to last date of previous month
+    this.month++;
+    if (this.month >= 12) {
+      this.year++;
+      this.month = 0;
     }
-    this.value = Math.floor(d.getTime()/1000);
   }
   _previousMonth(e) {
     e.stopPropagation();
-    const d = new Date();
-    d.setTime(this.value * 1000);
-    const td = d.getDate();
-    d.setMonth(d.getMonth() - 1)
-    const pd = d.getDate();
-    if (td !== pd) {
-      //we moved back to a shorter month so jump back to current month
-      d.setDate(-1); //so switch to last date of previous month
+    this.month--;
+    if (this.month < 0) {
+      this.year--;
+      this.month = 11;
     }
   }
   _selectAm(e) {
@@ -364,17 +246,19 @@ class CalendarInput extends LitElement {
     e.stopPropagation();
     const d = new Date();
     d.setTime(this.value * 1000);
-    const nd = new Date();
-    nd.setTime(e.currentTarget.dataset.date * 1000);
-    nd.setHours(d.getHours());
-    nd.setMinutes(d.getMinutes());
-    this.value = Math.floor(nd.getTime() / 1000);
+    let nd = parseInt(e.currentTarget.dataset.date,10);
+    d.setDate(nd % 100);
+    nd = Math.floor(nd/100);
+    d.setMonth(nd % 100);
+    nd = Math.floor(nd/100);
+    d.setFullYear(nd);
+    this.value = Math.floor(d.getTime() / 1000);
   }
   _selectHour(e) {
     e.stopPropagation();
     const d = new Date();
     d.setTime(this.value * 1000);
-    const hrs = e.currentTarget.dataset.hour + this.pm? 12 : 0;
+    const hrs = parseInt(e.currentTarget.dataset.hour,10) + (this.pm? 12 : 0);
     d.setHours(hrs);
     this.value = Math.floor(d.getTime() / 1000);
   }
@@ -382,7 +266,7 @@ class CalendarInput extends LitElement {
     e.stopPropagation();
     const d = new Date();
     d.setTime(this.value * 1000);
-    d.setMinutes(e.currentTarget.dataset.minute * 5);
+    d.setMinutes(parseInt(e.currentTarget.dataset.minute,10) * 5);
     this.value = Math.floor(d.getTime()/1000);
   }
   _selectPm() {
