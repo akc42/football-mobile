@@ -25,6 +25,7 @@ import { MenuAdd, MenuReset } from '../modules/events.js';
 import api from '../modules/api.js';
 
 
+
 /*
      <fw-home>.  The sole purpose of this element is to determin which of 6 possible paths to switch to
      firstly if the cid is not the same as dcid then either cid = lcid and user uid = luid or global admin in which case we are admin
@@ -46,32 +47,37 @@ class FmHome extends LitElement {
   }
   async _reroute() {
     this.dispatchEvent(new MenuReset());
-    if (global.cid !== global.dcid) {
-      if (global.cid === global.lcid && (global.user.global_admin === 1 || global.user.uid === global.luid)) {
-        this.dispatchEvent(new MenuAdd('scores'));
-        switchPath('/admin');
-      } else {
-        switchPath('/scores');
-      }
+    if (global.cid !== global.lcid) {
+      switchPath('/summary');
     } else {
-      
       const response = await api('/user/can_register');
-      if (response.isRegistered) {
-        this.dispatchEvent(new MenuAdd('scores'));
-        const response = await api('/user/can_pick');
-        if (response.matches) {
-          switchPath('/pick');
-        } else if (response.canPick) {
-          switchPath('/scores/teams')
-        } else if (response.hasPicked) {
-          switchPath('/scores/rounds')
+      if (response.isOpen) {
+        if (response.isRegistered) {
+          const response = await api('/user/can_pick');
+          if (response.canPick) {
+            this.dispatchEvent(new MenuAdd('summary'));
+            if (response.matches) {
+              switchPath('/rounds');
+            } else {
+              switchPath('/teams');
+            }
+          } else if (response.hasPicked) {
+            this.dispatchEvent(new MenuAdd('summary'));
+            switchPath(`/rounds/${global.lrid}`);
+          } else {
+            switchPath('/summary');
+          }
+        } else if (response.canRegister) {
+          switchPath('/register');
         } else {
-          switchPath('/scores/teams');
+          switchPath('/summary');
         }
-      } else if (response.canRegister) {
-        switchPath('/register');
       } else {
-        switchPath('/scores');
+        if (global.user.uid === global.luid) {
+          switchPath('/admin');
+        } else {
+          switchPath('/soon');
+        }
       }
     }
   }

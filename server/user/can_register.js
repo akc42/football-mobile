@@ -27,18 +27,23 @@
   module.exports = async function(user, cid, params, responder) {
     debug('new request from user', user.uid, 'with cid', cid);
     db.transaction(() => {
-      const registered = db.prepare('SELECT count(*) FROM registration WHERE cid = ? and uid = ?').pluck().get(cid, user.uid);
-      if (registered === 0) {
-        responder.addSection('isRegisterd', false);
-          const avail = db.prepare('SELECT count(*) FROM competition WHERE cid = ? and opened = 1 and closed = 0').pluck().get(cid);
-          if (avail === 0) {
+      const comp = db.prepare('SELECT open, closed FROM competition WHERE cid = ?').get(cid);
+      if (comp.open !== 1) {
+        responder.addSection('isOpen', false);
+      } else {
+        responder.addSection('isOpen', true);
+        const registered = db.prepare('SELECT count(*) FROM registration WHERE cid = ? and uid = ?').pluck().get(cid, user.uid);
+        if (registered === 0) {
+          responder.addSection('isRegisterd', false);
+          if (comp.closed === 1) {
             responder.addSection('canRegister', false);
           } else {
             responder.addSection('canRegister', true);
           }
 
-      } else {
-        responder.addSection('isRegistered', true);
+        } else {
+          responder.addSection('isRegistered', true);
+        }
       }
     })();
   };

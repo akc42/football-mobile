@@ -19,9 +19,17 @@
 */
 import { LitElement, html } from '../libs/lit-element.js';
 import { unsafeHTML } from '../libs/unsafe-html.js';
+import {cache} from '../libs/cache.js';
+
+import api from '../modules/api.js';
+
+import './date-format.js';
 import './app-page.js';
 import page from '../styles/page.js';
-import global from '../modules/globals.js'
+
+//temporary
+import './calendar-input.js';
+
 
 /*
      <fm-soon>
@@ -32,14 +40,24 @@ class FmSoon extends LitElement {
   }
   static get properties() {
     return {
-    
+      soon: {type: String},
+      expected: {type: Number},
+      condition: {type:String}
     };
   }
   constructor() {
     super();
+    this.soon = '';
+    this.expected = 0;
+    this.condition = '';
   }
   connectedCallback() {
     super.connectedCallback();
+    api('user/coming_soon').then(response => {
+      this.soon = response.message;
+      this.expected = response.date;
+      this.condition = response.condition;
+    });
   }
   disconnectedCallback() {
     super.disconnectedCallback();
@@ -54,11 +72,28 @@ class FmSoon extends LitElement {
   }
   render() {
     return html`
-        <app-page id="page" heading="Coming Soon">
-        <p>${unsafeHTML(global.comingSoonMessage)}</p>
+      <style>
+        .condition {
+          font-weight: bold;
+          color: red;
+        }
+      </style>
+       <app-page id="page" heading="Coming Soon">
+        <p>${unsafeHTML(this.soon)}</p>
+        ${cache(this.expected !== 0 ? html`
+          <p>The competition is expected to be open on <date-format .date=${this.expected}></date-format></p>
+        `:'')}
+        ${cache(this.condition? html`<p>When open, the condition for registering will be:- </p>
+        <p class="condition">${this.condition}.</p>`:'')}
+
+        <p>Temporary trial of <calendar-input .value=${this.expected} withtime @value-changed=${this._newExpected}></calendar-input></p>
         
-        </app-page>
+      </app-page>
     `;
+  }
+  _newExpected(e) {
+    e.stopPropagation();
+    console.log('got an value changed event from calendar input',e.changed)
   }
 }
 customElements.define('fm-soon', FmSoon);

@@ -277,7 +277,6 @@ class MainApp extends LitElement {
         @media (min-width: 500px) {
           :host, .menucontainer {
             flex-direction: column;
-            font-size:12pt;
           }
 
           [role="menuitem"] {
@@ -474,7 +473,7 @@ class MainApp extends LitElement {
   _menuAdd(e) {
     debug(e.menu + ' being added to menu');
     switch(e.menu) {
-      case 'scores':
+      case 'summary':
         this.scores = true;
         break;
       case 'close':

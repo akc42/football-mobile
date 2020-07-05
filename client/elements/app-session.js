@@ -89,7 +89,7 @@ class AppSession extends LitElement {
       switch(this.state) {
         case 'consent':
           global.ready.then(() => { //only using this to wait until globals has been read, since this is the first state
-            if (manageVisitCookie()){
+            if (manageVisitCookie(true)){  //parameter true means force global.cid to 0;
               if (window.location.hash !== '') {
                 this.state = window.location.hash.substring(1);
                 history.pushState('', document.title, window.location.pathname

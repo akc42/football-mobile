@@ -190,7 +190,7 @@
           debugapi(`Received /api/config/${config} request`);
           try {
             const response = await confs[config]();
-            res.end(JSON.stringify(response));
+            res.end(response);
           } catch (e) {
             errored(req, res, `config/${config} failed with ${e}`);
           } 

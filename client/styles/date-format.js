@@ -17,17 +17,23 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
+import { css } from '../libs/lit-element.js';
 
-(function() {
-  'use strict';
-
-  const debug = require('debug')('football:api:checknames');
-  const db = require('../utils/database');
-
-  module.exports = function(user, cid, params, responder) {
-    debug('request received to check name', params.name, 'as user ', user.uid);
-    const found = db.prepare('SELECT Count(*) FROM Participant WHERE uid <> ? AND name = ?').pluck().get(user.uid,params.name);
-    responder.addSection('found', found > 0);
-    debug('Success with found = ', found);
-  };
-})();
+export default css`
+  :host {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  .date {
+    display: flex;
+    flex-direction: row;
+    width: 90px;
+    justify-content: center;
+    padding: 2px;
+  }
+  .date.time {
+    width: 130px;
+  }
+        
+`;

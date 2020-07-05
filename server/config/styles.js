@@ -32,6 +32,6 @@
     }
 
     debug('got styles');
-    return styles;
+    return JSON.stringify(styles);
   };
 })();

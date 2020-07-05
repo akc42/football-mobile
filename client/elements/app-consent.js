@@ -26,8 +26,8 @@ import button from '../styles/button.js';
 import page from '../styles/page.js';
 
 import AppKeys from '../modules/keys.js';
-import {SessionStatus} from '../modules/events.js';
-import global from '../modules/globals.js';
+import {SessionStatus, ApiError} from '../modules/events.js';
+
 
 /*
      <app-consent>: Standard for on privacy notice about cookies.
@@ -36,15 +36,23 @@ class AppConsent extends LitElement {
   static get styles() {
     return [button, page];
   }
+  static get properties() {
+    return {
+      first: {type: String}
+    }
+  }
 
   constructor() {
     super();
-    global.ready.then(() => this.requestUpdate());
-    this._accept = this._accept.bind(this);
-
+    this.first = '';
   }
   connectedCallback() {
     super.connectedCallback();
+    window.fetch('/api/config/first_time', { method: 'get' }).then(response => {
+      if (!response.ok) throw new ApiError(response.status);
+      return response.text();
+     }).then(text => this.first = text);
+
     document.body.addEventListener('key-pressed', this._accept);
     if (this.keys === undefined) {
       this.keys = new AppKeys(document.body, 'Enter');
@@ -89,7 +97,7 @@ class AppConsent extends LitElement {
 
       </style>
       <app-page heading="Your Privacy">
-        <p>${unsafeHTML(global.firstTimeMessage)}</p>
+        <p>${unsafeHTML(this.first)}</p>
 
         <p> We use cookies on this site for two purposes:-</p>
         <ol>

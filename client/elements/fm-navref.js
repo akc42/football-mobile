@@ -129,7 +129,7 @@ class FmNavref extends LitElement {
         has matches not past their deadlines, or the <strong>/teams</strong> page otherwise.</p>  
         
         <p>If the picks window is not open but there has been at least one open round specified for the competition you will
-        be shown the </strong>/rounds/(r)</strong> page, where (r) is the number of that latest round. Finally, if there is
+        be shown the </strong>/rounds</strong> page, where (r) is the number of that latest round. Finally, if there is
         nothing else to display <strong>/summary</strong> page where everyone will have zero score, but at least you can
         see who is registered.</p>
 

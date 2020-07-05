@@ -32,6 +32,7 @@ export default css`
     padding: 5px;
     border-radius:5px;
     box-shadow: 2px 2px 5px 4px rgba(0,0,0,0.2);
+    cursor: pointer;
   }
   button[cancel] {
     background-color: var(--app-cancel-button-color);

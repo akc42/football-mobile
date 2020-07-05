@@ -19,13 +19,21 @@
 */
 import global from './globals.js';
 
-export function manageVisitCookie() {
+export function manageVisitCookie(initial) {
   const mbvisited = new RegExp(`^(.*; +)?${global.cookieVisitName}=([^;]+)(.*)?$`);
   const matches = document.cookie.match(mbvisited);
   if (matches && matches.length > 2 && typeof matches[2] === 'string') {
     const cookieContents = JSON.parse(matches[2]);
     global.cookieConsent = cookieContents.consent;
-    global.cid = cookieContents.cid;
+    if (initial && cookieContents.cid !== 0) {
+      global.cid = 0;
+      cookieContents.cid = 0;
+      const expiryDate = new Date();
+      expiryDate.setTime(expiryDate.getTime() + (90 * 24 * 60 * 60 * 1000))
+      document.cookie = `${global.cookieVisitName}=${JSON.stringify(cookieContents)}; expires=${expiryDate.toGMTString()}; Path=/`; 
+    } else {
+      global.cid = cookieContents.cid;
+    }
     return cookieContents.step;
   }
   return false;

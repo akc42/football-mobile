@@ -42,8 +42,6 @@
         config.webmaster = s.get('webmaster');
         config.siteLogo = s.get('site_logo');
         config.verifyExpires = s.get('verify_expires');
-        config.firstTimeMessage = s.get('first_time_message');
-        config.comingSoonMessage = s.get('comming_soon_message');
         config.minPassLen = s.get('min_pass_len');
         config.dwellTime = s.get('dwell_time');
 
@@ -58,7 +56,7 @@
       config.copyrightYear = year;
       debug('Success config');
       
-      return config;
+      return JSON.stringify(config);
 
   };
 })();

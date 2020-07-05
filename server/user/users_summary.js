@@ -48,6 +48,7 @@
     const cache = getCache(cid);
     //extract the data we want from the cache
     responder.addSection('users');
+    
     for (const user of cache) {
       const {rounds, ...row} = user;
       responder.write(row);
