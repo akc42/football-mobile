@@ -404,6 +404,9 @@ class MainApp extends LitElement {
   }
 
   _goHome() {
+    if (global.cid !== global.lcid) {
+      updateCid(global.lcid);
+    }
     switchPath('/');
   }
   _keyPressed(e) {
