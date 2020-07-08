@@ -20,7 +20,6 @@ import { LitElement } from '../libs/lit-element.js';
 
 import domHost from '../modules/host.js';
 import Route from '../modules/route.js';
-import global from '../modules/globals.js';
 import {PageTitle, PageData, PageClosed, PageClose, RouteChanged} from '../modules/events.js';
 
 export default class PageManager extends  LitElement {
@@ -52,7 +51,6 @@ export default class PageManager extends  LitElement {
     this.route = {active: false};
   }
   updated(changed) {
-    super.updated(changed);
     if (changed.has('route')) {
       if (this.route.active) {
         this.subRoute = this.router.routeChange(this.route);
@@ -79,6 +77,7 @@ export default class PageManager extends  LitElement {
         this.page = null;
       }
     }
+    super.updated(changed);
   }
   _closeRequest(e) {
     e.stopPropagation();
@@ -121,7 +120,7 @@ export default class PageManager extends  LitElement {
         We just switch to the home page (at our level)
 
         In order to do that, we take advantage of the fact that we  know that the
-        url for out home page doesn't contain the value of the correct "page" in
+        url for our home page doesn't contain the value of the correct "page" in
         the url, and therefore we can emulate what route does without the complexity
         that it uses
       */
@@ -145,7 +144,7 @@ export default class PageManager extends  LitElement {
       }
     }));
   }
-  // abstract
+  // abstract (or not if we are happy with what they do)
   homePage() {return 'home';}
   closeReroute() {return false;}
   loadPage() {}

@@ -42,18 +42,14 @@
 
   const debug = require('debug')('football:api:users_summary');
   const getCache = require('../utils/competition_cache');
-
+  const db = require('../utils/database');
+  
   module.exports = async function(user, cid, params, responder) {
     debug('new request from user', user.uid, ' for cid', cid);
     const cache = getCache(cid);
-    //extract the data we want from the cache
-    responder.addSection('users');
-    
-    for (const user of cache) {
-      const {rounds, ...row} = user;
-      responder.write(row);
-      debug('written row ', row);
-    }
+    responder.addSection('users', cache);
+    const name = db.prepare(`SELECT name FROM competition WHERE cid = ?`).pluck().get(cid);
+    responder.addSection('name', name);  
     debug('all done');
   };
 })();

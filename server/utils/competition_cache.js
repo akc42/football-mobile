@@ -83,20 +83,24 @@
         cache = []
         let lastUid = 0
         let user;
-        let rounds;
         for (const row of makeCache.iterate(cid) ) {          
           if (row.uid !== lastUid) {
-            if (lastUid !== 0) cache.push(user); //save the previous user before we start the next;
+            if (lastUid !== 0) {
+              debug('finishing user', user.uid, 'with ', user.rounds.length, 'rounds');
+              cache.push(user); //save the previous user before we start the next;
+            }
             lastUid = row.uid; 
             const {rid, rname, score , ...partialRow} = row;
-            debug('patial row = ', partialRow);
+            debug('partial row = ', partialRow);
             user = partialRow;
             user.rounds = [];
             debug('got a new user', user);
           }
           const {rid, rname, score} = row; 
+          debug('extracted round data of (rid,rname,score) ', rid,rname,score);
           user.rounds.push({rid,rname,score});
         }
+        debug('finishing FINAL user', user.uid, 'with ', user.rounds.length, 'rounds');
         cache.push(user); //final user 
         debug('got the data set the cache');
         setCache.run(JSON.stringify(cache), cid);
