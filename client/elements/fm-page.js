@@ -39,7 +39,7 @@ class FmPage extends LitElement {
   }
   constructor() {
     super();
-    this.name = '<!--NO NAME-->'; //if name is this when connected, we need to fetch it, else its supplied
+    this.name = '<!--NO NAME-->'; //we need to fetch it but a comment will do in the meantime
     this.heading = '';
   }
   connectedCallback() {
