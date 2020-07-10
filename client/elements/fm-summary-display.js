@@ -23,7 +23,7 @@ import page from '../styles/page.js';
 
 import './fm-list.js';
 import './fm-user-summary.js';
-import './app-page.js';
+import './fm-page.js';
 
 
 /*
@@ -72,16 +72,7 @@ class FmSummaryDisplay extends LitElement {
           "user rs ps"
           "user ts ts";
       }
-      .competition {
-        background-color: white;
-        border:2px solid var(--app-accent-color);
-        border-radius: 5px;
-        box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
-        margin:5px 5px 5px 3px;
-        display: flex;
-        flex-direction: row;
-        justify-content: center;       
-      }
+
       .un,.rs,.ps,.ts {
         background-color: white;
         color:var(--app-primary-text);
@@ -103,11 +94,8 @@ class FmSummaryDisplay extends LitElement {
         grid-area:ts;
       }
     </style>
-    <app-page heading="Summary">
-        <div class="competition">
-          <div>${this.name}</div>
-        </div>
-        <fm-list custom="fm-user-summary"  .items=${this.users}>
+    <fm-page heading="Summary">
+      <fm-list custom="fm-user-summary"  .items=${this.users}>
         <div slot="header" class="container">
           <div class="un">Name</div>
           <div class="rs">Round Score</div>
@@ -115,7 +103,7 @@ class FmSummaryDisplay extends LitElement {
           <div class="ts">Total Score</div>
         </div>
       </fm-list>
-    </app-page>
+    </fm-page>
     `;
   }
 }

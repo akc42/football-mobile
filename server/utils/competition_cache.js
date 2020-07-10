@@ -49,8 +49,8 @@
     const readCache = db.prepare(`SELECT results_cache FROM competition WHERE cid = ? AND results_cache IS NOT NULL AND cache_store_date > (
       SELECT CASE WHEN value = 0 THEN 0 ELSE strftime('%s','now') - (3600 * value) END As expiry FROM settings WHERE name = 'cache_age')`).pluck();
     debug('prepared cache read - now see if we can build build score cache assuming cache not available')
-    const makeCache = db.prepare(`SELECT r.rid AS rid, r.name AS rname,r.score AS score,t.uid AS uid,t.name AS name,
-      t.rscore AS rscore,t.pscore AS pscore,(t.rscore + t.pscore) AS tscore
+    const makeCache = db.prepare(`SELECT r.rid AS rid, r.name AS rname,r.score AS rscore, r.bscore, r.mscore, r.pscore, r.oscore , t.uid AS uid,t.name AS name,
+      t.rscore AS sscore,t.pscore AS lscore,(t.rscore + t.pscore) AS tscore
       FROM (
         SELECT r.cid,u.uid,u.name AS name,sum(rs.score) AS rscore,p.pscore
         FROM participant u JOIN registration r USING (uid)
@@ -62,13 +62,13 @@
         GROUP BY r.cid,u.uid,u.name,p.pscore
       ) t
         JOIN (
-          SELECT cid,uid,rounds.name, rounds.rid,score 
+          SELECT cid,uid,rounds.name, rounds.rid,score as score, bscore, mscore, pscore, oscore
           FROM round_score rs JOIN (
             SELECT cid,rid,name FROM round
             WHERE cid = ? AND open = 1  
         ) AS rounds USING (cid,rid) 
       ) r USING (cid,uid)  
-      ORDER BY (pscore + rscore) DESC, t.name COLLATE NOCASE,rid DESC;`);
+      ORDER BY tscore DESC, t.name COLLATE NOCASE,rid DESC;`);
     debug('now prepare the install the cache')
     const setCache = db.prepare(`UPDATE competition SET results_cache = ?, cache_store_date = strftime('%s','now') WHERE cid = ?`);
     debug('lets do it')
@@ -90,15 +90,15 @@
               cache.push(user); //save the previous user before we start the next;
             }
             lastUid = row.uid; 
-            const {rid, rname, score , ...partialRow} = row;
+            const {rid, rname, rscore, bscore, mscore, pscore,oscore  , ...partialRow} = row;
             debug('partial row = ', partialRow);
             user = partialRow;
             user.rounds = [];
             debug('got a new user', user);
           }
-          const {rid, rname, score} = row; 
-          debug('extracted round data of (rid,rname,score) ', rid,rname,score);
-          user.rounds.push({rid,rname,score});
+          const { rid, rname, rscore, bscore, mscore, pscore, oscore} = row; 
+          debug('extracted round data of (rid,rname,rscore) ', rid,rname,rscore);
+          user.rounds.push({ rid, rname, rscore, bscore, mscore, pscore, oscore});
         }
         debug('finishing FINAL user', user.uid, 'with ', user.rounds.length, 'rounds');
         cache.push(user); //final user 

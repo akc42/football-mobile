@@ -19,46 +19,31 @@
 */
 import { LitElement, html } from '../libs/lit-element.js';
 
-import './fm-page.js';
-import './fm-list.js';
-import './fm-user-round.js';
-
-import page from '../styles/page.js';
+import { RoundSelected } from '../modules/events.js';
 
 /*
-     <fm-user-scores>
+     <fw-user-Round>
 */
-class FmUserScores extends LitElement {
+class FmUserRound extends LitElement {
   static get styles() {
-    return [page];
+    return [];
   }
   static get properties() {
     return {
-      user: {type: Object},
-      name: {type: String}  //Competition Name
+      item: {type: Object}
     };
   }
   constructor() {
     super();
-    this.user = {uid:0,name:'', rounds: []};
-  }
-  connectedCallback() {
-    super.connectedCallback();
-  }
-  disconnectedCallback() {
-    super.disconnectedCallback();
+    this.item = {name:'',rscore:'',pscore:'',tscore:''};
   }
 
   render() {
     return html`
       <style>
-      
-        .container{
+        :host {
+
           background-color: var(--app-primary-color);
-          border:2px solid var(--app-accent-color);
-          border-radius: 5px;
-          box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
-          margin:5px 5px 5px 3px;
           display: grid;
           grid-gap:2px;
           grid-template-columns: 3fr 2fr 1fr;
@@ -97,21 +82,17 @@ class FmUserScores extends LitElement {
 
 
       </style>
-      <fm-page id="page" heading="User Scores">
-        <div slot="heading"><strong>${this.user.name}</strong></div>
-        <div slot="heading">${this.user.sscore}:${this.user.lscore}:${this.user.tscore}</div>
-        <fm-list custom="fm-user-round"  .items=${this.user.rounds}>
-          <div slot="header" class="container">
-            <div class="rn">Round Name</div>
-            <div class="mp">Match Picks</div>
-            <div class="ou">Over Under</div>
-            <div class="mt">Match Total</div>
-            <div class="bs">Bonus Score</div>
-            <div class="rs">Round Score</div>
-          </div>
-        </fm-list>
-      </fm-page>
+      <div class="rn" @click=${this._select}>${this.item.rname}</div>
+      <div class="mp" @click=${this._select}>${this.item.pscore}</div>
+      <div class="ou" @click=${this._select}>${this.item.oscore}</div>
+      <div class="mt" @click=${this._select}>${this.item.mscore}</div>
+      <div class="bs" @click=${this._select}>${this.item.bscore}</div>
+      <div class="rs" @click=${this._select}>${this.item.rscore}</div>
     `;
   }
+  _select(e) {
+    e.stopPropagation();
+    this.dispatchEvent(new RoundSelected(this.item.rid));
+  }
 }
-customElements.define('fm-user-scores', FmUserScores);
+customElements.define('fm-user-round', FmUserRound);

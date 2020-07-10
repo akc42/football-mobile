@@ -329,6 +329,21 @@ export class PageTitle extends Event {
   }
 };
 
+export class RoundSelected extends Event {
+  static eventType = 'round-selected';
+
+  /*
+     The following are the fields provided by this event
+
+     rid: Round Number
+
+  */
+
+  constructor(rid) {
+    super('round-selected',{composed: true, bubbles: true});
+    this.rid = rid;
+  }
+};
 
 export class RouteChanged extends Event {
   static eventType = 'route-changed';
@@ -359,6 +374,22 @@ export class SessionStatus extends Event {
   constructor(status) {
     super('session-status',{composed: true, bubbles: true});
     this.status = status;
+  }
+};
+
+export class UserSelected extends Event {
+  static eventType = 'user-selected';
+
+  /*
+     The following are the fields provided by this event
+
+     uid: id of selected user
+
+  */
+
+  constructor(uid) {
+    super('user-selected',{composed: true, bubbles: true});
+    this.uid = uid;
   }
 };
 

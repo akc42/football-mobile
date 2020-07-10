@@ -21,9 +21,13 @@ import { html } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
 import PageManager from './page-manager.js';
-import { MenuReset } from '../modules/events.js';
+import { MenuReset, MenuAdd } from '../modules/events.js';
 import Route from '../modules/route.js';
 import api from '../modules/api.js';
+import { switchPath } from '../modules/utils.js';
+import Debug from '../modules/debug.js';
+const debug = new Debug('summary');
+
 /*
      <fm-summary>
 */
@@ -41,11 +45,13 @@ class FmSummary extends PageManager {
   constructor() {
     super();
     this.users = [];
-
     this.index = -1;
     this.name = ''
+    this.uRouter = new Route('/:uid','page:user');
+    this.fetchdataInProgress = false;
   }
   connectedCallback() {
+    this.fetchdataInProgress = false;
     super.connectedCallback();
   }
   disconnectedCallback() {
@@ -56,13 +62,31 @@ class FmSummary extends PageManager {
         this.dispatchEvent(new MenuReset());
         this._newRoute();
     }
-
+    if (changed.has('subRoute') && this.subRoute.active) {
+      const uidR = this.uRouter.routeChange(this.subRoute);
+      if (uidR.active) {
+        this.dispatchEvent(new MenuAdd('close'));
+         if (!this.fetchdataInProgress) {
+            this.index = this.users.findIndex(user => user.uid === uidR.params.uid);
+            debug('no fetch happening, find index for ' + uidR.params.uid + ' as ' + this.index);
+            if (this.index < 0) switchPath('/summary');
+         } else {
+           debug('fetch in progress, delayed index setting');
+         }
+      } else {
+        switchPath('/summary');
+      }
+    }
+    if(changed.has('users') && this.subRoute.active) {
+      debug('users changed (as a result of fetching?')
+      const uidR = this.uRouter.routeChange(this.subRoute);
+      if (uidR.active) {
+        this.index = this.users.findIndex(user => user.uid === uidR.params.uid);
+        debug('userschanged, find index for ' + uidR.params.uid + ' as ' + this.index);
+        if (this.index < 0) switchPath('/summary');
+      }
+    }
     super.update(changed);
-  }
-  firstUpdated() {
-  }
-  updated(changed) {
-    super.updated(changed);
   }
   render() {
     return html`
@@ -73,11 +97,14 @@ class FmSummary extends PageManager {
       </style>
       ${cache({
         home: html`<fm-summary-display 
+          managed-page
           .users=${this.users} 
           .name=${this.name} 
           @user-selected=${this._selectUser}></fm-summary-display>`,
         user: html`<fm-user-scores 
-          .user=${this.index >= 0? this.users[this.index] : {uid:0,name:''}}></fm-user-scores>` 
+          managed-page
+          .user=${this.index >= 0? this.users[this.index] : {uid:0,name:'',rounds:[]}}
+          .name=${this.name}></fm-user-scores>` 
       }[this.page])}
     `;
   }
@@ -85,14 +112,23 @@ class FmSummary extends PageManager {
     if (page === 'home') {
       import('./fm-summary-display.js');
     } else {
-      import('./fm-user-scores');
+      import('./fm-user-scores.js');
     }
 
   }
   async _newRoute() {
+    this.fetchdataInProgress = true;
+    debug('about to fetch users_summary');
     const response = await api('user/users_summary');
+    debug('got users_summary');
+    this.fetchdataInProgress = false;
     this.users = response.users;
     this.name = response.name;
+  }
+  _selectUser(e) {
+    e.stopPropagation();
+    
+    switchPath(`/summary/user/${e.uid}`)
   }
 }
 customElements.define('fm-summary', FmSummary);

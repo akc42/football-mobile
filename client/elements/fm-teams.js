@@ -22,7 +22,7 @@ import { LitElement, html } from '../libs/lit-element.js';
 import api from '../modules/api.js';
 import Route from '../modules/route.js';
 import { cache } from '../libs/cache.js';
-import './app-page.js';
+import './fm-page.js';
 import './user-pick.js';
 import PageManager from './page-manager.js';
 import page from '../styles/page.js';
@@ -138,7 +138,12 @@ class FmTeams extends PageManager {
 
 
       </style>
-      <app-page heading="Teams" .subheading=${this.userPicks.length > 0 ? html`${this.userPicks[0].name}:${this.userPicks[0].score}` :''}>
+      <fm-page heading="Teams">
+        ${cache(this.userPicks.length > 0 ? html`
+          <div slot="heading"><strong>${this.userPicks[0].name}</strong></div>
+          <div slot="heading">${this.userPicks[0].score}</div>
+        ` :'')}
+        
         <section class="scrollable">
           ${cache({
             home: html`
@@ -168,7 +173,7 @@ class FmTeams extends PageManager {
 
           }[this.page])}
         </section>
-      </app-page>
+      </fm-page>
     `;
   }
   async _newRoute() {

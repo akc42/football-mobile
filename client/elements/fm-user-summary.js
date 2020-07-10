@@ -23,6 +23,7 @@ import {classMap} from '../libs/class-map.js';
 import style from '../styles/fm-user-summary.js';
 
 import global from '../modules/globals.js';
+import { UserSelected } from '../modules/events.js';
 
 /*
      <fw-user-summary>
@@ -38,16 +39,20 @@ class FmUserSummary extends LitElement {
   }
   constructor() {
     super();
-    this.item = {name:'',rscore:'',pscore:'',tscore:''};
+    this.item = {uid:0, name:'',sscore:'',lscore:'',tscore:''};
   }
 
   render() {
     return html`
-      <div class="un ${classMap({me: global.user.uid === this.item.uid})}">${this.item.name}</div>
-      <div class="rs ${classMap({ me: global.user.uid === this.item.uid })}">${this.item.rscore}</div>
-      <div class="ps ${classMap({ me: global.user.uid === this.item.uid })}">${this.item.pscore}</div>
-      <div class="ts ${classMap({ me: global.user.uid === this.item.uid })}">${this.item.tscore}</div>
+      <div class="un ${classMap({me: global.user.uid === this.item.uid})}" @click=${this._select}>${this.item.name}</div>
+      <div class="rs ${classMap({ me: global.user.uid === this.item.uid })}" @click=${this._select}>${this.item.sscore}</div>
+      <div class="ps ${classMap({ me: global.user.uid === this.item.uid })}" @click=${this._select}>${this.item.lscore}</div>
+      <div class="ts ${classMap({ me: global.user.uid === this.item.uid })}" @click=${this._select}>${this.item.tscore}</div>
     `;
+  }
+  _select(e) {
+    e.stopPropagation();
+    this.dispatchEvent(new UserSelected(this.item.uid));
   }
 }
 customElements.define('fm-user-summary', FmUserSummary);

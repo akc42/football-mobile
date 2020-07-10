@@ -37,6 +37,7 @@ export default css`
     color:var(--app-primary-text);
     text-align: center;
     vertical-align: center;
+    cursor:pointer;
   }
   .un {
     grid-area:user
