@@ -47,9 +47,7 @@
   module.exports = async function(user, cid, params, responder) {
     debug('new request from user', user.uid, ' for cid', cid);
     const cache = getCache(cid);
-    responder.addSection('users', cache);
-    const name = db.prepare(`SELECT name FROM competition WHERE cid = ?`).pluck().get(cid);
-    responder.addSection('name', name);  
+    responder.addSection('users', cache); 
     debug('all done');
   };
 })();
