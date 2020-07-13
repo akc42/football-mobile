@@ -19,39 +19,147 @@
 */
 import { html } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
+
 import PageManager from './page-manager.js';
+import { MenuReset, MenuAdd } from '../modules/events.js';
+import Route from '../modules/route.js';
+import api from '../modules/api.js';
+import global from '../modules/globals.js';
+import { switchPath } from '../modules/utils.js';
+import Debug from '../modules/debug.js';
+const debug = new Debug('scores');
 
 /*
      <fm-scores>
 */
-
 class FmScores extends PageManager {
+  static get properties() {
+    return {
+      users: {type: Array}, //to hold full competitions cache result
+      user: {type:Object},  //a selected on of the users above
+      rounds: {type: Array}, //array of rounds and their names, augmented by user round scores when user is selected
+      userRoute : {type: Object},
+
+    };
+  }
+  constructor() {
+    super();
+    this.users = [];
+    this.user = {uid:0, name:'', rscore:0, pscore: 0, rounds:[]};
+    this.rounds = [];
+    this.uRouter = new Route('/:uid','page:user');
+    this.userRoute = {active: false}
+    this.fetchdataInProgress = false;
+    this.lastCid = 0;
+  }
+  connectedCallback() {
+    super.connectedCallback();
+    this.fetchdataInProgress = false;
+    this.lastCid = 0;
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+  }
+  update(changed) {
+    if (changed.has('route') && this.route.active) {
+        this.dispatchEvent(new MenuReset());
+        this._newRoute();
+    }
+    if (changed.has('subRoute') && this.subRoute.active) {
+      this.userRoute = this.uRouter.routeChange(this.subRoute);
+      if (this.userRoute.active) {
+        this.dispatchEvent(new MenuAdd('close'));
+         if (!this.fetchdataInProgress) {
+            this.user = this.users.find(user => user.uid === this.userRoute.params.uid);
+            debug('no fetch happening, find index for ' + this.userRoute.params.uid);
+            if (this.user === undefined)  {
+              this.user = { uid: 0, name: '', rscore: 0, pscore: 0, rounds: [] }; //reset user to dummy
+              switchPath('/scores');
+            } else {
+              for (const round of this.rounds) {
+                const scores = this.user.rounds.find(r => r.rid === round.rid);
+                if (scores === undefined) {
+                  Object.assign(round,{score:0, bscore:0, mscore:0, pscore: 0, oscore: 0});
+                } else {
+                  Object.assign(round, { ...scores});
+                }
+              }
+            }
+
+
+         } else {
+           debug('fetch in progress, delayed index setting');
+         }
+      } else {
+        switchPath('/scores');
+      }
+    }
+    if(changed.has('users') && this.userRoute.active) {
+      this.user = this.users.find(user => user.uid === this.userRoute.params.uid);
+      debug('no fetch happening, find  ' + this.userRoute.params.uid);
+      if (this.user === undefined) {
+        this.user = { uid: 0, name: '', rscore: 0, pscore: 0, rounds: [] }; //reset user to dummy
+        switchPath('/scores');
+      } else {
+        for (const round of this.rounds) {
+          const scores = this.user.rounds.find(r => r.rid === round.rid);
+          if (scores === undefined) {
+            Object.assign(round,{ score: 0, bscore: 0, mscore: 0, pscore: 0, oscore: 0 });
+          } else {
+            Object.assign(round, { ...scores });
+          }
+        }
+      }
+    }
+    super.update(changed);
+  }
   render() {
     return html`
-    <style>
-      :host {
-        height: 100%;
-      }
-    </style>
-    ${cache({
-        home: html`<fm-summary managed-page></fm-summary>`,
-        round: html`<fm-rounds .route=${this.subRoute} managed-page></fm-rounds>`,
-        teams: html`<fm-teams .route=${this.subRoute} managed-page></fm-teams>`
-    }[this.page])}
+      <style>
+        :host {
+          height: 100%;
+        }
+      </style>
+      ${cache({
+        home: html`<fm-scores-home 
+          managed-page
+          .users=${this.users} 
+          @user-selected=${this._selectUser}></fm-scores-home>`,
+        user: html`<fm-scores-user 
+          managed-page
+          .user=${this.user}
+          .rounds=${this.rounds}
+          .name=${this.name}></fm-scores-user>` 
+      }[this.page])}
     `;
   }
   loadPage(page) {
-      switch(page) {
-        case 'home':
-          import('./fm-summary.js');
-          break;
-        case 'round':
-          import('./fm-rounds.js');
-          break;
-        case 'teams':
-          import('./fm-teams.js');
-          break;
+    if (page === 'home') {
+      import('./fm-scores-home.js');
+    } else {
+      import('./fm-scores-user.js');
+    }
+
+  }
+  async _newRoute() {
+    if (this.lastCid !== global.cid) {  //don't repeat if we don't have to
+      this.lastCid = global.cid;
+      this.fetchdataInProgress = true;
+      debug('about to fetch users_summary');
+      const response = await api('user/competition_scores');
+      debug('got users_summary');
+      this.fetchdataInProgress = false;
+      this.users = response.cache.users;
+      this.users.sort((a,b) => b.tscore - a.tscore); //sort in decending order of total score.
+      for(const user of this.users) {
+        user.rounds = response.cache.rounds.filter(u => u.uid === user.uid); //put all the round data with correct user (sort comes later)
       }
+      this.rounds = response.rounds.reverse();
+    }
+  }
+  _selectUser(e) {
+    e.stopPropagation();
+    switchPath(`/scores/user/${e.uid}`);
   }
 }
 customElements.define('fm-scores', FmScores);

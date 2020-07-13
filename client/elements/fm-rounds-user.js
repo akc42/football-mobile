@@ -24,18 +24,19 @@ import './fm-list.js';
 import './fm-user-round.js';
 
 import page from '../styles/page.js';
+import tooltip from '../styles/tooltip.js';
+import { switchPath } from '../modules/utils.js';
 
 /*
-     <fm-user-scores>
+     <fm-scores-user>
 */
-class FmUserScores extends LitElement {
+class FmRoundsUser extends LitElement {
   static get styles() {
-    return [page];
+    return [page, tooltip];
   }
   static get properties() {
     return {
-      user: {type: Object},
-      name: {type: String}  //Competition Name
+      user: {type: Object}
     };
   }
   constructor() {
@@ -73,7 +74,6 @@ class FmUserScores extends LitElement {
           color:var(--app-primary-text);
           text-align: center;
           vertical-align: center;
-          cursor:pointer;
         }
         .rn {
           grid-area:round;
@@ -94,11 +94,17 @@ class FmUserScores extends LitElement {
         .rs {
           grid-area: rs;
         }
-
+        .poff {
+          cursor:pointer;
+        }
 
       </style>
       <fm-page id="page" heading="User Scores">
-        <div slot="heading"><strong>${this.user.name}</strong></div>
+        <div 
+          slot="heading" 
+          data-tooltip="click for playoff info" 
+          @click=${this._playoff} 
+          class="poff"><strong>${this.user.name}</strong></div>
         <div slot="heading">${this.user.sscore}:${this.user.lscore}:${this.user.tscore}</div>
         <fm-list custom="fm-user-round"  .items=${this.user.rounds}>
           <div slot="header" class="container">
@@ -113,5 +119,9 @@ class FmUserScores extends LitElement {
       </fm-page>
     `;
   }
+  _playoff(e) {
+    e.stopPropagation();
+    switchPath(`/teams/${this.user.uid}`);
+  }
 }
-customElements.define('fm-user-scores', FmUserScores);
+customElements.define('fm-rounds-user', FmRoundsUser);

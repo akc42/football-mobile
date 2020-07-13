@@ -20,15 +20,15 @@
 import { LitElement, html } from '../libs/lit-element.js';
 import {classMap} from '../libs/class-map.js';
 
-import style from '../styles/fm-user-summary.js';
+import style from '../styles/fm-rounds-match.js';
 
 import global from '../modules/globals.js';
 import { UserSelected } from '../modules/events.js';
 
 /*
-     <fw-user-summary>
+     <fw-rounds-match>
 */
-class FmUserSummary extends LitElement {
+class FmRoundsMatch extends LitElement {
   static get styles() {
     return [style];
   }
@@ -36,6 +36,7 @@ class FmUserSummary extends LitElement {
     return {
       item: {type: Object}
     };
+    
   }
   constructor() {
     super();
@@ -55,4 +56,4 @@ class FmUserSummary extends LitElement {
     this.dispatchEvent(new UserSelected(this.item.uid));
   }
 }
-customElements.define('fm-user-summary', FmUserSummary);
+customElements.define('fm-rounds-match', FmRoundsMatch);

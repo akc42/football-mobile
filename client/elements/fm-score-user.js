@@ -18,39 +18,41 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
+import {classMap} from '../libs/class-map.js';
 
+import style from '../styles/fm-score-user.js';
 
-import style from '../styles/app-page.js';
 import global from '../modules/globals.js';
+import { UserSelected } from '../modules/events.js';
+
 /*
-     <app-page>
+     <fw-user-scores>
 */
-class AppPage extends LitElement {
+class FmScoreUser extends LitElement {
   static get styles() {
     return [style];
   }
   static get properties() {
     return {
-      heading: {type: String}
+      item: {type: Object}
     };
   }
   constructor() {
     super();
-    this.heading='';
+    this.item = {uid:0, name:'',rscore:'',lscore:'',tscore:''};
   }
+
   render() {
     return html`
-      <header>
-        <img src="${global.siteLogo}" height="64px"/>
-        <div id="hcont">
-          <div class="heading">${this.heading}</div>
-          <div class="subheading"><slot name="subheading"></slot></div>
-        </div>
-      </header>
-      <section><slot class="container"></slot></section>
-  
-      <div class="action"><slot name="action"></slot></div>
+      <div class="un ${classMap({me: global.user.uid === this.item.uid})}" @click=${this._select}>${this.item.name}</div>
+      <div class="rs ${classMap({ me: global.user.uid === this.item.uid })}" @click=${this._select}>${this.item.rscore}</div>
+      <div class="ps ${classMap({ me: global.user.uid === this.item.uid })}" @click=${this._select}>${this.item.lscore}</div>
+      <div class="ts ${classMap({ me: global.user.uid === this.item.uid })}" @click=${this._select}>${this.item.tscore}</div>
     `;
   }
+  _select(e) {
+    e.stopPropagation();
+    this.dispatchEvent(new UserSelected(this.item.uid));
+  }
 }
-customElements.define('app-page', AppPage);
+customElements.define('fm-score-user', FmScoreUser);

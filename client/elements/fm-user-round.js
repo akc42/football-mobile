@@ -21,12 +21,14 @@ import { LitElement, html } from '../libs/lit-element.js';
 
 import { RoundSelected } from '../modules/events.js';
 
+import style from '../styles/fm-user-round.js';
+
 /*
-     <fw-user-Round>
+     <fw-user-score>
 */
-class FmUserRound extends LitElement {
+class FmUserScore extends LitElement {
   static get styles() {
-    return [];
+    return [style];
   }
   static get properties() {
     return {
@@ -40,48 +42,6 @@ class FmUserRound extends LitElement {
 
   render() {
     return html`
-      <style>
-        :host {
-
-          background-color: var(--app-primary-color);
-          display: grid;
-          grid-gap:2px;
-          grid-template-columns: 3fr 2fr 1fr;
-          grid-template-areas:
-            "round mp mt"
-            "round ou mt"
-            "round bs rs";
-        }
-        .rn,.mp,.ou, .mt,.bs,.rs {
-          padding:2px;
-          background-color: white;
-          color:var(--app-primary-text);
-          text-align: center;
-          vertical-align: center;
-          cursor:pointer;
-        }
-        .rn {
-          grid-area:round;
-        }
-
-        .mp {
-          grid-area:mp;
-        }
-        .ou {
-          grid-area: ou;
-        }
-        .mt {
-          grid-area:mt;
-        }
-        .bs {
-          grid-area: bs;
-        }
-        .rs {
-          grid-area: rs;
-        }
-
-
-      </style>
       <div class="rn" @click=${this._select}>${this.item.rname}</div>
       <div class="mp" @click=${this._select}>${this.item.pscore}</div>
       <div class="ou" @click=${this._select}>${this.item.oscore}</div>
@@ -95,4 +55,4 @@ class FmUserRound extends LitElement {
     this.dispatchEvent(new RoundSelected(this.item.rid));
   }
 }
-customElements.define('fm-user-round', FmUserRound);
+customElements.define('fm-user-score', FmUserScore);

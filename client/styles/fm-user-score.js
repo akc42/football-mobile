@@ -21,25 +21,42 @@ import { css } from '../libs/lit-element.js';
 
 export default css`
   :host {
-    height: 100%;
+
+    background-color: var(--app-primary-color);
+    display: grid;
+    grid-gap:2px;
+    grid-template-columns: 3fr 2fr 1fr;
+    grid-template-areas:
+      "round mp mt"
+      "round ou mt"
+      "round bs rs";
   }
-  .competition {
+  .rn,.mp,.ou, .mt,.bs,.rs {
+    padding:2px;
     background-color: white;
-    border:2px solid var(--app-accent-color);
-    border-radius: 5px;
-    box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
-    margin:5px 5px 5px 3px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;  
-    align-items: center;     
+    color:var(--app-primary-text);
+    text-align: center;
+    vertical-align: center;
+    cursor:pointer;
   }
-  ::slotted(*) {
-    flex: 1 0 0;
-    margin: 0 5px;
-  } 
-  .competition>div#compname {
-    flex: 0 1 auto;
-    margin: 0;
-  } 
+  .rn {
+    grid-area:round;
+  }
+
+  .mp {
+    grid-area:mp;
+  }
+  .ou {
+    grid-area: ou;
+  }
+  .mt {
+    grid-area:mt;
+  }
+  .bs {
+    grid-area: bs;
+  }
+  .rs {
+    grid-area: rs;
+  }
+
 `;

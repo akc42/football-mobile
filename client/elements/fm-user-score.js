@@ -19,38 +19,40 @@
 */
 import { LitElement, html } from '../libs/lit-element.js';
 
+import { RoundSelected } from '../modules/events.js';
 
-import style from '../styles/app-page.js';
-import global from '../modules/globals.js';
+import style from '../styles/fm-user-score.js';
+
 /*
-     <app-page>
+     <fw-user-score>
 */
-class AppPage extends LitElement {
+class FmUserScore extends LitElement {
   static get styles() {
     return [style];
   }
   static get properties() {
     return {
-      heading: {type: String}
+      item: {type: Object}
     };
   }
   constructor() {
     super();
-    this.heading='';
+    this.item = {name:'',score:'',pscore:'',oscore:'', mscore:'', bscore:''};
   }
+
   render() {
     return html`
-      <header>
-        <img src="${global.siteLogo}" height="64px"/>
-        <div id="hcont">
-          <div class="heading">${this.heading}</div>
-          <div class="subheading"><slot name="subheading"></slot></div>
-        </div>
-      </header>
-      <section><slot class="container"></slot></section>
-  
-      <div class="action"><slot name="action"></slot></div>
+      <div class="rn" @click=${this._select}>${this.item.name}</div>
+      <div class="mp" @click=${this._select}>${this.item.pscore}</div>
+      <div class="ou" @click=${this._select}>${this.item.oscore}</div>
+      <div class="mt" @click=${this._select}>${this.item.mscore}</div>
+      <div class="bs" @click=${this._select}>${this.item.bscore}</div>
+      <div class="rs" @click=${this._select}>${this.item.score}</div>
     `;
   }
+  _select(e) {
+    e.stopPropagation();
+    this.dispatchEvent(new RoundSelected(this.item.rid));
+  }
 }
-customElements.define('app-page', AppPage);
+customElements.define('fm-user-score', FmUserScore);

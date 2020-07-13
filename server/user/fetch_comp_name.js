@@ -24,7 +24,16 @@
   const db = require('../utils/database');
 
   module.exports = (user,cid,params,responder) => {
-    const name = db.prepare(`SELECT name FROM competition WHERE cid = ?`).pluck().get(cid);
-    responder.addSection('name', name);  
+    const readname = db.prepare(`SELECT name FROM competition WHERE cid = ?`).pluck();
+    const readdeadline = db.prepare(`SELECT name, pp_deadline FROM competition WHERE cid = ?`);
+  
+    if(params.check) {
+      const {name, pp_deadline} = readdeadline.get(cid);
+      responder.addSection('name', name);
+      const cutoff = Math.floor(new Date().getTime()/1000);
+      responder.addSection('canpick', cutoff < pp_deadline);
+    } else {
+      responder.addSection('name', readname.get(cid));  
+    }
   };
 })();

@@ -28,7 +28,7 @@
   module.exports = async function() {
       const config = {};
       const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
-      const last = db.prepare(`SELECT c.cid, c.administrator, CASE WHEN r.rid IS NULL THEN 0 ELSE r.rid END AS rid 
+      const last = db.prepare(`SELECT c.cid, c.administrator, CASE WHEN r.rid IS NULL THEN 0 ELSE r.rid END AS rid, c.gap 
         FROM competition c LEFT JOIN round r ON  r.cid = c.cid AND r.rid = (
           SELECT rid FROM round WHERE cid = c.cid AND r.open = 1 ORDER BY rid DESC LIMIT 1
         ) ORDER BY c.
@@ -48,7 +48,8 @@
         const row = last.get();
         config.lcid = row.cid;
         config.luid = row.administrator;
-        config.lrid = row.rid ;
+        config.lrid = row.rid;
+        config.lgap = row.gap;
       })();
 
       const { version, year } = await versionPromise;

@@ -33,6 +33,7 @@ let dwellTime = 2000;
 let lrid = 0;
 let lcid = 0;
 let luid = 0;
+let lgap = 0;
 let cid = 0;
 
 let usage = '';
@@ -70,6 +71,7 @@ const global = {
       lrid = conf.lrid;
       lcid = conf.lcid;
       luid = conf.luid;
+      lgap = conf.lgap;
     })
     return globalPromise;
   },
@@ -150,6 +152,9 @@ const global = {
   },
   set lcid(v) {
     lcid = v;
+  },
+  get lgap() {
+    return lgap;
   }
 }
 

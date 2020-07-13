@@ -303,32 +303,37 @@ This setup is fundementally controlled by 4 variables
 
 ### Client Side Routing
 
-Two modules, `location.js` and `route.js` work in combination with each other to manage routing.  The former picks up changes to browser url if its been initialised via a call to `connectUrl(route => this.route)` function. This is done by `<app-pages>` The `<app-page-manager>` is an element that is extended
-by any other element (for instance `<fw-admin>` as well as `<app-pages>`) that needs to manage routing to subpages and uses the route changes to set the *page* variable to the correct value.  Routes don't just have page segments, but also parameter segments. 
+Two modules, `location.js` and `route.js` work in combination with each other to manage routing.  The former picks up 
+changes to browser url if its been initialised via a call to `connectUrl(route => this.route)` function. This is done
+by `<fm-pages>` The `<page-manager>` is an element that is extended by any other element (for instance `<fm-scores>` as
+well as `<fm-pages>`) that needs to manage routing to subpages and uses the route changes to set the *page* variable to
+the correct value.  Routes don't just have page segments, but also parameter segments. 
 
-What this effectively means that a client site route is a definition of which page to display in the hierarchy at any one time. So for example if we have a route /user/12/picks/99/view this could be interpreted as the top level "user" page for round 12 in the current competition, show the "picks" page (which initially might provide an option to show a summary for all users, but then might also set the parameter to 99 to select a particular user and have a "view" page under that).  The  `<app-pages>` controls a selection of the "home" page (url /), and the "user" page, but then the "user" page is also derived from the `<app-page-manager>` element as is the "picks" page.
+What this effectively means that a client site route is a definition of which page to display in the hierarchy at any
+one time. So for example if we have a route /rounds/5/user/12/picks this could be interpreted as the top level 
+"rounds" page for round 5 in the current competition for user 12, show the "picks" page.  The  `<fm-pages>` controls a 
+selection of the "home" page (url /), and the "rounds" page, but then the "rounds" page is also derived from
+the `<page-manager>` element as is the "picks" page.
 
 Our client side route are as follows:-
 
 ```
-/-   - home page selects one of four subroutes as the default dependant on condition 
-  |
-  /register  - show registration page if not already registered and competition is not closed
-  /teams - a page the current user can make their playoff picks, or just view the results
+/-   - home page selects one of several subroutes as the default dependant on condition
+  |       (check the code for <fm-home>)
+  /soon - if the current competition is not yet open this is displayed
+  /register  - show registration page if not already registered and competition is open but not closed
+  /scores - shows the total scores in the competition for all users
+  | /user/:uid - list of all the rounds and the scores from those rounds a partiular user (the totals 
+  |                and the playoff scores for user in heading)
+  /rounds/:rid - shows the particular round scores for all users (each item in list is like item 
+  |          |     in /scores/user/:uid, but for a particular round, and all users.).  A header to 
+  |          |     the list will show the bonus question and answers, indicating which answer 
+  |          |     is the correct one (if results are in)  
+  |          /user/:uid - display the results for a particular user, or allow a user (if user is "me") 
+  |                         to pick if deadline not yet past  
+  /teams - That shows all divisions, (along with the teams) and all the users 
   | |
   | /user/:uid - show pics for a specific user
-  | /division/:confid/:divid - use all users playoff scores for that partiular conference and division
-  /rounds - A page to allow the user to enter (or just see the results if past the deadline) of their 
-  | |       picks for the latest round in the competition
-  | /:rid - displays a list of users and their scores for the particular round (match and details of bonus selection) 
-  |     |
-  |     /user/:uid -display the results for a particular user (same display as /rounds, but for round and user specified) 
-  |    /match/:aid - all users for a particular match (round selected in above)
-  |              
-  /summary - shows the totals scores in the competition to date for all users
-  | |
-  | /user/:uid - list of all the round plus playoff scores for a partiular user  
-  /approve - shows list of users awaiting approval, with ability to approve, request more info, reject, or delete (silent rejection);
   /admin - menu of options and details of competition (from admin perspective) and ability to create new round
   | |
   | /round - editing details of the latest round of the competition

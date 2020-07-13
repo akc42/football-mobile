@@ -264,7 +264,7 @@ class MainApp extends LitElement {
           <div class="menucontainer">
             <div role="menuitem" @click=${this._goHome}><material-icon>home</material-icon><span>Home</span></div>
             ${cache(this.scores? html`
-              <div id="summary" role="menuitem" @click=${this._selectPage}><material-icon>people_outline</material-icon><span>Summary</span><span>F2</span></div>
+              <div id="scores" role="menuitem" @click=${this._selectPage}><material-icon>people_outline</material-icon><span>Scores</span><span>F2</span></div>
             `:'')}
             <hr class="sep"/>
             ${cache(this.competitions.length > 0 ?html`
@@ -416,7 +416,7 @@ class MainApp extends LitElement {
         switchPath('/help');
         break;
       case 'f2':
-        switchPath('/summary');
+        switchPath('/scores');
         break;
       case 'f12':
         switchPath('/profile');
@@ -437,7 +437,7 @@ class MainApp extends LitElement {
   _menuAdd(e) {
     debug(e.menu + ' being added to menu');
     switch(e.menu) {
-      case 'summary':
+      case 'scores':
         this.scores = true;
         break;
       case 'close':

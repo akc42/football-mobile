@@ -48,29 +48,29 @@ class FmHome extends LitElement {
   async _reroute() {
     this.dispatchEvent(new MenuReset());
     if (global.cid !== global.lcid) {
-      switchPath('/summary');
+      switchPath('/scores');
     } else {
       const response = await api('/user/can_register');
       if (response.isOpen) {
         if (response.isRegistered) {
           const response = await api('/user/can_pick');
           if (response.canPick) {
-            this.dispatchEvent(new MenuAdd('summary'));
+            this.dispatchEvent(new MenuAdd('scores'));
             if (response.matches) {
               switchPath('/rounds');
             } else {
               switchPath('/teams');
             }
           } else if (response.hasPicked) {
-            this.dispatchEvent(new MenuAdd('summary'));
+            this.dispatchEvent(new MenuAdd('scores'));
             switchPath(`/rounds/${global.lrid}`);
           } else {
-            switchPath('/summary');
+            switchPath('/scores');
           }
         } else if (response.canRegister) {
           switchPath('/register');
         } else {
-          switchPath('/summary');
+          switchPath('/scores');
         }
       } else {
         if (global.user.uid === global.luid) {

@@ -18,31 +18,32 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
+import {cache} from '../libs/cache.js';
 
 import page from '../styles/page.js';
 
 import './fm-list.js';
-import './fm-user-summary.js';
+import './fm-rounds.match.js';
 import './fm-page.js';
 
 
 /*
-     <fm-summary>
+     <fm-rounds-home>
 */
-class FmSummaryDisplay extends LitElement {
+class FmRoundsHome extends LitElement {
   static get styles() {
     return [page];
   }
   static get properties() {
     return {
       users: {type: Array},
-      name: {type: String}
+      round: {type: Object}
     };
   }
   constructor() {
     super();
     this.users = [];
-    this.name = '';
+    this.round = {uid:0, name:'', matches:[], options:[]}
   }
   connectedCallback() {
     super.connectedCallback();
@@ -58,7 +59,11 @@ class FmSummaryDisplay extends LitElement {
   }
   render() {
     return html`
+
     <style>
+      #canpick {
+        color: red;
+      }
       .container {
         background-color: var(--app-primary-color);
         border:2px solid var(--app-accent-color);
@@ -94,8 +99,12 @@ class FmSummaryDisplay extends LitElement {
         grid-area:ts;
       }
     </style>
-    <fm-page heading="Summary">
-      <fm-list custom="fm-user-summary"  .items=${this.users}>
+    <fm-page heading="Round Data">
+      <div slot="heading">Round ${this.round.rid} - ${this.round.name}</div>
+      ${cache(this.iCanPick?html`
+        <div id="canpick" slot="heading" @click=${this._makePicks}>Round Picks</div>
+      `:'')}
+      <fm-list custom="fm-round-user"  .items=${this.users}>
         <div slot="header" class="container">
           <div class="un">Name</div>
           <div class="rs">Round Score</div>
@@ -107,4 +116,4 @@ class FmSummaryDisplay extends LitElement {
     `;
   }
 }
-customElements.define('fm-summary-display', FmSummaryDisplay);
+customElements.define('fm-rounds-home', FmRoundsHome);
