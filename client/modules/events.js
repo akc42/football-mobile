@@ -86,6 +86,22 @@ export class CompetitionsChanged extends Event {
   }
 };
 
+export class EmoticonSelected extends Event {
+  static eventType = 'emoticon-selected';
+
+  /*
+     The following are the fields provided by this event
+
+     emoticon: code of emoticon selected (including leading ":")
+
+  */
+
+  constructor(emoticon) {
+    super('emoticon-selected',{composed: true, bubbles: true});
+    this.emoticon = emoticon;
+  }
+};
+
 export class FormError extends Event {
   static eventType = 'form-error';
 

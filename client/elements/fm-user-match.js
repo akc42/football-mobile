@@ -21,12 +21,12 @@ import { LitElement, html } from '../libs/lit-element.js';
 
 import { RoundSelected } from '../modules/events.js';
 
-import style from '../styles/fm-user-round.js';
+import style from '../styles/fm-user-match.js';
 
 /*
      <fw-user-score>
 */
-class FmUserScore extends LitElement {
+class FmUserMatch extends LitElement {
   static get styles() {
     return [style];
   }
@@ -55,4 +55,4 @@ class FmUserScore extends LitElement {
     this.dispatchEvent(new RoundSelected(this.item.rid));
   }
 }
-customElements.define('fm-user-score', FmUserScore);
+customElements.define('fm-user-match', FmUserMatch);

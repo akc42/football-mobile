@@ -18,13 +18,16 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
-import {cache} from '../libs/cache.js';
-
 import page from '../styles/page.js';
 
 import './fm-list.js';
-import './fm-rounds.match.js';
+import './fm-round-user.js';
 import './fm-page.js';
+import './emoticon-elements.js';
+import './date-format.js';
+
+import { switchPath } from '../modules/utils.js';
+import global from '../modules/globals.js';
 
 
 /*
@@ -61,59 +64,105 @@ class FmRoundsHome extends LitElement {
     return html`
 
     <style>
+      :host {
+        --icon-size: 20px;
+      }
       #canpick {
         color: red;
       }
       .container {
-        background-color: var(--app-primary-color);
+        background-color:white;
         border:2px solid var(--app-accent-color);
         border-radius: 5px;
         box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
         margin:5px 5px 5px 3px;
         display: grid;
         grid-gap:2px;
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: 1fr min-content;
         grid-template-areas:
-          "user rs ps"
-          "user ts ts";
+          "match bonus"
+          "points bonus"
+          "over bonus"
+          "comment bonus"
+          "user user"
       }
-
-      .un,.rs,.ps,.ts {
-        background-color: white;
-        color:var(--app-primary-text);
-        text-align: center;
-        vertical-align: center;
+      .matches {
         font-weight: bold;
+        grid-area: match;
       }
-      .un {
-        grid-area:user
+      .points {
+        grid-area:points;
+      }
+      .over {
+        grid-area: over;
+      }
+      .comment {
+        grid-area: comment;
+      }
+      .bonus {
+        grid-area:bonus;
+        display: flex;
+        flex-direction: column;
+      }
+      .userhead {
+        grid-area: user;
+        background-color: var(--app-accent-color);
+        border-top: 2px solid var(--app-accent-color);
+        display: grid;
+        grid-gap: 2px;
+        grid-template-columns: 2fr repeat(4, 1fr);
+
+      }
+      .userhead>* {
+        background-color: white;
+        text-align: center
+      }
+      .userhead>.mh span {
+        color: red;
+      }
+      .userhead>.tl span {
+        color: green;
       }
 
-      .rs {
-        grid-area:rs;
-      }
-      .ps {
-        grid-area: ps;
-      }
-      .ts {
-        grid-area:ts;
-      }
     </style>
     <fm-page heading="Round Data">
       <div slot="heading">Round ${this.round.rid} - ${this.round.name}</div>
-      ${cache(this.iCanPick?html`
+      ${this.iCanPick?html`
         <div id="canpick" slot="heading" @click=${this._makePicks}>Round Picks</div>
-      `:'')}
+      `:''}
       <fm-list custom="fm-round-user"  .items=${this.users}>
         <div slot="header" class="container">
-          <div class="un">Name</div>
-          <div class="rs">Round Score</div>
-          <div class="ps">Playoff Score</div>
-          <div class="ts">Total Score</div>
+          <div class="matches">Matches ${this.round.matches.length}</div>
+          <div class="points"><strong>Points ${this.round.value}</strong><br/>per correct pick (excluding underdog)</div>
+          <div class="over">Over Under round <span>${this.round.ou_round === 1? html`<material-icon>check</material-icon>`: ''}</span></div>
+          <emoticon-string class="comment">${this.round.comment}</emoticon-string>
+          ${this.round.valid_question === 1? html`
+            <div class="bonus">
+              ${this.round.optionOpen?html`
+                <div class="deadline">Deadline <date-format withTime .date=${this.round.deadline}></date-format></div>
+              `:''} 
+              <emoticon-string>${this.round.question}</emoticon-string>
+              <ul>
+                ${this.round.options.map(option => html`
+                  <li><span>${!this.round.optionOpen && option.opid === this.round.answer?html`<material-icon>check</material-icon>`:''}</span> ${option.label}</li>
+                `)}
+              </ul>
+            </div>
+          `:html`<div></div>`}
+          <div class="userhead">
+            <div class="un">User Name</div>
+            <div class="mh">Match <span>(Help?)</span></div>
+            <div class="ou">${this.round.ou_round === 1? 'Over Under':'No O/U'}</div>
+            <div class="bn">${this.round.valid_question === 1? 'Bonus':'No Bonus'}</div>
+            <div class="tl">Total <span>(Done?)</span></div> 
+          </div>
         </div>
       </fm-list>
     </fm-page>
     `;
+  }
+  _makePicks() {
+    switchPath(`/rounds/${this.round.rid}/user/${global.uid}`)
   }
 }
 customElements.define('fm-rounds-home', FmRoundsHome);

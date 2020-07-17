@@ -21,7 +21,7 @@ import { LitElement, html } from '../libs/lit-element.js';
 
 import './fm-page.js';
 import './fm-list.js';
-import './fm-user-round.js';
+import './fm-user-match.js';
 
 import page from '../styles/page.js';
 import tooltip from '../styles/tooltip.js';
@@ -36,19 +36,16 @@ class FmRoundsUser extends LitElement {
   }
   static get properties() {
     return {
-      user: {type: Object}
+      user: {type: Object}, 
+      round: {type: Object}
     };
   }
   constructor() {
     super();
-    this.user = {uid:0,name:'', rounds: []};
+    this.user = {uid:0,name:'', picks: []};
+    this.round = {rid: 0, name: '', matches:[]}
   }
-  connectedCallback() {
-    super.connectedCallback();
-  }
-  disconnectedCallback() {
-    super.disconnectedCallback();
-  }
+
 
   render() {
     return html`
@@ -105,8 +102,8 @@ class FmRoundsUser extends LitElement {
           data-tooltip="click for playoff info" 
           @click=${this._playoff} 
           class="poff"><strong>${this.user.name}</strong></div>
-        <div slot="heading">${this.user.sscore}:${this.user.lscore}:${this.user.tscore}</div>
-        <fm-list custom="fm-user-round"  .items=${this.user.rounds}>
+        <div slot="heading">${this.round.name}</div>
+        <fm-list custom="fm-user-match"  .items=${this.round.matches}>
           <div slot="header" class="container">
             <div class="rn">Round Name</div>
             <div class="mp">Match Picks</div>

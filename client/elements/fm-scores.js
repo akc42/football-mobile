@@ -63,6 +63,7 @@ class FmScores extends PageManager {
   update(changed) {
     if (changed.has('route') && this.route.active) {
         this.dispatchEvent(new MenuReset());
+
         this._newRoute();
     }
     if (changed.has('subRoute') && this.subRoute.active) {
@@ -129,7 +130,8 @@ class FmScores extends PageManager {
           managed-page
           .user=${this.user}
           .rounds=${this.rounds}
-          .name=${this.name}></fm-scores-user>` 
+          .name=${this.name}
+          @round-selected=${this._selectRound}></fm-scores-user>` 
       }[this.page])}
     `;
   }
@@ -160,6 +162,9 @@ class FmScores extends PageManager {
   _selectUser(e) {
     e.stopPropagation();
     switchPath(`/scores/user/${e.uid}`);
+  }
+  _selectRound(e) {
+    switchPath(`/rounds/${e.rid}/user/${this.user.uid}`);
   }
 }
 customElements.define('fm-scores', FmScores);

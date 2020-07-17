@@ -16,6 +16,9 @@
     by Accuvision (or by potential or existing customers in interacting with Accuvision).
 */
 
+import { RouteChanged } from "./events.js";
+
+
 export default class Route  {
   constructor(match = '', ifmatched = '') {
     //set default values
@@ -157,12 +160,10 @@ export default class Route  {
           }
         }
       }
-      if (changeMade) window.dispatchEvent(new CustomEvent('route-updated',{
-        detail: {
+      if (changeMade) window.dispatchEvent(new RouteChanged ({
           segment: this.preroute.segment,
           path: '/' + urlPieces.join('/')
-        }
-      }));
+        }));
     }
   }
   /*
@@ -170,10 +171,8 @@ export default class Route  {
    */
   set query(value) {
     if (this._route.active && JSON.stringify(this._route.query) !== JSON.stringify(value)) {
-      window.dispatchEvent(new CustomEvent('route-updated',{
-        detail: {
-          query: value
-        }
+      window.dispatchEvent(new RouteChanged({
+        query: value
       }));
     }
   }
@@ -185,11 +184,9 @@ export default class Route  {
       if (this._route.active) {
         if (value) return; //can't set a matched route active
         //just reset to a url
-        window.dispatchEvent(new CustomEvent('route-updated',{
-          detail: {
-            segment: this.preroute.segment,
-            path: '/'
-          }
+        window.dispatchEvent(new RouteChanged({
+          segment: this.preroute.segment,
+          path: '/'
         }));
       } else {
         if (value) {
@@ -199,11 +196,9 @@ export default class Route  {
           if (matchedPieces[0] === '') matchedPieces.shift();  //not interested in blank front
           if (matchedPieces.length < 1) return;
           if (matchedPieces.every(piece => piece.length > 0 && piece.indexOf(':') < 0)) {
-            window.dispatchEvent(new CustomEvent('route-updated',{
-              detail: {
-                segment: this.preroute.segment,
-                path: '/' + matchedPieces.join('/')
-              }
+            window.dispatchEvent(new RouteChanged({
+              segment: this.preroute.segment,
+              path: '/' + matchedPieces.join('/')
             }));
 
           }

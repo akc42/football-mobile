@@ -26,7 +26,7 @@ import global from '../modules/globals.js';
 import { UserSelected } from '../modules/events.js';
 
 /*
-     <fw-user-scores>
+     <fw-score-user>
 */
 class FmScoreUser extends LitElement {
   static get styles() {

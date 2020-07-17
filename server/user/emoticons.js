@@ -17,30 +17,16 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { css } from '../libs/lit-element.js';
 
-export default css`
-  :host {
-    height: 100%;
-  }
-  .competition {
-    background-color: white;
-    border:2px solid var(--app-accent-color);
-    border-radius: 5px;
-    box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
-    margin:5px 5px 5px 3px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;  
-    align-items: center;     
-  }
-  ::slotted(*) {
-    flex: 1 0 0;
-    margin: 0 5px;
-  } 
-  .competition>div#compname {
-    flex: 0 1 auto;
-    margin: 0;
-    text-align:center;
-  } 
-`;
+(function() {
+  'use strict';
+
+  const debug = require('debug')('football:api:emoticons');
+  const db = require('../utils/database');
+
+  module.exports = async function(user, cid, params, responder) {
+    debug('new request from user', user.uid, 'with cid', cid );
+    responder.addSection('emoticons', db.prepare('SELECT * FROM emoticons').all());
+    debug('done');
+  };
+})();

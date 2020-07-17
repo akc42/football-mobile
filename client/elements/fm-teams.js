@@ -67,11 +67,18 @@ class FmTeams extends PageManager {
     super.disconnectedCallback();
   }
   update(changed) {
-    if (changed.has('route') && this.route.active) this._newRoute();
+    if (changed.has('route') && this.route.active) {
+      this.dispatchEvent(new MenuReset());
+      this.dispatchEvent(new MenuAdd('scores'));
+      this._newRoute();
+    } 
     if (changed.has('subRoute') && this.subRoute.active) {
-        const ur = this.uRouter.routeChange(this.subRoute); 
-        //note we use the ur.params to tell us what confid and divid to display on the "users" page
-    }
+      const uidR = this.uRouter.routeChange(this.subRoute);
+        if (uidR.active) {
+        this.dispatchEvent(new MenuAdd('close'));  
+        //TODO Add code to select user 
+       }
+      }
     if (changed.has('uid') || changed.has('picks')) {
       this.userPicks = this.picks.filter(pick => pick.uid === this.uid);
     }

@@ -21,7 +21,7 @@ import { html } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
 import PageManager from './page-manager.js';
-import { MenuReset, MenuAdd } from '../modules/events.js';
+import { MenuReset, MenuAdd, PageClose } from '../modules/events.js';
 import Route from '../modules/route.js';
 import api from '../modules/api.js';
 import global from '../modules/globals.js';
@@ -45,15 +45,15 @@ class FmRounds extends PageManager {
   constructor() {
     super();
     this.users = [];
-    this.index = -1;
     this.round = {rid: 0, name: '',matches:[], options:[]};
     this.roundRoute = {active: false};
     this.rid = 0;
     this.rRouter = new Route('/:rid', 'page:rounds');
-    this.uRouter = new Route('/user/:uid');
+    this.uRouter = new Route('/:uid', 'page:user');
     this.fetchdataInProgress = false;
     this.lastCid = 0;
     this.lastRid = 0;
+    this.user = {uid:0, name : ''};
   }
   connectedCallback() {
     super.connectedCallback();
@@ -67,6 +67,7 @@ class FmRounds extends PageManager {
   update(changed) {
     if (changed.has('route') && this.route.active) {
         this.dispatchEvent(new MenuReset());
+        this.dispatchEvent(new MenuAdd('scores'));
         this._newRoute();
     }
     if (changed.has('subRoute') && this.subRoute.active) {
@@ -74,23 +75,27 @@ class FmRounds extends PageManager {
       if (uidR.active) {
         this.dispatchEvent(new MenuAdd('close'));
          if (!this.fetchdataInProgress) {
-            this.index = this.users.findIndex(user => user.uid === uidR.params.uid);
-            debug('no fetch happening, find index for ' + uidR.params.uid + ' as ' + this.index);
-            if (this.index < 0) switchPath('/rounds');
+            this.user = this.users.find(user => user.uid === uidR.params.uid);
+            debug('no fetch happening, find user for ' + uidR.params.uid);
+            if (this.user === undefined) {
+              this.user = { uid: 0, name: '' };
+              this.dispatchEvent(new PageClose());
+            }   
          } else {
            debug('fetch in progress, delayed index setting');
          }
-      } else {
-        switchPath('/rounds');
       }
     }
     if(changed.has('users') && this.subRoute.active) {
       debug('users changed (as a result of fetching?')
       const uidR = this.uRouter.routeChange(this.subRoute);
       if (uidR.active) {
-        this.index = this.users.findIndex(user => user.uid === uidR.params.uid);
-        debug('userschanged, find index for ' + uidR.params.uid + ' as ' + this.index);
-        if (this.index < 0) switchPath('/scores');
+        this.user = this.users.find(user => user.uid === uidR.params.uid);
+        debug('userschanged, find index for ' + uidR.params.uid);
+        if (this.user === undefined){
+          this.user = { uid: 0, name: '' };
+          this.dispatchEvent(new PageClose());
+        }
       }
     }
     super.update(changed);
@@ -103,7 +108,7 @@ class FmRounds extends PageManager {
         if (this.route.params.rid === '') {
           if (global.cid === global.lcid) {
             //for this cid, we know the latest round
-            this.route.params = { rid: global.lrid }
+            this.rRouter.params = { rid: global.lrid }
           } else {
             //don't know it, so need to go fetch
             api('users/latest_round').then(response => this.route.params = response);
@@ -130,7 +135,7 @@ class FmRounds extends PageManager {
         user: html`<fm-rounds-user 
           managed-page
           ?iCanPick=${this.iCanPick}
-          .user=${this.index >= 0? this.users[this.index] : {uid:0,name:'',picks:{}}}
+          .user=${this.user}
           .round=${this.round}
           @picks-made=${this._picksMade}></fm-rounds-user>` 
       }[this.page])}
@@ -138,6 +143,7 @@ class FmRounds extends PageManager {
   }
   loadPage(page) {
     if (page === 'home') {
+      debug('about to fetch rounds home')
       import('./fm-rounds-home.js');
     } else {
       import('./fm-rounds-user.js');
@@ -163,25 +169,34 @@ class FmRounds extends PageManager {
           Object.assign(match,{...teamData});
         }
       }
+      this.round.options = response.cache.options;
+      const cutoff = Math.floor(new Date().getTime() / 1000);
+      this.round.optionOpen = (cutoff < this.round.deadLine); //convenient helper;
       this.users = response.cache.users;
       this.users.sort((a,b) => b.score - a.score);  //order users by desc score.
       //we need to find out for each user if they have made all their picks or not
-      const cutoff = Math.floor(new Date().getTime()/1000);
+
       this.iCanPick = false;
       for (const user of this.users) {
+        user.validQuestion = this.round.valid_question; //helps for <fm-round-user> to know what to display
+        user.ouRound = this.round.ou_round; //helps for <fm-round-user> to know what to display
         user.doneAllPicks = true;
+        user.hadAdminSupport = false;
+        user.wasLatePick = false
+        user.wasLateBonus = (this.round.valid_question === 1  && user.submit_time !== null && user.submit_time > this.round.deadline);
         user.canPick = false;
-        user.canOption = false;
+        user.canBonus = false;
         user.picks = response.cache.picks.filter(p => p.uid === user.uid);
         for (const pick of user.picks) {
+          if (global.cid === global.lcid || pick.submit !== null) {
+            const match = this.round.matches.find(m => m.aid === pick.aid);
+            if (global.cid === global.lcid && match.deadline - global.gap > cutoff) user.canPick = true; //can still make  pick so mark as such
+            if (pick.submit !== null && match.deadline - global.gap < pick.submit_time) user.wasLatePick = true;
+          }
           if (pick.submit_time === null) {
             user.doneAllPicks = false;
           }
-          if (global.cid === global.lcid) {
-            //only worry about this if its the current competition
-            const match = this.round.matches.find(m => m.aid === pick.aid);
-            if (match.deadline - global.gap> cutoff) user.canPick = true; //can still make  pick so mark as such
-          }
+          if (pick.admin_made === 1) user.hadAdminSupport = true;
           
         }
         if (this.round.valid_question === 1 && 
@@ -194,8 +209,8 @@ class FmRounds extends PageManager {
   }
   _selectUser(e) {
     e.stopPropagation();
-    switchPath()
-    //switchPath(`/scores/user/${e.uid}`)
+    this.router
+    switchPath(`/rounds/${this.round.rid}/user/${e.uid}`);
   }
 }
 customElements.define('fm-rounds', FmRounds);

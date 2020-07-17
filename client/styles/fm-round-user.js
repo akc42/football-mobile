@@ -25,13 +25,12 @@ export default css`
     background-color: var(--app-primary-color);
     display: grid;
     grid-gap:2px;
-    grid-template-columns: 3fr 2fr 1fr;
+    grid-template-columns: 2fr repeat(4,1fr);
     grid-template-areas:
-      "round mp mt"
-      "round ou mt"
-      "round bs rs";
+      "un mr ou bn tl"
+      "un pk pk op done";
   }
-  .rn,.mp,.ou, .mt,.bs,.rs {
+  .un, .mr, .ou, .bn, .tl, .pk, .op, .done {
     padding:2px;
     background-color: white;
     color:var(--app-primary-text);
@@ -39,24 +38,40 @@ export default css`
     vertical-align: center;
     cursor:pointer;
   }
-  .rn {
-    grid-area:round;
+  .un {
+    grid-area:un;
   }
 
-  .mp {
-    grid-area:mp;
+  .mr {
+    grid-area:mr;
   }
   .ou {
     grid-area: ou;
   }
-  .mt {
-    grid-area:mt;
+  .tl {
+    grid-area:tl;
   }
-  .bs {
-    grid-area: bs;
+  .pk {
+    grid-area: pk;
   }
-  .rs {
-    grid-area: rs;
+  .op {
+    grid-area: op;
   }
-
+  .done {
+    grid-area: done;
+    color: green;
+  }
+  .me {
+    background-color: var(--app-user-color);
+    color: var(--app-user-text);
+    font-weight: bold; 
+  }
+  .late {
+    font-size: 8pt;
+    font-weight: normal;
+  }
+  .support {
+    color: red;
+    font-weight: normal;
+  }
 `;
