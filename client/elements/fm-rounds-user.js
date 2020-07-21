@@ -18,14 +18,20 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
+import {cache} from '../libs/cache.js';
+import {classMap} from '../libs/class-map.js';
 
 import './fm-page.js';
 import './fm-list.js';
 import './fm-user-match.js';
+import './emoticon-elements.js';
+import './material-icon.js';
+import './user-pick.js';
 
 import page from '../styles/page.js';
 import tooltip from '../styles/tooltip.js';
 import { switchPath } from '../modules/utils.js';
+import global from '../modules/globals.js';
 
 /*
      <fm-scores-user>
@@ -37,62 +43,95 @@ class FmRoundsUser extends LitElement {
   static get properties() {
     return {
       user: {type: Object}, 
-      round: {type: Object}
+      round: {type: Object},
+      isOpen: {type: Boolean} //if deadline is not yet past for option picks
     };
   }
   constructor() {
     super();
     this.user = {uid:0,name:'', picks: []};
-    this.round = {rid: 0, name: '', matches:[]}
+    this.round = {rid: 0, name: '', matches:[], valid_question: 0}
+    this.timer = 0;
+  }
+  connectedCallback() {
+    super.connectedCallback();
+    if (this.timer === 0 && this.round.valid_question === 1) {
+      const secstogo  = this.round.deadline - Math.floor(new Date().getTime()/1000);
+      if (secstogo > 0) {
+        this.isOpen = true
+        this.timer = setTimeout(() => {
+          this.isOpen = false;
+          this.timer = 0;
+        },secstogo * 1000);
+      }
+    }
+  }
+  disconnnectedCallback() {
+    super.disconnnectedCallback();
+    if (this.timer > 0) {
+      clearTimeout(this.timer);
+      this.timer = 0;
+    }
   }
 
+  updated(changed) {
+    if (changed.has('round') && this.round.valid_question === 1) {
+      if (this.timer !== 0) {
+        clearTimeout(this.timer);
+        this.timer = 0;
+      }
+      const secstogo = this.round.deadline - Math.floor(new Date().getTime() / 1000);
+      if (secstogo > 0) {
+        this.isOpen = true
+        this.timer = setTimeout(() => {
+          this.isOpen = false;
+          this.timer = 0;
+        }, secstogo * 1000);
+      }
+    }
+
+    super.update(changed);  
+  }
 
   render() {
     return html`
       <style>
       
         .container{
-          background-color: var(--app-primary-color);
           border:2px solid var(--app-accent-color);
           border-radius: 5px;
           box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
           margin:5px 5px 5px 3px;
           display: grid;
           grid-gap:2px;
-          grid-template-columns: 3fr 2fr 1fr;
-          grid-template-areas:
-            "round mp mt"
-            "round ou mt"
-            "round bs rs";
+          grid-template-columns: 1fr 1fr;
+
         }
-        .rn,.mp,.ou, .mt,.bs,.rs {
+        .question, .label, .answer, .pick, .mp,.ou, .mt,.bs,.rs {
           padding:2px;
-          background-color: white;
-          color:var(--app-primary-text);
           text-align: center;
           vertical-align: center;
         }
-        .rn {
-          grid-area:round;
+        .question {
+          grid-column:1;
+          grid-row: 2 / 3;
         }
-
-        .mp {
-          grid-area:mp;
+        .answers {
+          grid-column: 2;
         }
-        .ou {
-          grid-area: ou;
-        }
-        .mt {
-          grid-area:mt;
+        .container > ul {
+          grid-column: 2;
+          font-size: 10px;
         }
         .bs {
-          grid-area: bs;
+          grid-column: 2;
+          grid-row: 3;
         }
-        .rs {
-          grid-area: rs;
-        }
-        .poff {
+        .poff, .opick {
           cursor:pointer;
+        }
+        .option, .answers {
+          font-weight: bold;
         }
 
       </style>
@@ -105,16 +144,40 @@ class FmRoundsUser extends LitElement {
         <div slot="heading">${this.round.name}</div>
         <fm-list custom="fm-user-match"  .items=${this.round.matches}>
           <div slot="header" class="container">
-            <div class="rn">Round Name</div>
-            <div class="mp">Match Picks</div>
-            <div class="ou">Over Under</div>
-            <div class="mt">Match Total</div>
-            <div class="bs">Bonus Score</div>
-            <div class="rs">Round Score</div>
+              ${cache(this.round.valid_question === 1 ? html`
+                <div class="option">Option Question</div>
+                <emoticon-string class="question" .string=${this.round.question}></emoticon-string>
+                <div class="answers"><span>Answers</span> ${this.isOpen? html`
+                  <span>(Can still Pick)</span> <material-icon outlined>comment</material-icon>`:''}</div>
+                <ul class="${classMap({opick: this.isOpen && this.user.uid === global.uid})}">
+                  ${this.round.options.map(option => html`
+                    <li data-opid=${option.opid} @click=${this._makePick}>
+                      <div class="label">${option.label}</div>
+                      <div class="answer">${option.opid === this.round.answer? html`<material-icon>check</material-icon>`:''}</div>
+                      <div class="pick">${this.user.opid === option.opid?html`<user-pick 
+                        ?admin=${this.user.admin_made === 1}
+                        ?correct=${this.user.opid === this.round.answer}
+                        .made=${this.user.submit_time}
+                        .deadline=${this.round.deadline}
+                        ?result=${this.round.answer !== 0}></user-pick>`:''}</div>
+                    </li>
+                  `)}
+                </ul>
+                <div class="bs">Bonus Score: ${this.user.bscore}</div>
+              `:'')}
+              <div class="mp">Match Picks: ${this.user.pscore}</div>
+              ${this.round.ou_round === 1 ? html`<div class="ou">OU Score: ${this.user.oscore} </div>`:''}
+            <div class="mt">Match Total: ${this.user.mscore}</div>
+            <div class="rs">Round Score: ${this.user.score}</div>
           </div>
         </fm-list>
       </fm-page>
     `;
+  }
+  _makePick(e) {
+    if (this.isOpen && global.uid === this.user.uid) {
+      this.dispatchEvent(new OptionPick(e.dataset.opid));
+    }
   }
   _playoff(e) {
     e.stopPropagation();

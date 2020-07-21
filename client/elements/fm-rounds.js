@@ -75,12 +75,7 @@ class FmRounds extends PageManager {
       if (uidR.active) {
         this.dispatchEvent(new MenuAdd('close'));
          if (!this.fetchdataInProgress) {
-            this.user = this.users.find(user => user.uid === uidR.params.uid);
-            debug('no fetch happening, find user for ' + uidR.params.uid);
-            if (this.user === undefined) {
-              this.user = { uid: 0, name: '' };
-              this.dispatchEvent(new PageClose());
-            }   
+          this._setupUser(uidR.params.uid);
          } else {
            debug('fetch in progress, delayed index setting');
          }
@@ -89,14 +84,7 @@ class FmRounds extends PageManager {
     if(changed.has('users') && this.subRoute.active) {
       debug('users changed (as a result of fetching?')
       const uidR = this.uRouter.routeChange(this.subRoute);
-      if (uidR.active) {
-        this.user = this.users.find(user => user.uid === uidR.params.uid);
-        debug('userschanged, find index for ' + uidR.params.uid);
-        if (this.user === undefined){
-          this.user = { uid: 0, name: '' };
-          this.dispatchEvent(new PageClose());
-        }
-      }
+      if (uidR.active) this._setupUser(uidR.params.uid);
     }
     super.update(changed);
   }
@@ -137,7 +125,8 @@ class FmRounds extends PageManager {
           ?iCanPick=${this.iCanPick}
           .user=${this.user}
           .round=${this.round}
-          @picks-made=${this._picksMade}></fm-rounds-user>` 
+          @option-pick=${this._optionPick}
+          @@match-pick=${this._matchPick}></fm-rounds-user>` 
       }[this.page])}
     `;
   }
@@ -179,7 +168,7 @@ class FmRounds extends PageManager {
       this.iCanPick = false;
       for (const user of this.users) {
         user.validQuestion = this.round.valid_question; //helps for <fm-round-user> to know what to display
-        user.ouRound = this.round.ou_round; //helps for <fm-round-user> to know what to display
+        user.ouRound = this.round.ou_round === 1; //helps for <fm-round-user> to know what to display
         user.doneAllPicks = true;
         user.hadAdminSupport = false;
         user.wasLatePick = false
@@ -211,6 +200,28 @@ class FmRounds extends PageManager {
     e.stopPropagation();
     this.router
     switchPath(`/rounds/${this.round.rid}/user/${e.uid}`);
+  }
+  _setupUser(uid) {
+    this.user = this.users.find(user => user.uid === uid);
+    debug('set up user ' + uid);
+    if (this.user === undefined) {
+      this.user = { uid: 0, name: '' };
+      this.dispatchEvent(new PageClose());
+      debug('did not find user')
+    } else {
+      //we merge user picks into the match as its much easier to deal with in elements below this one
+      for (const match of this.round.matches) {
+        const pick = this.user.picks.find(p => p.aid === match.aid);
+        if (pick !== undefined) {
+          const {aid, comment, ...pickSubset} = pick;
+          Object.assign(match, pickSubset, {userComment: comment});
+        } else {
+          delete match.pid;
+          delete match.over_selected;
+        }
+      }
+    }
+
   }
 }
 customElements.define('fm-rounds', FmRounds);

@@ -17,21 +17,41 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { css } from '../libs/lit-element.js';
+import { LitElement, html } from '../libs/lit-element.js';
 
-export default css`
-    :host {
-      height: var(--list-height,100%);
-    }
-
-    #list {
-      height: 100%;
-    }
-
-    #list > .item {
-    scroll-snap-align:start;
-    border-radius: 5px;
-    box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
-    margin:0 5px 5px 3px;
+/*
+     <comment-button>
+*/
+class CommentButton extends LitElement {
+  static get styles() {
+    return [];
   }
-`;
+  static get properties() {
+    return {
+      comment:{type: String}
+    };
+  }
+  constructor() {
+    super();
+    this.comment = null;
+  }
+  connectedCallback() {
+    super.connectedCallback();
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+  }
+  update(changed) {
+    super.update(changed);
+  }
+  firstUpdated() {
+  }
+  updated(changed) {
+    super.updated(changed);
+  }
+  render() {
+    return html`
+    `;
+  }
+}
+customElements.define('comment-button', CommentButton);

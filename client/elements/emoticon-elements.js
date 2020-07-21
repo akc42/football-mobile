@@ -31,9 +31,9 @@ let emoticonPromise;
 
 
 /*
-     <emoticon-string>: This scans the string (provided in the slot) for text of the form ':xxx' were xxx is one of
+     <emoticon-string>: This scans the string (provided in string property) for text of the form ':xxx' were xxx is one of
                         the valid codes in our emoticon table.  If found it converts said string in to 
-                        <img src="data:image/png;base64,${icon}"/>, where icon is fetched from the database
+                        <img src="data:image/png;base64,${icon}"/>, where icon is fetched from the database.  The result is encased in a span with class "es" to style the 
 */
 class EmoticonString extends LitElement {
   static get styles() {
@@ -42,16 +42,14 @@ class EmoticonString extends LitElement {
   static get properties() {
     return {
       tester: {type: String}, //the  reg ex tester for emoticons
-      content: {type: Array}, //Template Element which generated content
-      emoticons: {type:Array}
+      string: {type:String} //raw input string
     };
   }
   constructor() {
     super();
-    this.content = [];
     this.tester = null;
+    this.string = '';
     this._replacer = this._replacer.bind(this);
-    this._slotChange = this._slotChange.bind(this);
     //the first one of these that gets constructed will do this
     if (emoticonPromise === undefined) {
       emoticonPromise = api('user/emoticons');
@@ -62,50 +60,22 @@ class EmoticonString extends LitElement {
       this.emoticons = response.emoticons;
     });
   }
-  connectedCallback() {
-    super.connectedCallback();
-    if (this.slotEl !== undefined) this.slotEl.addEventListener('slotchange', this._slotChange);
-  }
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    this.slotEl.removeEventListener('slotchange', this._slotChange);
-  }
-
-  firstUpdated() {
-    this.slotEl = this.shadowRoot.querySelector('slot');
-    this.slotEl.addEventListener('slotchange', this._slotChange);
-  }
-  updated(changed) {
-    if (changed.has('tester') && this.tester !== null) this._replace();
-    super.updated(changed);
-  }
   render() {
     return html`
       <style>
-        #rawdata {
-          display: none;
+        .es {
+          font-size:10px;
         }
-      </style>
-      <div id="rawdata"><slot></slot></div>
-      ${cache(this.content.map(c => html`${unsafeHTML(c)}`))}
+       </style>
+      <span class="es">
+        ${cache(unsafeHTML(this.string.replace(this.tester, this._replacer)))}
+      </span>
     `;
   }
-  _replace() {
-    if(this.slotEl !== undefined) {
-      this.content = [];
-      const nodes = this.slotEl.assignedNodes();
-      for(const node of nodes) {
-        const newHtml = node.textContent.replace(this.tester, this._replacer);
-        this.content.push(`<span>${newHtml}</span>`);
-      }
-    }
-  }
+
   _replacer(m,p) {
     const emoticon = this.emoticons.find(e => e.code === p );
     return `<img src="data:image/png;base64,${emoticon.icon}"/>`
-  }
-  _slotChange() {
-    if (this.tester !== null) this._replace();
   }
 }
 

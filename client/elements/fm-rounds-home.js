@@ -18,6 +18,7 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
+import {classMap} from '../libs/class-map.js';
 import page from '../styles/page.js';
 
 import './fm-list.js';
@@ -46,7 +47,7 @@ class FmRoundsHome extends LitElement {
   constructor() {
     super();
     this.users = [];
-    this.round = {uid:0, name:'', matches:[], options:[]}
+    this.round = {uid:0, name:'', matches:[], options:[], comment:''}
   }
   connectedCallback() {
     super.connectedCallback();
@@ -78,7 +79,6 @@ class FmRoundsHome extends LitElement {
         margin:5px 5px 5px 3px;
         display: grid;
         grid-gap:2px;
-        grid-template-columns: 1fr min-content;
         grid-template-areas:
           "match bonus"
           "points bonus"
@@ -95,6 +95,7 @@ class FmRoundsHome extends LitElement {
       }
       .over {
         grid-area: over;
+        font-weight: bold;
       }
       .comment {
         grid-area: comment;
@@ -123,6 +124,13 @@ class FmRoundsHome extends LitElement {
       .userhead>.tl span {
         color: green;
       }
+      .bonus ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0; 
+        font-size: 10px;
+      }
+
 
     </style>
     <fm-page heading="Round Data">
@@ -130,21 +138,24 @@ class FmRoundsHome extends LitElement {
       ${this.iCanPick?html`
         <div id="canpick" slot="heading" @click=${this._makePicks}>Round Picks</div>
       `:''}
-      <fm-list custom="fm-round-user"  .items=${this.users}>
+      <fm-list custom="fm-round-user"  .items=${this.users} style="${this.round.valid_question === 1? '--list-height:700px':''}">
         <div slot="header" class="container">
           <div class="matches">Matches ${this.round.matches.length}</div>
           <div class="points"><strong>Points ${this.round.value}</strong><br/>per correct pick (excluding underdog)</div>
-          <div class="over">Over Under round <span>${this.round.ou_round === 1? html`<material-icon>check</material-icon>`: ''}</span></div>
-          <emoticon-string class="comment">${this.round.comment}</emoticon-string>
+          ${this.round.ou_round === 1 ? html`<div class="over">Over Under round</div>`: ''}
+          <emoticon-string class="comment" .string=${this.round.comment}></emoticon-string>
           ${this.round.valid_question === 1? html`
             <div class="bonus">
               ${this.round.optionOpen?html`
                 <div class="deadline">Deadline <date-format withTime .date=${this.round.deadline}></date-format></div>
               `:''} 
-              <emoticon-string>${this.round.question}</emoticon-string>
+              <emoticon-string .string=${this.round.question}></emoticon-string>
               <ul>
                 ${this.round.options.map(option => html`
-                  <li><span>${!this.round.optionOpen && option.opid === this.round.answer?html`<material-icon>check</material-icon>`:''}</span> ${option.label}</li>
+                  <li>
+                    <span>${!this.round.optionOpen && option.opid === this.round.answer?html`
+                      <material-icon>check</material-icon>`:html`-`}
+                    </span> ${option.label}</li>
                 `)}
               </ul>
             </div>

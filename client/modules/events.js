@@ -234,6 +234,23 @@ export class MenuReset extends Event {
     super('menu-reset',{composed: true, bubbles: true});
   }
 };
+
+export class OptionPick extends Event {
+  static eventType = 'option-pick';
+
+  /*
+     The following are the fields provided by this event
+
+     pick: opid of option picked.
+
+  */
+
+  constructor(pick) {
+    super('option-pick',{composed: true, bubbles: true});
+    this.pick = pick;
+  }
+};
+
 export class OverlayClosed  extends Event {
   static eventType = 'overlay-closed';
 

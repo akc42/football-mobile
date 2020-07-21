@@ -61,8 +61,8 @@ class FmRoundUser extends LitElement {
         ${cache(this.item.canPick?html`
           <material-icon>alarm</material-icon>
         `:html`
-          ${this.item.wasLate? html`<div class="late">L</div>`:''}
-          ${this.item.hadAdminSupport?html`<div class="support">A</div>`:''}
+          ${this.item.wasLate ? html`<div class="late">L</div>` : (this.item.hadAdminSupport ? html`<div class="support">A</div>` : '')}
+
         `)}
       </div>
       <div class="op ${classMap({ me: global.user.uid === this.item.uid })}" @click=${this._select}>
@@ -70,8 +70,7 @@ class FmRoundUser extends LitElement {
         ${cache(this.item.canOption ? html`
           <material-icon>alarm</material-icon>
         `: html`
-          ${this.item.submit_time > this.item.deadline ? html`<div class="late">L</div>` : ''}
-          ${this.item.admin_made === 1 ? html`<div class="support">A</div>` : ''}
+          ${this.item.submit_time > this.item.deadline ? html`<div class="late">L</div>` : (this.item.admin_made === 1 ? html`<div class="support">A</div>` : '')} 
         `)}
       `:'')}
       </div>
