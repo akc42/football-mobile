@@ -18,6 +18,11 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
+import {cache} from '../libs/cache.js';
+import {classMap} from '../libs/class-map.js';
+
+import './material-icon.js';
+import { CommentRequest, CommentShow } from '../modules/events.js';
 
 /*
      <comment-button>
@@ -28,12 +33,12 @@ class CommentButton extends LitElement {
   }
   static get properties() {
     return {
-      comment:{type: String}
+     comment: {type: String}, //comment so far (note no comment may be either zero length string OR null)
+     edit: {type: Boolean}  //true of still possible to make a pick and add a comment
     };
   }
   constructor() {
     super();
-    this.comment = null;
   }
   connectedCallback() {
     super.connectedCallback();
@@ -51,7 +56,38 @@ class CommentButton extends LitElement {
   }
   render() {
     return html`
+      <style>
+        :host {
+          --icon-size: 16px;
+        }
+        .nocomment {
+          display: inline-block;
+          height: 16px;
+          width: 16px;
+        }
+        material-icon {
+          color: orange;
+        }
+        material-icon.editable {
+          color: lime-green;
+        }
+      </style>
+      ${cache(this.edit || (this.comment !== null && this.comment.length > 0) ? html`
+        <material-icon 
+          ?outlined=${this.comment === null || this.comment.length === 0} 
+          class="${classMap({editable: this.edit})}"
+          @click=${this._display}
+          @comment-reply=${this._reply}>comment</material-icon>
+      `:html`<div class="nocomment"></div>`)}
     `;
+  }
+  _display(e) {
+    e.stopPropagation();
+    if (this.edit) {
+      this.dispatchEvent(new CommentRequest(this.comment));
+    } else {
+      this.dispatchEvent(new CommentShow(this.comment));
+    }
   }
 }
 customElements.define('comment-button', CommentButton);

@@ -170,8 +170,12 @@ class FancyInput extends LitElement {
       </div>
     `;
   }
+
   focus() {
     if (this.input !== undefined) this.input.focus();
+  }
+  setRangeText(t) {
+    if (this.input !== undefined) this.input.setRangeText(t);
   }
   validate() {
     if (this.input !== undefined && !this.input.validity.valid) {

@@ -23,9 +23,11 @@ import api from '../modules/api.js';
 import Route from '../modules/route.js';
 import { cache } from '../libs/cache.js';
 import './fm-page.js';
-import './user-pick.js';
+
+import './fm-confdiv.js'
 import PageManager from './page-manager.js';
 import page from '../styles/page.js';
+import {MenuReset, MenuAdd} from '../modules/events.js';
 
 /*
      <fm-teams>
@@ -155,25 +157,7 @@ class FmTeams extends PageManager {
           ${cache({
             home: html`
               ${this.confs.map(conf => this.divs.map(div => html`
-                <header>${conf.name} - ${div.name}</header>
-                <div class="divteam">
-                ${this.teams.filter(team => team.confid === conf.confid && team.divid === div.divid).map(team => {
-                  const pick = this.userPicks.find(p => p.tid === team.tid); 
-                  return html`
-                    <div class="team">
-                      <img src="data:image/png;base64,${team.logo}"/>
-                      <div class="name">${team.name}</div>
-                      <div class="poff">${cache(team.made_playoff === 1 ? html`<material-icon>emoji_events</material-icon>` : '')}</div>
-                      <div class="points">${team.points}</div>
-                      <div class="pick">${cache(pick !== undefined ?html`<user-pick 
-                        result 
-                        ?correct=${team.made_playoff === 1} 
-                        ?admin=${pick.admin_made === 1}
-                        .deadline=${this.deadline}
-                        .made=${pick.submit_time}></user-pick>`:'')}</div>
-                      <div class="name">${team.name}</div>
-                    </div>
-                `;})}
+                <fm-confdiv .teams=${this.teams} .conf=${conf} .div=${div} user .picks=${this.userPicks}></fm-confdiv>
                 </div>
               `))}`,
             users: html`<p>Still to Implement</p>`

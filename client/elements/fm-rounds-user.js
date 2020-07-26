@@ -27,11 +27,14 @@ import './fm-user-match.js';
 import './emoticon-elements.js';
 import './material-icon.js';
 import './user-pick.js';
+import './comment-button.js';
 
 import page from '../styles/page.js';
 import tooltip from '../styles/tooltip.js';
 import { switchPath } from '../modules/utils.js';
 import global from '../modules/globals.js';
+import { OptionComment } from '../modules/events.js';
+import { e } from '../libs/lit-html-f17e05ab.js';
 
 /*
      <fm-scores-user>
@@ -142,13 +145,21 @@ class FmRoundsUser extends LitElement {
           @click=${this._playoff} 
           class="poff"><strong>${this.user.name}</strong></div>
         <div slot="heading">${this.round.name}</div>
-        <fm-list custom="fm-user-match"  .items=${this.round.matches}>
+        <fm-list 
+          custom="fm-user-match"  
+          .items=${this.round.matches}
+          @comment-changed=${this._commentMatch}>
           <div slot="header" class="container">
               ${cache(this.round.valid_question === 1 ? html`
                 <div class="option">Option Question</div>
                 <emoticon-string class="question" .string=${this.round.question}></emoticon-string>
-                <div class="answers"><span>Answers</span> ${this.isOpen? html`
-                  <span>(Can still Pick)</span> <material-icon outlined>comment</material-icon>`:''}</div>
+                <div class="answers">
+                  <span>Answers</span> ${this.isOpen? html`<span>(Can still Pick)</span>`: ''}
+                  <comment-button
+                    .comment=${this.user.comment}
+                    @comment-changed=${this._commentOption}
+                    ?edit=${global.uid === this.user.uid && this.isOpen}></comment-button>
+                </div>
                 <ul class="${classMap({opick: this.isOpen && this.user.uid === global.uid})}">
                   ${this.round.options.map(option => html`
                     <li data-opid=${option.opid} @click=${this._makePick}>
@@ -174,10 +185,22 @@ class FmRoundsUser extends LitElement {
       </fm-page>
     `;
   }
+  _commentMatch(e) {
+    e.stopPropagation()
+    this.dispatchEvent()
+  }
+  _commentOption(e) {
+    e.stopPropagation();
+    this.dispatchEvent(new OptionComment(e.changed));  //convert to optionComment (only we know that is what it is)
+
+  }
   _makePick(e) {
     if (this.isOpen && global.uid === this.user.uid) {
       this.dispatchEvent(new OptionPick(e.dataset.opid));
     }
+  }
+  _matchPick(e) {
+
   }
   _playoff(e) {
     e.stopPropagation();

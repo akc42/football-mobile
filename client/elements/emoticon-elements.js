@@ -95,6 +95,7 @@ class EmoticonPanel extends LitElement {
   }
   constructor() {
     super();
+    this.emoticons = [];
     //the first one of these that gets constructed will do this
     if (emoticonPromise === undefined) {
       emoticonPromise = api('user/emoticons');

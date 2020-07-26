@@ -29,6 +29,8 @@ import PageManager from './page-manager.js';
 import './app-waiting.js';
 
 import page from '../styles/page.js';
+import './comment-dialog.js';
+import './comment-panel.js';
 
 export class FmPages extends PageManager {
   static get styles() {
@@ -47,7 +49,8 @@ export class FmPages extends PageManager {
 
   render() {
     return html`
-
+      <comment-dialog></comment-dialog>
+      <comment-panel></comment-panel>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
       ${cache({
         home:html`<fm-home managed-page></fm-home>`,

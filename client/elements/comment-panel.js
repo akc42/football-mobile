@@ -24,9 +24,9 @@ import domHost from '../modules/host.js';
 import { CommentReply } from '../modules/events.js';
 
 /*
-     <comment-dialog>
+     <comment-panel>
 */
-class CommentDialog extends LitElement {
+class CommentPanel extends LitElement {
   static get styles() {
     return [];
   }
@@ -66,20 +66,11 @@ class CommentDialog extends LitElement {
       
       </style>
       <app-overlay id="diag" position="target" @overlay-closed=${this._dialogClosed}>
-        <fancy-input id="comment" textarea .value=${this.comment} @value-changed=${this._inputChanged}>
-        </fancy-input>
-        <emoticon-panel @emoticon-selected=${this._addEmoticon}></emoticon-panel>
         <emoticon-string .string=${this.comment}></emoticon-string>
-        <button @click=${this._replyToCaller}>Save</button>
-
       </app-overlay>
 
     `;
   }
-  _addEmoticon(e) {
-    if (this.commentInput !== undefined) this.commentInput.setRangeText(e.emoticon);
-  }
-
   _dialogClosed(e) {
     this.eventLocked = false;
   }
@@ -89,7 +80,6 @@ class CommentDialog extends LitElement {
     if (this.eventLocked) return;
     this.eventLocked = true;
     this.dialog.positionTarget = e.composedPath()[0];
-    this.original = e.comment;
     this.comment = e.comment;
     this.dialog.show();
   }
@@ -97,13 +87,6 @@ class CommentDialog extends LitElement {
     e.stopPropagation();
     this.comment = e.changed;
   }
-  _replyToCaller(e) {
-    e.stopPropagation();
-    if (this.original !== this.comment) {
-      this.dialog.positionTarget.dispatchEvent(new CommentReply(this.comment));
-    }
-    this.dialog.close();
 
-  }
 }
-customElements.define('comment-dialog', CommentDialog);
+customElements.define('comment-panel', CommentPanel);

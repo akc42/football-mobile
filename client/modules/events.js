@@ -70,6 +70,53 @@ export class AuthChanged extends Event {
   }
 };
 
+export class CommentReply extends Event {
+  static eventType = 'comment-reply';
+
+  /*
+     The following are the fields provided by this event
+
+     comment: edited string;
+
+  */
+
+  constructor(comment) {
+    super('comment-reply', { composed: true, bubbles: true });
+    this.comment = comment;
+  }
+};
+
+export class CommentRequest extends Event {
+  static eventType = 'comment-request';
+
+  /*
+     The following are the fields provided by this event
+
+     comment: String to be edited 
+
+  */
+
+  constructor(comment) {
+    super('comment-request',{composed: true, bubbles: true});
+    this.comment = comment;
+  }
+};
+
+export class CommentShow extends Event {
+  static eventType = 'custom-show';
+
+  /*
+     The following are the fields provided by this event
+
+     comment: 
+
+  */
+
+  constructor(comment) {
+    super('custom-show',{composed: true, bubbles: true});
+    this.comment = comment;
+  }
+};
 
 export class CompetitionsChanged extends Event {
   static eventType = 'competitions-changed';
@@ -203,6 +250,38 @@ export class LogoffRequest extends Event {
     super('logoff-request',{composed: true, bubbles: true});
   }
 };
+
+export class MatchComment extends Event {
+  static eventType = 'match-omment';
+
+  /*
+     The following are the fields provided by this event
+
+     comment: {aid: xxx, comment: comment}
+
+  */
+
+  constructor(comment) {
+    super('match-omment',{composed: true, bubbles: true});
+    this.comment = comment;
+  }
+};
+
+export class MatchPick extends Event {
+  static eventType = 'match-pick';
+
+  /*
+     The following are the fields provided by this event
+
+     pick: {aid: xxx, pid: xxx, over: true/false} (cid, rid and uid already known, pid and over only present if relevant)
+
+  */
+
+  constructor(pick) {
+    super('match-pick',{composed: true, bubbles: true});
+    this.pick = pick;
+  }
+};
 export class MenuAdd extends Event {
   static eventType = 'menu-add';
 
@@ -235,13 +314,29 @@ export class MenuReset extends Event {
   }
 };
 
+export class OptionComment extends Event {
+  static eventType = 'option-comment';
+
+  /*
+     The following are the fields provided by this event
+
+     comment: comment (fm-rounds will do the update and knows what the cid, rid and uid are)
+
+  */
+
+  constructor(comment) {
+    super('option-comment',{composed: true, bubbles: true});
+    this.comment = comment;
+  }
+};
+
 export class OptionPick extends Event {
   static eventType = 'option-pick';
 
   /*
      The following are the fields provided by this event
 
-     pick: opid of option picked.
+     pick: opid of option picked. (fm-rounds will do the update and knows what the cid, rid and uid are)
 
   */
 

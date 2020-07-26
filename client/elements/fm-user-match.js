@@ -42,12 +42,19 @@ class FmUserMatch extends LitElement {
 
   render() {
     return html`
-      <div class="rn" @click=${this._select}>${this.item.rname}</div>
-      <div class="mp" @click=${this._select}>${this.item.pscore}</div>
-      <div class="ou" @click=${this._select}>${this.item.oscore}</div>
-      <div class="mt" @click=${this._select}>${this.item.mscore}</div>
-      <div class="bs" @click=${this._select}>${this.item.bscore}</div>
-      <div class="rs" @click=${this._select}>${this.item.rscore}</div>
+      <style>
+        :host {
+          display:grid;
+          grid-gap: 2px;
+        }
+      
+      </style>
+        <img class="aid-logo" src="data:image/png;base64,${this.item.alogo}"/>
+        <div class="name">${this.item.aid}</div>
+        <div class="result"> </div>
+        <img class="did-logo" src="data:image/png;base64,${this.item.hlogo}"/>
+      <div class="team hid">
+      </div>
     `;
   }
   _select(e) {
