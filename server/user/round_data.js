@@ -33,7 +33,7 @@
       FROM settings WHERE name = 'cache_age')`).pluck();
     const readRound = db.prepare(`SELECT rid, name, open, valid_question, question, comment, answer, value, bvalue, ou_round, deadline
       FROM round where cid = ? and rid = ?`);
-    const readTeams = db.prepare(`SELECT m.aid, ta.name as aname, ta.logo as alogo, th.name as hname, th.logo as hlogo 
+    const readTeams = db.prepare(`SELECT m.aid, ta.name as aname,  th.name as hname 
       FROM match m JOIN team ta ON m.aid = ta.tid JOIN team th ON m.hid = th.tid 
       WHERE m.cid = ? AND m.rid = ? AND m.open = 1 ORDER BY m.match_time, m.aid`);
     const usersRound = db.prepare(`SELECT u.name, u.uid AS uid , r.pscore, r.oscore, r.mscore,r.bscore,r.score, 
