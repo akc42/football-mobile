@@ -49,10 +49,10 @@ class FmUserMatch extends LitElement {
         }
       
       </style>
-        <img class="aid-logo" src="data:image/png;base64,${this.item.alogo}"/>
+        <img class="aid-logo" src="/appimage/teams/${this.item.aid}.png"/>
         <div class="name">${this.item.aid}</div>
         <div class="result"> </div>
-        <img class="did-logo" src="data:image/png;base64,${this.item.hlogo}"/>
+        <img class="hid-logo" src="/appimage/teams/${this.item.hid}.png"/>
       <div class="team hid">
       </div>
     `;

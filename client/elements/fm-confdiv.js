@@ -120,7 +120,7 @@ class FmConfDiv extends LitElement {
             class="team ${classMap({pickable:this.user && this.deadline > cutoff})}" 
             @click=${this._makePick}
             data-tid=${team.tid}>
-            <img src="data:image/png;base64,${team.logo}"/>
+            <img src="/appimage/teams/${team.tid}.png"/>
             <div class="name">${team.name}</div>
             <div class="poff">${cache(team.made_playoff === 1 ? html`<material-icon>emoji_events</material-icon>` : '')}</div>
             <div class="points">${team.points}</div>
