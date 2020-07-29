@@ -21,14 +21,13 @@ import { LitElement, html } from '../libs/lit-element.js';
 
 import './app-overlay.js';
 import domHost from '../modules/host.js';
-import { CommentReply } from '../modules/events.js';
-
+import emoji from '../styles/emoji.js';
 /*
      <comment-panel>
 */
 class CommentPanel extends LitElement {
   static get styles() {
-    return [];
+    return [emoji];
   }
   static get properties() {
     return {
@@ -66,7 +65,7 @@ class CommentPanel extends LitElement {
       
       </style>
       <app-overlay id="diag" position="target" @overlay-closed=${this._dialogClosed}>
-        <emoticon-string .string=${this.comment}></emoticon-string>
+        <div class="emoji">${this.comment}</div>
       </app-overlay>
 
     `;

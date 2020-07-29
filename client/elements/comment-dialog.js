@@ -23,12 +23,14 @@ import './app-overlay.js';
 import domHost from '../modules/host.js';
 import { CommentReply } from '../modules/events.js';
 
+import emoji from '../styles/emoji.js';
+
 /*
      <comment-dialog>
 */
 class CommentDialog extends LitElement {
   static get styles() {
-    return [];
+    return [emoji];
   }
   static get properties() {
     return {
@@ -66,19 +68,15 @@ class CommentDialog extends LitElement {
       
       </style>
       <app-overlay id="diag" position="target" @overlay-closed=${this._dialogClosed}>
-        <fancy-input id="comment" textarea .value=${this.comment} @value-changed=${this._inputChanged}>
-        </fancy-input>
-        <emoticon-panel @emoticon-selected=${this._addEmoticon}></emoticon-panel>
-        <emoticon-string .string=${this.comment}></emoticon-string>
+        <textarea id="comment" class="emoji">${this.comment}</textarea>
+
         <button @click=${this._replyToCaller}>Save</button>
 
       </app-overlay>
 
     `;
   }
-  _addEmoticon(e) {
-    if (this.commentInput !== undefined) this.commentInput.setRangeText(e.emoticon);
-  }
+
 
   _dialogClosed(e) {
     this.eventLocked = false;

@@ -112,10 +112,10 @@ class AppLogon extends LitElement {
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
       <app-page id="page" @keys-pressed=${this._submitLogon} heading="Log On">
-        <div class="form">
+        <form action="/api/session/email_verify" method="POST">
           <app-form 
             id="logon" 
-            action="session/logon" 
+            action="session/email_verify" 
             class="inputs" 
             @form-response=${this._formResponse}>
             <fancy-input

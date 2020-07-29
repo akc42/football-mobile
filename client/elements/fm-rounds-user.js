@@ -24,24 +24,24 @@ import {classMap} from '../libs/class-map.js';
 import './fm-page.js';
 import './fm-list.js';
 import './fm-user-match.js';
-import './emoticon-elements.js';
 import './material-icon.js';
 import './user-pick.js';
 import './comment-button.js';
 
 import page from '../styles/page.js';
 import tooltip from '../styles/tooltip.js';
+import emoji from '../styles/emoji.js';
+
 import { switchPath } from '../modules/utils.js';
 import global from '../modules/globals.js';
 import { OptionComment } from '../modules/events.js';
-import { e } from '../libs/lit-html-f17e05ab.js';
 
 /*
      <fm-scores-user>
 */
 class FmRoundsUser extends LitElement {
   static get styles() {
-    return [page, tooltip];
+    return [page, tooltip,emoji];
   }
   static get properties() {
     return {
@@ -152,7 +152,7 @@ class FmRoundsUser extends LitElement {
           <div slot="header" class="container">
               ${cache(this.round.valid_question === 1 ? html`
                 <div class="option">Option Question</div>
-                <emoticon-string class="question" .string=${this.round.question}></emoticon-string>
+                <div class="emoji question">${this.round.question}></div>
                 <div class="answers">
                   <span>Answers</span> ${this.isOpen? html`<span>(Can still Pick)</span>`: ''}
                   <comment-button

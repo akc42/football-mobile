@@ -27,6 +27,7 @@ import {switchPath} from '../modules/utils.js';
 import './date-format.js';
 import './app-page.js';
 import page from '../styles/page.js';
+import emoji from '../styles/emoji.js';
 
 //temporary
 import './calendar-input.js';
@@ -37,7 +38,7 @@ import './calendar-input.js';
 */
 class FmSoon extends LitElement {
   static get styles() {
-    return [page];
+    return [page, emoji];
   }
   static get properties() {
     return {
@@ -80,7 +81,7 @@ class FmSoon extends LitElement {
           <p>The competition is expected to be open on <date-format .date=${this.expected}></date-format></p>
         `:'')}
         ${cache(this.condition? html`<p>When open, the condition for registering will be:- </p>
-        <p class="condition">${this.condition}.</p>`:'')}
+        <p class="condition emoji">${this.condition}.</p>`:'')}
       </app-page>
     `;
   }

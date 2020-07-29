@@ -21,13 +21,12 @@
 import { LitElement, html } from '../libs/lit-element.js';
 import { cache } from '../libs/cache.js';
 import page from '../styles/page.js';
-
 import api from '../modules/api.js';
 import global from '../modules/globals.js';
 import { AuthChanged } from '../modules/events.js';
 import Debug from '../modules/debug.js';
 import {switchPath} from '../modules/utils.js';
-import {manageVisitCookie, makeVisitCookie, updateCid} from '../modules/visit.js'
+
 
 
 const debug = Debug('session');
@@ -77,7 +76,7 @@ class AppSession extends LitElement {
   update(changed) {
     if (changed.has('authorised')) {
       if (!this.authorised) {
-        this.state = 'consent';
+        this.state = 'validate';
       } 
       this.dispatchEvent(new AuthChanged(this.authorised));
     }
@@ -85,62 +84,28 @@ class AppSession extends LitElement {
   }
   updated(changed) {
     if (changed.has('state')) {
-      debug(`state-changed to ${this.state}`); //can't log with no visit cookie
+      debug(`state-changed to ${this.state}`); 
       this.waiting = true;   
       switch(this.state) {
-        case 'consent':
+        case 'validate':
           global.ready.then(() => { //only using this to wait until globals has been read, since this is the first state
-            if (manageVisitCookie(true)){  //parameter true means force global.cid to 0;
-              if (window.location.hash !== '') {
-                this.state = window.location.hash.substring(1);
-                history.pushState('', document.title, window.location.pathname
-                  + window.location.search); //clear out our hash.
-              } else {
-                this.state = 'validate';
-              }
+            const mbball = new RegExp(`^(.*; +)?${global.cookieName}=([^;]+)(.*)?$`);
+            if (mbball.test(document.cookie)) {
+              performance.mark('start_user_validate');
+              api('session/validate_user', {}).then(response => {
+                performance.mark('end_user_validate');
+                performance.measure('user_validate','start_user_validate','end_user_validate');
+                if (response.user.uid !== 0) {
+                  global.user = response.user; 
+                  this.state = 'authorised';
+                } else {
+                  this.state = 'logon'
+                }                
+              });
             } else {
-              import('./app-consent.js').then(this.waiting = false);
+              this.state = 'logon';
             }
           });
-          break;
-        case 'validate':
-          //we can't get here without first having gone through consent
-          const mbball = new RegExp(`^(.*; +)?${global.cookieName}=([^;]+)(.*)?$`);
-          if (mbball.test(document.cookie)) {
-            performance.mark('start_user_validate');
-            api('session/validate_user', {}).then(response => {
-              performance.mark('end_user_validate');
-              performance.measure('user_validate','start_user_validate','end_user_validate');
-              if (response.usage !== undefined) { //api request didn't fail
-                global.user = response.user; 
-                global.scope = response.usage;             
-                if (response.usage.substring(0,6) === 'member') {
-                  //we are in the membership cycle, so set visit cookie as this cookie is only a session thing
-                  makeVisitCookie('memberapprove:' + response.user.uid);
-                } 
-                this.state = response.usage;
-              }
-            });
-          } else {
-            const cookie = manageVisitCookie();
-            if (cookie) {
-              //loose global consent marker if its there.      
-              const index = cookie.indexOf(':');
-              if (index > 0) {
-                this.state = cookie.substring(0, index);
-                global.user = { uid: parseInt(cookie.substring(index), 10) }
-                global.scope = '';
-              } else {
-                this.state =cookie;
-              }
-
-            } else {
-              this.state = 'forbidden';
-            } 
-
-            debug(`State set from cookie is  ${this.state}`);
-            
-          }
           break;
         case 'authorised':
           this.authorised = true;
@@ -193,7 +158,6 @@ class AppSession extends LitElement {
       <app-waiting ?waiting=${this.waiting}></app-waiting>
       ${cache(this.authorised? '' : html`
         ${cache({
-          consent: html`<app-consent @session-status=${this._consent}></app-consent>`,
           validate: html`<div>Validating</div>`,
           await: html`<app-await .email=${this.email}></app-await>`,
           emailverify: html`<app-email-verify @session-status=${this._processEmail}></app-email-verify>`,

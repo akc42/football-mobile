@@ -17,16 +17,10 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
+import { css } from '../libs/lit-element.js';
 
-(function() {
-  'use strict';
-
-  const debug = require('debug')('football:api:emoticons');
-  const db = require('../utils/database');
-
-  module.exports = async function(user, cid, params, responder) {
-    debug('new request from user', user.uid, 'with cid', cid );
-    responder.addSection('emoticons', db.prepare('SELECT * FROM emoticons').all());
-    debug('done');
-  };
-})();
+export default css`
+  .emoji {
+    font-family: 'NotoColorEmoji','Roboto Mono', monospace;
+  }
+`;

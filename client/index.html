@@ -27,31 +27,42 @@
     <title>Football Mobile</title>
     <!-- because this can be served from anywhere base allows us to use relative urls -->
     <base href="/">
-<link rel="shortcut icon" sizes="32x32" href="appimages/football-logo-32x32.png">
+    <link rel="shortcut icon" sizes="32x32" href="appimages/football-logo-32x32.png">
 
-<meta name="theme-color" content="#42d9ff">
-<!-- Add to homescreen for Chrome on Android. Fallback for manifest.json -->
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="application-name" content="FMob">
+    <meta name="theme-color" content="#42d9ff">
+    <!-- Add to homescreen for Chrome on Android. Fallback for manifest.json -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="FMob">
 
-<!-- Add to homescreen for Safari on iOS -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="FMob">
+    <!-- Add to homescreen for Safari on iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FMob">
 
-<!-- Homescreen icons -->
-<link rel="apple-touch-icon" href="appimages/football-logo.svg">
-<link rel="apple-touch-icon" sizes="72x72" href="appimages/football-logo.svg">
-<link rel="apple-touch-icon" sizes="96x96" href="appimages/football-logo.svg">
-<link rel="apple-touch-icon" sizes="144x144" href="appimages/football-logo.svg">
-<link rel="apple-touch-icon" sizes="192x192" href="appimages/football-logo.svg">
+    <!-- Homescreen icons -->
+    <link rel="apple-touch-icon" href="appimages/football-logo.svg">
+    <link rel="apple-touch-icon" sizes="72x72" href="appimages/football-logo.svg">
+    <link rel="apple-touch-icon" sizes="96x96" href="appimages/football-logo.svg">
+    <link rel="apple-touch-icon" sizes="144x144" href="appimages/football-logo.svg">
+    <link rel="apple-touch-icon" sizes="192x192" href="appimages/football-logo.svg">
 
-<!-- Tile icon for Windows 8 (144x144 + tile color) -->
-<meta name="msapplication-TileImage" content="appimages/football-logo.svg">
-<meta name="msapplication-TileColor" content="#42d9ff">
-<meta name="msapplication-tap-highlight" content="no">
+    <!-- Tile icon for Windows 8 (144x144 + tile color) -->
+    <meta name="msapplication-TileImage" content="appimages/football-logo.svg">
+    <meta name="msapplication-TileColor" content="#42d9ff">
+    <meta name="msapplication-tap-highlight" content="no">
     <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
+    <!-- put this here because its not available at google right now -->
+    <style>
+      @font-face {
+        font-family: 'NotoColorEmoji';
+        src: url('/fonts/NotoColorEmoji.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+    </style>
     <script>
       /*hold off for now
       if('serviceWorker' in navigator) {
@@ -112,13 +123,7 @@
           flex-direction: column;
         }
       }
-      @font-face {
-        font-family: 'NotoColorEmoji';
-        src: url('/fonts/NotoColorEmoji.ttf') format('truetype');
-        font-weight: normal;
-        font-style: normal;
-        font-display: swap;
-      }
+
     </style>
 
   </head>

@@ -61,7 +61,7 @@ class AppEmailVerify extends LitElement {
   firstUpdated() {
     this.input = this.shadowRoot.querySelector('#email');
     this.target = this.shadowRoot.querySelector('#page');
-    this.keys = new AppKeys(this.target, 'Enter');
+
   }
 
   render() {
@@ -72,32 +72,30 @@ class AppEmailVerify extends LitElement {
         }
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <app-page @key-pressed=${this._sendData} id="page" heading="Email Verification">
-        <p>If you still have the same e-mail address since the last time you registered and played with us,
-        enter it below.  However, if you are a new visitor or you have changed your e-mail address since
-        you last played in the competition, please enter it here and then request Membership.</p>
-
-        <p>New members please note that this Competiion is for Members only, and once we have verified your
-        email address we will ask you for a short note to explain to the Membership Committee why you should be admitted. 
-        You will then have to wait for approval while they review your application.</p>
-        <div class="form">    
-          <fancy-input
-            label="E-Mail"
-            .message=${this.email.length > 0 && this.email.indexOf('@') > 0 ? 'Email Not Known' : 'Required'}
-            autofocus
-            autocomplete="off"
-            required
-            type="email"
-            name="email"
-            id="email"
-            .value="${this.email}"
-            @value-changed="${this._emChanged}"></fancy-input>
-        </div>  
-        <button slot="action" @click=${this._sendData}>Verify</button>
-        <button slot="action" cancel @click=${this._newMember}>Request Membership</button>
+      <app-page heading="Welcome">
+        <form id="verify" action="session/email_verify" @form-submit=${this._submit}>
+          <label for="email">Email</label>
+          <input type="email" name="email" id="email" placeholder=" " autocomplete="email" required autofocus/>
+          <button type="submit">Continue</button>
+        </form>
+        <p>By continuing you agree to Melinda's Backups <a href="#" @click=${this._privacy}>conditions of use</a></p>
       </app-page>
     `;
   }
+  _submit(e) {
+    e.preventDefault();
+
+
+
+    
+  }
+
+
+
+
+
+
+
   _emChanged(e) {
     this.email = e.changed;
     this.pending = false;

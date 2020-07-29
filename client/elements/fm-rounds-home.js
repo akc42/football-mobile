@@ -20,11 +20,11 @@
 import { LitElement, html } from '../libs/lit-element.js';
 import {classMap} from '../libs/class-map.js';
 import page from '../styles/page.js';
+import emoji from '../styles/emojijs';
 
 import './fm-list.js';
 import './fm-round-user.js';
 import './fm-page.js';
-import './emoticon-elements.js';
 import './date-format.js';
 
 import { switchPath } from '../modules/utils.js';
@@ -36,7 +36,7 @@ import global from '../modules/globals.js';
 */
 class FmRoundsHome extends LitElement {
   static get styles() {
-    return [page];
+    return [page,emoji];
   }
   static get properties() {
     return {
@@ -143,13 +143,13 @@ class FmRoundsHome extends LitElement {
           <div class="matches">Matches ${this.round.matches.length}</div>
           <div class="points"><strong>Points ${this.round.value}</strong><br/>per correct pick (excluding underdog)</div>
           ${this.round.ou_round === 1 ? html`<div class="over">Over Under round</div>`: ''}
-          <emoticon-string class="comment" .string=${this.round.comment}></emoticon-string>
+          <div class="emoji">${this.round.comment}></div>
           ${this.round.valid_question === 1? html`
             <div class="bonus">
               ${this.round.optionOpen?html`
                 <div class="deadline">Deadline <date-format withTime .date=${this.round.deadline}></date-format></div>
               `:''} 
-              <emoticon-string .string=${this.round.question}></emoticon-string>
+              <div class="emoji">${this.round.question}></div>
               <ul>
                 ${this.round.options.map(option => html`
                   <li>
