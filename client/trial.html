@@ -28,7 +28,7 @@
     <!-- because this can be served from anywhere base allows us to use relative urls -->
     <base href="/">
 <link rel="shortcut icon" sizes="32x32" href="appimages/football-logo-32x32.png">
-
+<link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 <meta name="theme-color" content="#42d9ff">
 
     <style>
@@ -45,6 +45,7 @@
         letter-spacing: 0.1em;
         background-color: #fafafa;
         color: #333;
+        font-family: 'Roboto', sans-serif;
       }
       .custom {
         height:100%;
@@ -67,7 +68,10 @@
         scroll-snap-type: y mandatory;
       }
       .item {
-        height: 50px;
+        height: 60px;
+        display: flex;
+        flex-direction: row;
+        font-family:'NotoColorEmoji', 'Roboto', Helvetica, sans-serif;
         scroll-snap-align:start;
         border-radius: 5px;
         box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
@@ -81,6 +85,13 @@
         padding: 20px;
         min-width: 500px;
         box-sizing:border-box;
+      }
+      @font-face {
+        font-family: 'NotoColorEmoji';
+        src: url('/fonts/NotoColorEmoji.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
       }
       </style>
 
@@ -96,20 +107,41 @@
               <section class="container">
                 <div class="list-manager custom">
                   <header class="list-header">List Header</header>
-                  <section class="list scrollable">
-                    <div class="item">Item 1</div>
-                    <div class="item">Item 2</div>
-                    <div class="item">Item 3</div>
-                    <div class="item">Item 4</div>
-                    <div class="item">Item 5</div>
-                    <div class="item">Item 6</div>
-                    <div class="item">Item 7</div>
-                    <div class="item">Item 8</div>
-                    <div class="item">Item 9</div>
-                    <div class="item">Item 10</div>
-                    <div class="item">Item 11</div>
-                    <div class="item">Item 12</div>
-                    <div class="item">Item 13</div>
+                  <section id="teamlist" class="list scrollable">
+                  <div class="item">🍌 :banana
+                  🙇‍♂️ :bow
+                  😖 :brickwall
+                  👋 :bye
+                  🐒 :cheeky
+                  🥂 :cheer
+                  😢 :cry
+                  🤔 :dunno
+                  😠 :enraged
+                  🤩 :excited
+                  🙄 :har
+                  
+                  🥺 :help
+                  👐 :hug
+                  😉 :innocent
+                  😠 :mad
+                  
+                  🤯 :out
+                  🥒 :pickle
+                  
+                  😾 :prrr
+                  
+                  🤣 :rofl
+                  
+                  😈 :slap
+                  
+                  😮 :sympa
+                  
+                  🙏 :thanks
+                  👍 :thumbsup
+                  🤟 :wub
+                  😱 :yikes
+                  
+                  🥱 :zzz</div>  
                   </section>
                 </div>
               </section>
@@ -118,5 +150,25 @@
         </div>
       </section>
     </div>
+    <script type="module">
+          window.fetch('/api/config/team_logos', { method: 'get' }).then(response => {
+              if (response.status === 200) return response.json();
+              return [];
+            }).then(teams => {
+              const s = document.querySelector('#teamlist');
+              for (const team of teams) {
+                const div = document.createElement('div');
+                div.classList.add('item');
+                const div2 = document.createElement('div');
+                div2.textContent = team.tid;
+                div.appendChild(div2);
+                const img = document.createElement('img')
+                img.setAttribute('src', `data:image/png;base64,${team.logo}`);
+                div.appendChild(img);
+                s.appendChild(div);
+              }
+            });
+
+    </script>
   </body>
 </html>
