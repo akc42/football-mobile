@@ -38,12 +38,12 @@
         config.clientLog = s.get('client_log');
         config.clientLogUid = s.get('client_log_uid');
         config.cookieName = s.get('cookie_name');
-        config.cookieVisitName = s.get('cookie_visit_name');
         config.webmaster = s.get('webmaster');
         config.siteLogo = s.get('site_logo');
         config.verifyExpires = s.get('verify_expires');
         config.minPassLen = s.get('min_pass_len');
         config.dwellTime = s.get('dwell_time');
+        config.reCaptchaKey = s.get('recaptcha_key');
 
         const row = last.get();
         config.lcid = row.cid;

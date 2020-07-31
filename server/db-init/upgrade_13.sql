@@ -236,17 +236,18 @@ INSERT INTO settings (name,value) VALUES('version',14); --version of this config
 
 INSERT INTO settings (name,value) VALUES('client_log',''); --if none empty string should specify colon separated function areas client should log or 'all' for every thing.
 INSERT INTO settings (name,value) VALUES('client_log_uid',0); --if non zero limit client logging to that uid.
-INSERT INTO settings (name,value) VALUES('cookie_visit_name','FMVISIT'); --name used for a cookie to record a visit where the user logged on.
 INSERT INTO settings (name,value) VALUES('webmaster','webmaster@example.com'); --site webmaster.
 INSERT INTO settings (name,value) VALUES('site_logo','/appimages/site_logo.png'); --url of the site_logo image to be used on info pages and in mail
 INSERT INTO settings (name,value) VALUES('min_pass_len', 6); --minimum password length
 INSERT INTO settings (name,value) VALUES('dwell_time', 2000); --time to elapse before new urls get to be pushed to the history stack
+INSERT INTO settings (name,value) VALUES('recaptcha_key',''); --standard recaptcha key for the recapcha element
 --values for server config
 INSERT INTO settings (name,value) VALUES('cache_age',0);--cache age before invalid (in hours), 0 is infinite
 INSERT INTO settings (name,value) VALUES('server_port', 2040); --port the api server should listen on.
 INSERT INTO settings (name,value) VALUES('cookie_name', 'MBBall'); --name used for our main cookie
 INSERT INTO settings (name,value) VALUES('cookie_key', 'newCookieKey'); --key used to encrypt/decrypt cookie token
 INSERT INTO settings (name,value) VALUES('cookie_expires', 720); --hours until expire for standard logged on token
+INSERT INTO settings (name,value) VALUES('recaptch_secret','');  -- secret key or verification of recaptcha.
 INSERT INTO settings (name,value) VALUES('verify_expires', 24); --hours until expire for verification tokens.
 INSERT INTO settings (name,value) VALUES('rate_limit', 30); --minutes that must elapse by verification emails
 INSERT INTO settings (name,value) VALUES('email_from', 'admin@example.com'); --email address that mail comes from (do not reply)

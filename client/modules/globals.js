@@ -24,12 +24,12 @@ let clientLogUid = 0;
 let version = 'v0.0.0';
 let copyrightYear = '2020';
 let cookieName = '';
-let cookieVisitName = '';
 let webmaster = '';
 let siteLogo = '/appimages/site-logo.png';
 let verifyExpires = 12;
 let minPassLen = 6;
 let dwellTime = 2000;
+let reCaptchaKey = '';
 let lrid = 0;
 let lcid = 0;
 let luid = 0;
@@ -62,12 +62,12 @@ const global = {
       version = conf.version;
       copyrightYear = conf.copyrightYear;
       cookieName = conf.cookieName;
-      cookieVisitName = conf.cookieVisitName;
       webmaster = conf.webmaster;
       siteLogo = conf.siteLogo;
       verifyExpires = conf.verifyExpires;
       minPassLen = conf.minPassLen;
       dwellTime = conf.dwellTime;
+      reCaptchaKey = conf.reCaptchaKey;
       lrid = conf.lrid;
       lcid = conf.lcid;
       luid = conf.luid;
@@ -117,8 +117,8 @@ const global = {
   get cookieName () {
     return cookieName;
   },
-  get cookieVisitName () {
-    return cookieVisitName;
+  get reCaptchaKey () {
+    return reCaptchaKey;
   },
   get webmaster () {
     return webmaster;

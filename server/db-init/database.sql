@@ -393,20 +393,19 @@ INSERT INTO settings (name,value) VALUES('version',14); --version of this config
 
 INSERT INTO settings (name,value) VALUES('client_log',''); --if none empty string should specify colon separated function areas client should log or 'all' for every thing.
 INSERT INTO settings (name,value) VALUES('client_log_uid',0); --if non zero limit client logging to that uid.
-INSERT INTO settings (name,value) VALUES('cookie_visit_name','FMVISIT'); --name used for a cookie to record a visit where the user logged on.
-
 INSERT INTO settings (name,value) VALUES('main_menu_icon','menu'); --character from material icon font to use as the main menu.
 INSERT INTO settings (name,value) VALUES('webmaster','webmaster@example.com'); --site webmaster.
 INSERT INTO settings (name,value) VALUES('site_logo','/appimages/site_logo.png'); --url of the site_logo image to be used on info pages and in mail
 INSERT INTO settings (name,value) VALUES('min_pass_len', 6); --minimum password length
 INSERT INTO settings (name,value) VALUES('dwell_time', 2000); --time to elapse before new urls get to be pushed to the history stack
-
+INSERT INTO settings (name,value) VALUES('recaptcha_key',''); --stardard recaptcha key for the recapcha element
 --values for server config
 INSERT INTO settings (name,value) VALUES('cache_age',0);--cache age before invalid (in hours), 0 is infinite
 INSERT INTO settings (name,value) VALUES('server_port', 2040); --port the api server should listen on.
 INSERT INTO settings (name,value) VALUES('cookie_name', 'FOOTBALL'); --name used for our main cookie
 INSERT INTO settings (name,value) VALUES('cookie_key', 'newCookieKey'); --key used to encrypt/decrypt cookie token
 INSERT INTO settings (name,value) VALUES('cookie_expires', 720); --hours until expire for standard logged on token
+INSERT INTO settings (name,value) VALUES('recaptch_secret','');  -- secret key or verification of recaptcha.
 INSERT INTO settings (name,value) VALUES('verify_expires', 24); --hours until expire for verification tokens.
 INSERT INTO settings (name,value) VALUES('rate_limit', 30); --minutes that must elapse by verification emails
 INSERT INTO settings (name,value) VALUES('email_from', 'admin@example.com'); --email address that mail comes from (do not reply)
@@ -454,7 +453,8 @@ INSERT INTO styles (name,style) VALUES('pw-input-length','100px'); --input field
 -- UPDATE settings SET value = '/images/signature.png;Joe Bloggs' WHERE name = 'mail_signature';     --NOTE, site specific images should be in a different directory
 -- UPDATE settings SET value = '/images/site_logo.png' WHERE name = 'site_logo';                    --As above.
 -- UPDATE settings SET value = 'newCookieKey' WHERE name = 'cookie_key';
-
+-- UPDATE settings SET value = 'recaptcha_key' WHERE name = 'recaptcha_key';
+-- UPDATE settings SET value = 'recaptcha_secret_key' WHERE name = 'recaptcha_secret';
 COMMIT;
 VACUUM;
 -- set it all up as Write Ahead Log for max performance and minimum contention with other users.
