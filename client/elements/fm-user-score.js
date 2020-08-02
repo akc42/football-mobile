@@ -17,18 +17,57 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html } from '../libs/lit-element.js';
+import { LitElement, html, css } from '../libs/lit-element.js';
 
 import { RoundSelected } from '../modules/events.js';
 
-import style from '../styles/fm-user-score.js';
 
 /*
      <fw-user-score>
 */
 class FmUserScore extends LitElement {
   static get styles() {
-    return [style];
+    return css`
+      :host {
+
+        background-color: var(--app-primary-color);
+        display: grid;
+        grid-gap:2px;
+        grid-template-columns: 3fr 2fr 1fr;
+        grid-template-areas:
+          "round mp mt"
+          "round ou mt"
+          "round bs rs";
+      }
+      .rn,.mp,.ou, .mt,.bs,.rs {
+        padding:2px;
+        background-color: white;
+        color:var(--app-primary-text);
+        text-align: center;
+        vertical-align: center;
+        cursor:pointer;
+      }
+      .rn {
+        grid-area:round;
+      }
+
+      .mp {
+        grid-area:mp;
+      }
+      .ou {
+        grid-area: ou;
+      }
+      .mt {
+        grid-area:mt;
+      }
+      .bs {
+        grid-area: bs;
+      }
+      .rs {
+        grid-area: rs;
+      }
+
+    `;
   }
   static get properties() {
     return {

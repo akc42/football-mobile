@@ -20,14 +20,14 @@
 import { LitElement, html } from '../libs/lit-element.js';
 
 
-import './fancy-input.js';
+import './fm-input.js';
 import page from '../styles/page.js';
 import button from '../styles/button.js';
 
 import { EmailStatus } from '../modules/events.js';
 import api from '../modules/api.js';
-import './app-waiting.js';
-import './app-page.js';
+import './waiting-indicator.js';
+import './fm-page.js';
 import global from '../modules/globals.js';
 
 

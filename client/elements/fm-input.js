@@ -20,16 +20,68 @@
 
 */
 
-import { LitElement, html } from '../libs/lit-element.js';
+import { LitElement, html, css } from '../libs/lit-element.js';
 import {ifDefined} from '../libs/if-defined.js';
 import {classMap} from '../libs/class-map.js';
 
-import style from '../styles/input.js';
 import { ValueChanged } from '../modules/events.js';
 
-class FancyInput extends LitElement {
+class FmInput extends LitElement {
   static get styles() {
-    return [style];
+    return css`
+      :host {
+        display: block;
+        margin-bottom: 10px;
+        margin-top: 10px
+      }
+      input, textarea {
+        border-left: none;
+        border-right: none;
+        border-top: none;
+        border-bottom: 1px solid grey;
+        position: relative;
+        font-family: Roboto, sans-serif;
+        padding: 2px 0;
+        margin: 0 2px 10px 2px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      input:focus, textarea:focus {
+        outline: none;
+      }
+      input:valid:focus, textarea:valid:focus {
+        border-bottom-color: var(--pas-input-focus-colour, blue);
+      }
+      input:invalid, textarea:invalid {
+        border-bottom-color: red;
+      }
+      textarea {
+        resize: none;
+        height: 5em;
+      }
+      .error {
+        color: red;
+      }
+      div.errorcontainer {
+        position: relative
+      }
+      div.error {
+        position: absolute;
+        left: 2px;
+        top: -10px;
+        font-size: 8pt;
+      }
+      label {
+        display:block;
+        transform: translate(5px, 20px);
+        transition: 0.5s ease-in-out;
+        font-size: 8pt;
+      }
+      label.inplace {
+        transform: translate(0,0);
+        font-size: 10pt;
+      }
+    `;
   }
 
   static get properties() {
@@ -198,4 +250,4 @@ class FancyInput extends LitElement {
     }
   }
 }
-customElements.define('fancy-input', FancyInput);
+customElements.define('fm-input', FmInput);

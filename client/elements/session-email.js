@@ -20,13 +20,13 @@
 import { LitElement, html } from '../libs/lit-element.js';
 
 
-import './fancy-input.js';
+import './fm-input.js';
 import button from '../styles/button.js';
 import page from '../styles/page.js';
 import { SessionStatus } from '../modules/events.js';
 import api from '../modules/api.js';
-import './app-waiting.js';
-import './app-page.js';
+import './waiting-indicator.js';
+import './fm-page.js';
 import AppKeys from '../modules/keys.js';
 
 
@@ -34,9 +34,9 @@ import AppKeys from '../modules/keys.js';
 
 
 /*
-     <app-email-verify>: Collects, Email Address and Verifies against our participant database.
+     <session email>: Collects an Email Address and verifies against our participant database.
 */
-class AppEmailVerify extends LitElement {
+class SessionEmail extends LitElement {
   static get styles() {
     return [ button, page];
   }
@@ -73,11 +73,11 @@ class AppEmailVerify extends LitElement {
       </style>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
       <app-page heading="Welcome">
-        <form id="verify" action="session/email_verify" @form-submit=${this._submit}>
-          <label for="email">Email</label>
-          <input type="email" name="email" id="email" placeholder=" " autocomplete="email" required autofocus/>
+        <form-manager id="verify" action="session/email_verify" @form-submit=${this._submit}>
+          <fm-input name="email" type="email" label="Email" message="Valid Email Address Required"></fm-input>
+          <re-captcha></re-captcha>
           <button type="submit">Continue</button>
-        </form>
+        </form-Manager>
         <p>By continuing you agree to Melinda's Backups <a href="#" @click=${this._privacy}>conditions of use</a></p>
       </app-page>
     `;
@@ -122,4 +122,4 @@ class AppEmailVerify extends LitElement {
 
   }
 }
-customElements.define('app-email-verify', AppEmailVerify);
+customElements.define('session-email', SessionEmail);

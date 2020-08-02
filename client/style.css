@@ -17,21 +17,27 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { css } from '../libs/lit-element.js';
 
-export default css`
-    :host {
-      height: var(--list-height,100%);
-    }
+:root {
+  --color: white;
+  --background-color: rgb(5, 5, 5);
+  --accent-background-color: #ff00ff;
+  --accent-color: white;
+  --secondary-color: #131335;
+  --header-icon-background-color: var(--accent-color);
+  --header-icon-color: var(--secondary-color);
+  --overlay-background-color: white;
+  --overlay-color: var(--secondary-color);
+  --menu-separator: lightgrey;
+  --comment-panel-background: white;
+  --comment-panel-color: black;
+  /*invert(100%) sepia(0%) saturate(5322%) hue-rotate(84deg) brightness(113%) contrast(102%); */
+  --logo-background: url('/appimages/football-logo.svg');
 
-    #list {
-      height: 100%;
-    }
-
-    #list > .item {
-    scroll-snap-align:start;
-    border-radius: 5px;
-    box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
-    margin:0 5px 5px 3px;
-  }
-`;
+  --email-input-length: 240px;
+}
+  
+body {
+  color: var(--color);
+  background-color: var(--background-color);
+}

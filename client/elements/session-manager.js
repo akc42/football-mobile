@@ -31,14 +31,14 @@ import {switchPath} from '../modules/utils.js';
 
 const debug = Debug('session');
 
-import './app-waiting.js';
-import './app-overlay.js';
+import './waiting-indicator.js';
+import './dialog-box.js';
 
 
 /*
-     <app-session>
+     <session-manager>
 */
-class AppSession extends LitElement {
+class SessionManager extends LitElement {
   static get styles() {
     return [page];
   }
@@ -99,11 +99,11 @@ class AppSession extends LitElement {
                   global.user = response.user; 
                   this.state = 'authorised';
                 } else {
-                  this.state = 'logon'
+                  this.state = 'email'
                 }                
               });
             } else {
-              this.state = 'logon';
+              this.state = 'email';
             }
           });
           break;
@@ -111,13 +111,13 @@ class AppSession extends LitElement {
           this.authorised = true;
           break;
         case 'await':
-          import('./app-await.js').then(this.waiting = false);
+          import('./session-await.js').then(this.waiting = false);
           break;
         case 'cancelmem':
           import('./app-cancel-mem.js').then(this.waiting = false);
           break;
-        case 'emailverify':
-          import('./app-email-verify.js').then(this.waiting = false);
+        case 'email':
+          import('./session-email.js').then(this.waiting = false);
           break;
         case 'linkexpired':
           import('./app-expired.js').then(this.waiting = false);
@@ -160,7 +160,7 @@ class AppSession extends LitElement {
         ${cache({
           validate: html`<div>Validating</div>`,
           await: html`<app-await .email=${this.email}></app-await>`,
-          emailverify: html`<app-email-verify @session-status=${this._processEmail}></app-email-verify>`,
+          emailverify: html`<session-email @session-status=${this._processEmail}></session-email>`,
           linkexpired: html`<app-expired @session-status=${this._processExpire}></app-expired>`,
           logon: html`<app-logon .email=${this.email} @session-status=${this._processEmail}></app-logon>`,
           logonrem: html`<app-logon remember .email=${this.email} @session-status=${this._processEmail}></app-logon>`,
@@ -230,4 +230,4 @@ class AppSession extends LitElement {
     this.state = 'consent';
   }
 }
-customElements.define('app-session', AppSession);
+customElements.define('session-manager', SessionManager);

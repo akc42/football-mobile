@@ -24,10 +24,10 @@ import {SessionStatus} from '../modules/events.js';
 import global from '../modules/globals.js';
 import api from '../modules/api.js';
 
-import './app-form.js';
-import './fancy-input.js';
-import './app-waiting.js';
-import './app-checkbox.js';
+import './form-manager.js';
+import './fm-input.js';
+import './waiting-indicator.js';
+import './fm-checkbox.js';
 import AppKeys from '../modules/keys.js';
 import button from '../styles/button.js';
 import page from '../styles/page.js';

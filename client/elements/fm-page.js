@@ -17,74 +17,104 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html } from '../libs/lit-element.js';
-import {cache} from '../libs/cache.js';
+import { LitElement, html, css } from '../libs/lit-element.js';
 
-import './app-page.js';
-import page from '../styles/page.js';
-import style from '../styles/fm-page.js';
-import api from '../modules/api.js';
 import global from '../modules/globals.js';
-import { switchPath } from '../modules/utils.js';
-
 /*
-     <fm-page>: Slot "heading" for info for competition heading bar
+     <app-page>
 */
-class FmPage extends LitElement {
+class AppPage extends LitElement {
   static get styles() {
-    return [style,page];
+    return css`
+      :host{
+        height:100%;
+        display: flex;
+        flex-direction:column;
+        max-width: 600px;
+        justify-content: start;
+        padding:10px;
+        box-sizing:border-box;
+      }
+      header {
+        display: flex;
+        flex-direction: row;
+        flex:0 1 0;
+      }
+      img {
+        background-color: var(--header-icon-background-color);
+      }
+      #hcont {
+        margin-left: 10px;
+        font-weight: bold;
+        display:flex;
+        flex-direction: column;
+        justify-content:flex-start;
+        flex: 1 1 auto;
+        align-items: center;
+      }
+      header .heading {
+        font-size:18px;
+        text-transform: uppercase;
+        flex:1 1 auto;
+
+      }
+      header .subheading {
+        font-size: 10pt;
+        flex:1 1 auto;
+
+      }
+      section {
+        flex: 1 0 0;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        scroll-snap-type: y mandatory;
+      }
+
+      .action {
+        display: flex;
+        width:100%;
+        flex-direction:row;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+        flex:0 1 auto;
+      }
+
+      @media (min-width: 500px) {
+
+        :host {
+          margin: 40px auto 40px auto;
+          max-height: 100%;
+          border-radius: 10px;
+          box-shadow: 0px 0px 38px -2px rgba(0, 0, 0, 0.5);
+          padding: 20px;
+          min-width: 500px;
+        }
+      }
+    `;
   }
   static get properties() {
     return {
-      name: {type: String},
-      heading: {type: String},
-      canPick: {type: Boolean}  //Flag to see picks
+      heading: {type: String}
     };
   }
   constructor() {
     super();
-    this.name = '<!--NO NAME-->'; //we need to fetch it but a comment will do in the meantime
-    this.heading = '';
-    this.canPick = false;
-  }
-  connectedCallback() {
-    super.connectedCallback();
-    this.canPick = false;
-    const check = global.lcid === global.cid
-    api('user/fetch_comp_name',{check: check}).then(response => {
-      this.name = response.name
-      if (check) this.canPick = response.canpick;
-    });
-  }
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    this.name = '<!--NO NAME-->';
-  }
-  update(changed) {
-    super.update(changed);
-  }
-  firstUpdated() {
-  }
-  updated(changed) {
-    super.updated(changed);
+    this.heading='';
   }
   render() {
     return html`
-
-      <app-page id="page" .heading="${this.heading}">
-        ${cache(this.canPick?html`
-         <div slot="subheading" @click=${this._makePicks}>PlayOff Picks Available</div>
-        `:'')}
-        <div class="competition">
-          <slot name="heading"></slot><div id="compname">${this.name}</div>
+      <header>
+        <img src="${global.siteLogo}" height="64px"/>
+        <div id="hcont">
+          <div class="heading">${this.heading}</div>
+          <div class="subheading"><slot name="subheading"></slot></div>
         </div>
-        <slot></slot>
-      </app-page>
+      </header>
+      <section><slot class="container"></slot></section>
+  
+      <div class="action"><slot name="action"></slot></div>
     `;
   }
-  _makePicks(e) {
-    e.stopPropagation();
-    switchPath(`/teams/user/${global.uid}`);                                             
-  }
 }
-customElements.define('fm-page', FmPage);
+customElements.define('app-page', AppPage);

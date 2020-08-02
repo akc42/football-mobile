@@ -17,11 +17,10 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html } from '../libs/lit-element.js';
+import { LitElement, html, css } from '../libs/lit-element.js';
 import {classMap} from '../libs/class-map.js';
 import {cache} from '../libs/cache.js';
 
-import style from '../styles/fm-round-user.js';
 
 import global from '../modules/globals.js';
 import { UserSelected } from '../modules/events.js';
@@ -34,7 +33,62 @@ import './user-pick.js';
 */
 class FmRoundUser extends LitElement {
   static get styles() {
-    return [style];
+    return css`
+  :host {
+
+    background-color: var(--app-primary-color);
+    display: grid;
+    grid-gap:2px;
+    grid-template-columns: 2fr repeat(4,1fr);
+    grid-template-areas:
+      "un mr ou bn tl"
+      "un pk pk op done";
+  }
+  .un, .mr, .ou, .bn, .tl, .pk, .op, .done {
+    padding:2px;
+    background-color: white;
+    color:var(--app-primary-text);
+    text-align: center;
+    vertical-align: center;
+    cursor:pointer;
+  }
+  .un {
+    grid-area:un;
+  }
+
+  .mr {
+    grid-area:mr;
+  }
+  .ou {
+    grid-area: ou;
+  }
+  .tl {
+    grid-area:tl;
+  }
+  .pk {
+    grid-area: pk;
+  }
+  .op {
+    grid-area: op;
+  }
+  .done {
+    grid-area: done;
+    color: green;
+  }
+  .me {
+    background-color: var(--app-user-color);
+    color: var(--app-user-text);
+    font-weight: bold; 
+  }
+  .late {
+    font-size: 8pt;
+    font-weight: normal;
+  }
+  .support {
+    color: red;
+    font-weight: normal;
+  }
+`;
   }
   static get properties() {
     return {

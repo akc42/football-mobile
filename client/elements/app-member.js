@@ -22,12 +22,12 @@ import { classMap } from '../libs/class-map.js';
 import { cache } from '../libs/cache.js';
 
 
-import './fancy-input.js';
+import './fm-input.js';
 import button from '../styles/button.js';
 import page from '../styles/page.js';
 import { SessionStatus } from '../modules/events.js';
 import api from '../modules/api.js';
-import './app-waiting.js';
+import './waiting-indicator.js';
 import AppKeys from '../modules/keys.js';
 import global from '../modules/globals.js';
 

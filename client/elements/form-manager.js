@@ -31,29 +31,36 @@ import walk from '../modules/walk.js';
 import {FormResponse } from '../modules/events.js';
 
 class AppForm extends LitElement  {
-  render() {
-    return html`
-      <style>
-        :host {
-          display: contents;
-
-        }
-        ::slotted(*) {
-          background-color: var(--app-form-color);
-          border-radius: 5px;
-        }
-      </style>
-      <slot id="mychildren"></slot>
-    `;
-  }
   static get properties() {
     return {
-      action: {type: String}
+      action: { type: String }
     };
   }
   constructor() {
     super();
     this.action = '';
+  }
+  connectedCallback() {
+    super.connectedCallback();
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+  }
+  firstUpdated() {
+
+  }
+
+
+
+  render() {
+    return html`
+      <style>
+
+      </style>
+      <form id="myform" action="#" method="POST" @submit=${this._submit} @change=${this._change}>
+        <slot id="mychildren"></slot>
+      </form>
+    `;
   }
   get params() {
     return this._params;
@@ -85,6 +92,14 @@ class AppForm extends LitElement  {
       api(this.action, this.params).then(response => this.dispatchEvent(new FormResponse(response)));
     }
     return result;
+  }
+  _change(e){
+    
+
+  }
+  _submit(e) {
+    e.preventDefault();
+
   }
 }
 customElements.define('app-form', AppForm);

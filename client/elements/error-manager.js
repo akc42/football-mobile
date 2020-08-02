@@ -20,16 +20,16 @@
 import { LitElement, html } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 import {SessionStatus, AuthChanged, LocationAltered } from "../modules/events.js";
-import './app-page.js';
+import './fm-page.js';
 import api from '../modules/api.js';
 import button from '../styles/button.js';
 import page from '../styles/page.js';
 import global from '../modules/globals.js';
 
 /*
-     <app-consent>: Standard for on privacy notice about cookies.
+     <error-manager>: a page which handles errors.
 */
-class AppError extends LitElement {
+class ErrorManager extends LitElement {
   static get styles() {
     return [button,page];
   }
@@ -135,4 +135,4 @@ has occured`;
 
 
 }
-customElements.define('app-error', AppError);
+customElements.define('error-manager', ErrorManager);

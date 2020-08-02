@@ -21,10 +21,10 @@ import { LitElement, html } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 import global from '../modules/globals.js'; 
 import {switchPath} from '../modules/utils.js';
-import './app-error.js';
-import './app-overlay.js';
-import './fm-pages.js';
-import './app-session.js';
+import './error-manager.js';
+import './dialog-box.js';
+import './page-manager.js';
+import './session-manager.js';
 import './material-icon.js';
 
 import tooltip from '../styles/tooltip.js';
@@ -155,7 +155,8 @@ class MainApp extends LitElement {
           display: flex;
           flex-direction: row;
           cursor:pointer;
-          background-color: white;
+          background-color: var(--header-icon-background-color);
+          color: var(--header-icon-color);
           margin: 0 15px;
           border: none;
           padding: 5px;
@@ -200,8 +201,8 @@ class MainApp extends LitElement {
           flex: 0 1 64px;
         }
         .primary {
-          color: var(--app-primary-text);
-          background-color: var(--app-primary-color);
+          color: var(--accent-color);
+          background-color: var(--accent-background-color);
           display: flex;
           flex-direction: row;
           justify-content: flex-start;
@@ -222,7 +223,8 @@ class MainApp extends LitElement {
         #logo {
           height: 64px;
           width: 64px;
-          
+          background-size: 64px 64px;
+          background-image: var(--logo-background);
         }
         #appinfo {
           display:flex;
@@ -260,7 +262,7 @@ class MainApp extends LitElement {
 
       </style>
       ${cache(this.authorised ? html`
-        <app-overlay id="mainmenu">
+        <dialog-box id="mainmenu">
           <div class="menucontainer">
             <div role="menuitem" @click=${this._goHome}><material-icon>home</material-icon><span>Home</span></div>
             ${cache(this.scores? html`
@@ -290,22 +292,22 @@ class MainApp extends LitElement {
               `: '')}
             `:'')}
           </div>
-        </app-overlay>
-        <app-overlay id="competitions" closeOnClick @overlay-closed=${this._compClosed} position="right">
+        </dialog-box>
+        <dialog-box id="competitions" closeOnClick @overlay-closed=${this._compClosed} position="right">
           <div class="menucontainer">
             ${cache(this.competitions.map(competition => 
               html`<div role="menuitem" data-cid=${competition.cid} @click=${this._competitionSelected}><span>${competition.name}</span>
               ${cache(competition.cid === global.cid ? html`<span><material-icon>check_box</material-icon></span>` : '')}</div>
             `))}
           </div>
-        </app-overlay>
-        <app-overlay id="rounds" closeOnClick @overlay-closed=${this._roundClosed} position="right">
+        </dialog-box>
+        <dialog-box id="rounds" closeOnClick @overlay-closed=${this._roundClosed} position="right">
           <div class="menucontainer">
             ${cache(this.rounds.map(round => html`
                 <div data-rid=${round.rid} @click=${this._showRound} role="menuitem"><span>${round.name}</span></div>
             `))}
           </div>
-        </app-overlay>       
+        </dialog-box>       
         `:'')}
       <header class="primary fixed">
         ${cache(this.authorised? html`
@@ -319,27 +321,27 @@ class MainApp extends LitElement {
             `:'')}
                     
         `:html`<div class="iconreplace"></div>` )}
-        <div id="logocontainer" ><img id="logo" src="/appimages/football-logo.svg" alt="football logo"/></div>
+        <div id="logocontainer" ><div id="logo"></div></div>
         <div id="appinfo">
           <div id="version">${global.version}</div>
           <div id="copy">&copy; 2008-${global.copyrightYear} Alan Chandler</div>
         </div>
       </header>
       <section class="scrollable">
-        <app-error ?hidden=${!this.serverError} @session-status=${this._errorChanged} ></app-error>    
-        <app-session 
+        <error-manager ?hidden=${!this.serverError} @session-status=${this._errorChanged} ></error-manager>    
+        <session-manager 
           ?hidden=${this.authorised || this.serverError} 
           id="session" 
           .authorised=${this.authorised} 
-          @auth-changed=${this._authChanged}></app-session>
+          @auth-changed=${this._authChanged}></session-manager>
         ${cache(this.authorised ? html`
-          <fm-pages
+          <page-manager
             ?hidden=${this.serverError}
             @competitions-changed=${this._refreshComp}
             @menu-reset=${this._menuReset}
             @menu-add=${this._menuAdd}
             @auth-changed=${this._authChanged}>
-          </fm-pages>      
+            </page-manager>      
         `:'')}
       </section>
     `;

@@ -17,19 +17,28 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html } from '../libs/lit-element.js';
+import { LitElement, html , css} from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 import {classMap} from '../libs/class-map.js';
 
 import './material-icon.js';
 
-import style from '../styles/user-pick.js';
 /*
      <user-pick>
 */
 class UserPick extends LitElement {
   static get styles() {
-    return [style];
+    return css`
+      .unknown {
+        color: var(--fm-indeterminate-pick);
+      }
+      .correct {
+        color: var(--fm-correct-pick);
+      }
+      .incorrect {
+        color: var(--fm-incorrect-pick);
+      }
+    `;
   }
   static get properties() {
     return {

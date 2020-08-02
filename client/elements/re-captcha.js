@@ -53,7 +53,7 @@ class ReCaptcha extends LitElement {
   }
   constructor() {
     super();
-    this.theme = 'light';
+    this.theme = 'dark';
     this.invalid = false;
     this.captureCompleted = false;
     this.message = 'Captcha Not Completed';

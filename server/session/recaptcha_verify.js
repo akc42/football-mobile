@@ -24,13 +24,13 @@
   const debug = require('debug')('football:api:recaptcha');
   const db = require('../utils/database');
   const secret = db.prepare('SELECT value FROM settings WHERE name = ?').pluck().get('recaptcha_secret');
-  https = require('https');
+  const https = require('https');
 
 
   module.exports = async function(params) {
     debug('new request with token', params.token);
     return new Promise((accept, reject) => {
-      https.request({`https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${params.token}`,{
+      https.request(`https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${params.token}`,{
         method: 'POST',
       }, (resp) => {
         let data = '';

@@ -18,16 +18,29 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { LitElement, html } from '../libs/lit-element.js';
+import { LitElement, html, css } from '../libs/lit-element.js';
 
-import AppFit from '../modules/fit.js';
+import Fit from '../modules/fit.js';
 import activeElement from '../modules/activeElement.js';
 import { OverlayClosing, OverlayClosed } from '../modules/events.js';
-import dialog from '../styles/app-overlay.js';
 
-class AppOverlay extends AppFit(LitElement)  {
+
+class DialogBox extends Fit(LitElement)  {
   static get styles() {
-    return [dialog];
+    return css`   
+      #dialog {
+        position: fixed;
+        background-color: white;
+        color:  black;
+        margin:5px;
+        box-sizing: border-box;
+        border: none;
+        border-radius: 5px;
+        box-shadow: 0 0 40px rgba(0,0,0,0.1), 0 0 10px rgba(0,0,0,0.25);
+        overflow-y: auto;
+        padding: 0;
+      }
+    `;
   }
 
   static get properties() {
@@ -156,4 +169,4 @@ class AppOverlay extends AppFit(LitElement)  {
     if (this.sizingTarget !== undefined && this.sizingTarget.open) this.fit();
   }
 }
-customElements.define('app-overlay', AppOverlay);
+customElements.define('dialog-box', DialogBox);

@@ -21,12 +21,12 @@ import { LitElement, html } from '../libs/lit-element.js';
 import { cache } from '../libs/cache.js';
 
 
-import './fancy-input.js';
-import './app-checkbox.js';
-import './app-page.js';
-import './app-form.js';
+import './fm-input.js';
+import './fm-checkbox.js';
+import './fm-page.js';
+import './form-manager.js';
 import './material-icon.js';
-import './app-waiting.js';
+import './waiting-indicator.js';
 
 import button from '../styles/button.js';
 import page from '../styles/page.js';
@@ -39,9 +39,9 @@ import { AuthChanged } from '../modules/events.js';
 import { switchPath } from '../modules/utils.js';
 
 /*
-     <app-profile>
+     <user-profile>
 */
-class AppProfile extends LitElement {
+class UserProfile extends LitElement {
   static get styles() {
     return [button, page];
   }
@@ -171,10 +171,10 @@ class AppProfile extends LitElement {
           align-self: center;
         }
       </style>
-      <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <app-page @key-pressed=${this._keyPressed} id="page" heading="Your Profile">
+      <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
+      <fm-page @key-pressed=${this._keyPressed} id="page" heading="Your Profile">
         <div class="form">
-          <app-form
+          <form-manager
             id="doprofile" 
             action="profile/update_profile" 
             class="inputs" 
@@ -182,7 +182,7 @@ class AppProfile extends LitElement {
               <input type="hidden" name="uid" value="${global.user.uid}" />
               <input type="hidden" name="usage" value="${global.scope}" />
               <div class="names">
-                <fancy-input 
+                <fm-input 
                   id="displayname" 
                   label="Display Name" 
                   name="name"
@@ -192,12 +192,12 @@ class AppProfile extends LitElement {
                   autofocus
                   @value-changed=${this._dnChanged}
                   @blur=${this._checkDisplayName}
-                  autocomplete="off"></fancy-input>
+                  autocomplete="off"></fm-input>
                 <p class="title."> User Profile<br/>
                   <span class="subtitle">User Id: ${global.user.uid}</span></p>
               </div>
             ${cache(global.scope === 'authorised'? html`
-              <fancy-input
+              <fm-input
                 label="E-Mail"
                 .message="Required"
                 autocomplete="off"
@@ -207,7 +207,7 @@ class AppProfile extends LitElement {
                 id="email"
                 .value="${this.email}"
                 @value-changed="${this._emChanged}"
-                @blur=${this._doneFirst}></fancy-input>
+                @blur=${this._doneFirst}></fm-input>
               <p id="enote">If you change this, you will be sent a link to verify it before you can use it to log in.  Use your original
               email before then.</p> 
             `:html`
@@ -217,7 +217,7 @@ class AppProfile extends LitElement {
 
               
               <div id="passwords">
-                <fancy-input              
+                <fm-input              
                   label="Password"
                   .message="min ${global.minPassLen} chars"
                   type="${this.showpass? 'text':'password'}"
@@ -226,8 +226,8 @@ class AppProfile extends LitElement {
                   .value=${this.password}
                   @value-changed=${this._pwChanged}
                   .validator=${this._pwValidate}>
-                </fancy-input>
-                <fancy-input
+                </fm-input>
+                <fm-input
                   label="Repeat"
                   .message="${'does not match'}"
                   type="${this.showpass ? 'text' : 'password'}"
@@ -236,7 +236,7 @@ class AppProfile extends LitElement {
                   .value=${this.replica}
                   @value-changed=${this._repChanged}
                   .validator=${this._replicaValidate}>
-                </fancy-input>
+                </fm-input>
                 <p id="see">
                   <material-icon @click=${this._toggleVisibility}>${this.showpass ? 'visibility_off' : 'visibility'}</material-icon>
                   Click the eye to ${this.showpass?'hide':'show'} passwords</p>
@@ -244,14 +244,14 @@ class AppProfile extends LitElement {
                 <p id="pnote" class="explain">Only enter a password if you wish to change it.</p>
               </div>
   
-              <app-checkbox ?value=${this.remember} @value-changed=${this._rememberChanged} name="remember">Remember Me</app-checkbox>
+              <fm-checkbox ?value=${this.remember} @value-changed=${this._rememberChanged} name="remember">Remember Me</fm-checkbox>
               ${cache(global.cookieConsent? '': html`<p class="consent">The Remember checkbox, when checked formally gives us permission to store a cookie with your user details on your computer until you next formally log out. Do not do this if this computer is public.</p>`)} 
-          </app-form>
+          </form-manager>
         </div> 
         <button slot="action" @click=${this._changeProfile}>Update</button>
         <button slot="action" cancel @click=${this._cancel}>Cancel</button>
       
-      </app-page>
+      </fm-page>
     `;
   }
   _cancel() {
@@ -362,4 +362,4 @@ class AppProfile extends LitElement {
     this.rinput = this.shadowRoot.querySelector('#replica');
   }
 }
-customElements.define('app-profile', AppProfile);
+customElements.define('user-profile', UserProfile);

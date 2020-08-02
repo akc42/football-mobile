@@ -72,22 +72,16 @@
     logger('error', `Final Error at url ${req.originalUrl} with error ${err.stack}`);
   }
 
-  function generateCookie(user, usage) {
+  function generateCookie(user) {
     const date = new Date();
     const expiry = user.remember !== 0;
-    if (usage !== 'logoff') {
-      date.setTime(date.getTime() + (serverConfig.cookieExpires * 60 * 60 * 1000));
-      const payload = {
-        exp: Math.round(date.getTime()/1000),
-        user: user,
-        usage: usage
-      };
-      debug('generated cookie', serverConfig.cookieName ,'for uid ', user.uid, ' expires ', expiry ? date.toGMTString() : 0);
-      return `${serverConfig.cookieName}=${jwt.encode(payload, serverConfig.cookieKey)}; expires=${expiry ? date.toGMTString(): 0}; Path=/`;
-    } else {
-      return `${serverConfig.cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
-    }
-
+    date.setTime(date.getTime() + (serverConfig.cookieExpires * 60 * 60 * 1000));
+    const payload = {
+      exp: Math.round(date.getTime()/1000),
+      user: user
+    };
+    debug('generated cookie', serverConfig.cookieName ,'for uid ', user.uid, ' expires ', expiry ? date.toGMTString() : 0);
+    return `${serverConfig.cookieName}=${jwt.encode(payload, serverConfig.cookieKey)}; expires=${expiry ? date.toGMTString(): 0}; Path=/`;
   }
 
   let server;
@@ -162,17 +156,6 @@
     
       debug('tell router to use api router for /api/ routes');
       router.use('/api/', api);
-      /*
-        Just a little helper utility for development - not normally needed
-      */
-     debug('setup delete visit cookie helper')
-      api.get('/delete_cookie', (req,res) => {
-        debugapi('Received Delete Cookie request with names as ', serverConfig.cookieName, ' and ', serverConfig.cookieVisitName);
-        const cookie = `${serverConfig.cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
-        const vcookie = `${serverConfig.cookieVisitName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
-        res.setHeader('Set-cookie', [cookie, vcookie]);
-        res.end('DONE');
-      });
 
       /*
         Our first set of calls are almost related to the static files.  They are a few api calls to retrieve configuration items
@@ -207,8 +190,10 @@
         let location = '/';
         try {
           const payload = jwt.decode(req.params.token, serverConfig.cookieKey);
-          debugapi('/api/pin payload uid', payload.user, 'pin', payload.pin);
-          const result = db.prepare('SELECT * FROM participant WHERE uid = ?').get(payload.user);
+
+          debugapi('/api/pin payload uid', payload.uid, );
+          const result = db.prepare(`SELECT * FROM participant WHERE ${payload.uid === 0 ? 'email': 'uid'} = ?`)
+            .get(payload.uid === 0 ? payload.email: payload.uid);
           if (result !== undefined) {
             debugapi('/api/pin found the user');
             const correct = await bcrypt.compare(payload.pin, result.verification_key);
@@ -218,22 +203,25 @@
                 we got the expected result so we can reset the verification key
                 If the token included an e-mail address, we were verifing a new email, so we update
                 that also.
-                We return the usage in the cookie (which will determine next step)
               */
               db.prepare('UPDATE participant SET verification_key = NULL, email = ? WHERE uid = ?')
                 .run(payload.email? payload.email:result.email,payload.user);
-              debugapi('/api/pin setting up cookie for user', payload.user, ' with usage', payload.usage);
+              debugapi('/api/pin setting up cookie for user', payload.user.uid);
               res.setHeader('Set-Cookie', generateCookie(
                 {
                   ...result,
                   password: !!result.password,
                   verification_key: false,
                   remember: 0, //force a session cookie, so the cookie doesn't persist.
-                }, payload.usage));
+                }));
+              location = '/profile' ;  //we want to select profile when we next redirect.
             } else {
               debugapi('/api/pin password incorrect, add #linkexpired to return path');
               location = '/#linkexpired';
             }
+          } else if (payload.uid === 0 ) {
+            db.prepare(`INSERT INTO participant (name, email, waiting_approval, reason) VALUES( '',?,1,'')`).run(payload.user.email);
+            location = '/#await';  //we just await for member approval.
           } else {
             debugapi('/api/pin user not found, add #linkexpired to return path')
             location = '/#linkexpired';
@@ -253,33 +241,6 @@
         res.setHeader('Content-Type', 'text/html');
         res.end();
         debugapi('/api/pin sent end');
-      });
-      /*
-         Beyond here, if the user doesn't have the visit cookie set, this is most likely a spoofed attempt, so
-         we need to check it.  From a users perspective we will have silently ignored his request, from our perspective
-         we just log it with ip address.
-       */
-
-      debug('Setting up to check Visit Cookie')
-      api.use((req, res, next) => {
-        debugapi('checking for Visit Cookie')
-        const cookies = req.headers.cookie;
-        if (!cookies) {
-          forbidden(req,res,'No cookies in request');
-        } else {
-          const mbvisited = new RegExp(`^(.*; +)?${serverConfig.cookieVisitName}=([^;]+)(.*)?$`);
-          const matches = cookies.match(mbvisited);
-          if (matches) {
-            debugapi('Visit Cookie found');
-            //extract cid from it
-            const {cid} = JSON.parse(matches[2]);
-            req.cid = cid;
-
-            next();
-          } else {
-            forbidden(req,res,'no Visit Cookie Found');
-          }
-        }
       });
 
       /*
@@ -304,8 +265,8 @@
           debugapi(`Received /api/session/${session} request`);
           try {
             const data = await sessions[session](req.body, req.headers);
-            if(data.usage!== undefined) {
-              res.setHeader('Set-Cookie', generateCookie(data.user,data.usage)); //get ourselves a cookie
+            if(data.user !== undefined) {
+              res.setHeader('Set-Cookie', generateCookie(data.user)); //get ourselves a cookie
             }
             res.end(JSON.stringify(data));
           } catch (e) {
@@ -366,18 +327,7 @@
           }
         })
       }
-      /*
-        Beyond here we are only allowed if our cookie specified a usage of authorised, so we need some middleware to detect it
-      */
-      debug('Set up to check cookie usage');
-      api.use((req, res, next) => {
-        debugapi('checking cookie usage')
-        if (req.usage === 'authorised') {
-          next();
-        } else {
-          forbidden(req, res, `Incorrect Usage in Cookie of ${req.usage}`);
-        }
-      });
+
       /*
         Beyond here we are going to check for member approval capability in the madmin section only
       */
@@ -437,7 +387,7 @@
       }
 
       debug('Setting Up Competition Administration');
-      api.use('/admin/', admin);
+      api.use('/admin/:cid', admin);
       /*
         Beyond here we are going to check for user us this competitions admin in the cadmin section only
       */
@@ -460,9 +410,9 @@
       });
       const admins = loadServers(__dirname, 'admin');
       for (const a in admins) {
-        debugapi(`setting up /api/admin/${a} route`);
+        debugapi(`setting up /api/admin/:cid/${a} route`);
         admin.post(`/${a}`, (req, res) => {
-          debugapi(`received /api/admin/${a} request for cid = ${req.cid}`);
+          debugapi(`received /api/admin/${req.cid}/${a}`);
           try {
             const responder = new Responder(res);
             cadms[a](req.user,req.cid,req.body, responder);
@@ -475,13 +425,13 @@
       /*
         Finally just the simple user apis
       */
-      api.use('/user/',usr);
+      api.use('/user/:cid',usr);
 
       const users = loadServers(__dirname, 'user');      
       for (const u in users) {
-        debugapi(`Setting up /api/user/${u} route`);
+        debugapi(`Setting up /api/user/:cid/${u} route`);
         usr.post(`/${u}`, (req, res) => {
-          debugapi(`Received /api/user/${u} request, cid= ${req.cid}`);
+          debugapi(`Received /api/user/${req.cid}/${u}`);
           try {
             const responder = new Responder(res);
             users[u](req.user, req.cid, req.body, responder);

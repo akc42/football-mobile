@@ -19,7 +19,7 @@
 */
 import { LitElement, html } from '../libs/lit-element.js';
 
-import './app-overlay.js';
+import './dialog-box.js';
 import domHost from '../modules/host.js';
 import { CommentReply } from '../modules/events.js';
 
