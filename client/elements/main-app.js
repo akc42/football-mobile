@@ -24,7 +24,7 @@ import {switchPath} from '../modules/utils.js';
 import './app-error.js';
 import './app-overlay.js';
 import './fm-pages.js';
-import './app-session.js';
+import './session-manager.js';
 import './material-icon.js';
 
 import tooltip from '../styles/tooltip.js';
@@ -327,11 +327,11 @@ class MainApp extends LitElement {
       </header>
       <section class="scrollable">
         <app-error ?hidden=${!this.serverError} @session-status=${this._errorChanged} ></app-error>    
-        <app-session 
+        <session-manager 
           ?hidden=${this.authorised || this.serverError} 
           id="session" 
           .authorised=${this.authorised} 
-          @auth-changed=${this._authChanged}></app-session>
+          @auth-changed=${this._authChanged}></session-manager>
         ${cache(this.authorised ? html`
           <fm-pages
             ?hidden=${this.serverError}

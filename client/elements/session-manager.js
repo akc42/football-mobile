@@ -36,9 +36,9 @@ import './app-overlay.js';
 
 
 /*
-     <app-session>
+     <session-manager>
 */
-class AppSession extends LitElement {
+class SessionManager extends LitElement {
   static get styles() {
     return [page];
   }
@@ -63,13 +63,11 @@ class AppSession extends LitElement {
   }
   connectedCallback() {
     super.connectedCallback();
-    window.addEventListener('logoff-request', this._logOff);
     this.addEventListener('session-status', this._setState);
     this.authorised = false;
   }
   disconnectedCallback() {
     super.disconnectedCallback();
-    window.removeEventListener('logoff-request', this._logOff);
     this.removeEventListener('session-status', this.__setState);
     this.authorised = null;
   }
@@ -154,9 +152,8 @@ class AppSession extends LitElement {
       <style>
 
       </style>
-      <app-waiting ?waiting=${this.waiting}></app-waiting>
+      <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       ${cache(this.authorised? '' : html`
-        <div @session-status=${this._setState}>
           ${cache({
             approve: html`<session-approve></session-approve>`,
             authorised:html`<div class="authorised"></div>`,
@@ -167,21 +164,13 @@ class AppSession extends LitElement {
             pin: html`<session-pin .email=${this.email}></session-pin>`,
             validate: html`<div class="validate"></div>`
           }[this.state])}
-        </div>
       `)}
     `;
   }
-
-  _logOff(e) {
-    this.state = 'logoff';
-  }
-
   _setState(e) {
     e.stopPropagation();
     if (e.status.email !== undefined) this.email = e.status.email;
     this.state = e.status.state;
   }
-  }
-
 }
-customElements.define('app-session', AppSession);
+customElements.define('session-manager', SessionManager);
