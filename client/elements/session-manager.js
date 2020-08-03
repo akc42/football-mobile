@@ -59,18 +59,16 @@ class SessionManager extends LitElement {
     this.waiting = false;
     this._logOff = this._logOff.bind(this);
     this.email = '';
-    this._reset = this._reset.bind(this);
+    this._setState = this._setState.bind(this);
   }
   connectedCallback() {
     super.connectedCallback();
-    window.addEventListener('logoff-request', this._logOff);
-    this.addEventListener('session-status', this._reset);
+    this.addEventListener('session-status', this._setState);
     this.authorised = false;
   }
   disconnectedCallback() {
     super.disconnectedCallback();
-    window.removeEventListener('logoff-request', this._logOff);
-    this.removeEventListener('session-status', this._reset);
+    this.removeEventListener('session-status', this.__setState);
     this.authorised = null;
   }
   update(changed) {
@@ -154,9 +152,9 @@ class SessionManager extends LitElement {
       <style>
 
       </style>
-      <app-overlay id="inuse"></app-overlay>
-      <app-waiting ?waiting=${this.waiting}></app-waiting>
+      <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       ${cache(this.authorised? '' : html`
+<<<<<<< HEAD:client/elements/session-manager.js
         ${cache({
           validate: html`<div>Validating</div>`,
           await: html`<app-await .email=${this.email}></app-await>`,
@@ -170,64 +168,25 @@ class SessionManager extends LitElement {
           requestpin: html`<app-request-pin @session-status=${this._processEmail}></app-request-pin>`,
           cancelmem: html`<app-cancel-mem @session-status=${this._processEmail}></app-cancel-mem>`
         }[this.state])}
+=======
+          ${cache({
+            approve: html`<session-approve></session-approve>`,
+            authorised:html`<div class="authorised"></div>`,
+            email: html`<session-email></session-email>`,
+            expired: html`<session-expired></session-expired>`,
+            member: html`<session-member .email=${this.email}></session-member>`,
+            password: html`<session-password .email=${this.email}></session-password>`,
+            pin: html`<session-pin .email=${this.email}></session-pin>`,
+            validate: html`<div class="validate"></div>`
+          }[this.state])}
+>>>>>>> temp:client/elements/app-session.js
       `)}
     `;
   }
-  _consent() {
-
-    makeVisitCookie('emailverify'); //next state if we don't actually have a normal cookie
-    this.state = 'validate'; //this makes us go check the cookie
-  }
-  _logOff(e) {
-    this.state = 'logoff';
-  }
-
-  _processEmail(e) {
+  _setState(e) {
     e.stopPropagation();
-    this.email = e.status.email;
-    switch(e.status.type) {
-      case 'markrem':
-        makeVisitCookie('logonrem'); //we have a password and they want us to remember them so mark (fall through this time);
-        this.state = 'await';
-        break;
-      case 'markpass':
-        makeVisitCookie('logon');  //we have a password in the database, so next time we can logon (fall throu this time)
-      case 'await':
-        this.state = 'await';
-        break;
-      case 'verify':
-        makeVisitCookie('emailverify');
-        this.state = 'validate';
-        break;
-      case 'cancelmem':
-        this.state = 'cancelmem';
-        break;
-      case 'cancel':
-        this.state = 'consent'; //just pretend we are re-entering the site.
-        break;
-      case 'logonrem':
-      case 'logon':
-        if (global.cid === 0) updateCid(global.lcid);
-        makeVisitCookie(e.status.type);
-        this.state = 'consent'; //just act like we are coming in afresh
-        break;
-      default:
-        makeVisitCookie(e.status.type);
-        this.state = e.status.type;
-    }
-  }
-  _processExpire(e) {
-    e.stopPropagation();
-
-    if (e.status.type === 'verify') {
-      this.state = 'emailverify';
-    } else if (e.status.type === 'logon') {
-      makeVisitCookie('logon');
-      this.state = 'logon';
-    }
-  }
-  _reset() {
-    this.state = 'consent';
+    if (e.status.email !== undefined) this.email = e.status.email;
+    this.state = e.status.state;
   }
 }
 customElements.define('session-manager', SessionManager);

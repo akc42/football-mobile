@@ -29,7 +29,7 @@ import './material-icon.js';
 
 import tooltip from '../styles/tooltip.js';
 
-import { SessionStatus, PageClose, LogoffRequest } from '../modules/events.js';
+import { SessionStatus, PageClose } from '../modules/events.js';
 import AppKeys from '../modules/keys.js';
 import api from '../modules/api.js';
 import Debug from '../modules/debug.js';
@@ -428,7 +428,7 @@ class MainApp extends LitElement {
   _logoff() {
     debug('logoff request about to be sent to session manager');
     //the difference between the following and just changing authorised, is that we clear the cookie
-    this.sessionMgr.dispatchEvent(new LogoffRequest());
+    this.sessionMgr.dispatchEvent(new SessionStatus({state: 'logoff'}));
   }
   _menu(e) {
     if (this.mainmenu) {
