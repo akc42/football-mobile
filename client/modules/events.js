@@ -236,21 +236,6 @@ export class LocationAltered extends Event {
   }
 };
 
-export class LogoffRequest extends Event {
-  static eventType = 'logoff-request';
-
-  /*
-     The following are the fields provided by this event
-
-     none:   
-
-  */
-
-  constructor() {
-    super('logoff-request',{composed: true, bubbles: true});
-  }
-};
-
 export class MatchComment extends Event {
   static eventType = 'match-omment';
 

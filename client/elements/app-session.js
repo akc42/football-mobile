@@ -59,18 +59,18 @@ class AppSession extends LitElement {
     this.waiting = false;
     this._logOff = this._logOff.bind(this);
     this.email = '';
-    this._reset = this._reset.bind(this);
+    this._setState = this._setState.bind(this);
   }
   connectedCallback() {
     super.connectedCallback();
     window.addEventListener('logoff-request', this._logOff);
-    this.addEventListener('session-status', this._reset);
+    this.addEventListener('session-status', this._setState);
     this.authorised = false;
   }
   disconnectedCallback() {
     super.disconnectedCallback();
     window.removeEventListener('logoff-request', this._logOff);
-    this.removeEventListener('session-status', this._reset);
+    this.removeEventListener('session-status', this.__setState);
     this.authorised = null;
   }
   update(changed) {
@@ -154,80 +154,34 @@ class AppSession extends LitElement {
       <style>
 
       </style>
-      <app-overlay id="inuse"></app-overlay>
       <app-waiting ?waiting=${this.waiting}></app-waiting>
       ${cache(this.authorised? '' : html`
-        ${cache({
-          validate: html`<div>Validating</div>`,
-          await: html`<app-await .email=${this.email}></app-await>`,
-          emailverify: html`<app-email-verify @session-status=${this._processEmail}></app-email-verify>`,
-          linkexpired: html`<app-expired @session-status=${this._processExpire}></app-expired>`,
-          logon: html`<app-logon .email=${this.email} @session-status=${this._processEmail}></app-logon>`,
-          logonrem: html`<app-logon remember .email=${this.email} @session-status=${this._processEmail}></app-logon>`,
-          member: html`<app-member .step=${1} .email=${this.email} @session-status=${this._processEmail}></app-member>`,
-          memberapprove: html`<app-member .step=${2} @session-status=${this._processEmail}></app-member>`,
-          memberpin: html`<app-member .step=${3} @session-status=${this._processEmail}></app-member>`,
-          requestpin: html`<app-request-pin @session-status=${this._processEmail}></app-request-pin>`,
-          cancelmem: html`<app-cancel-mem @session-status=${this._processEmail}></app-cancel-mem>`
-        }[this.state])}
+        <div @session-status=${this._setState}>
+          ${cache({
+            approve: html`<session-approve></session-approve>`,
+            authorised:html`<div class="authorised"></div>`,
+            email: html`<session-email></session-email>`,
+            expired: html`<session-expired></session-expired>`,
+            member: html`<session-member .email=${this.email}></session-member>`,
+            password: html`<session-password .email=${this.email}></session-password>`,
+            pin: html`<session-pin .email=${this.email}></session-pin>`,
+            validate: html`<div class="validate"></div>`
+          }[this.state])}
+        </div>
       `)}
     `;
   }
-  _consent() {
 
-    makeVisitCookie('emailverify'); //next state if we don't actually have a normal cookie
-    this.state = 'validate'; //this makes us go check the cookie
-  }
   _logOff(e) {
     this.state = 'logoff';
   }
 
-  _processEmail(e) {
+  _setState(e) {
     e.stopPropagation();
-    this.email = e.status.email;
-    switch(e.status.type) {
-      case 'markrem':
-        makeVisitCookie('logonrem'); //we have a password and they want us to remember them so mark (fall through this time);
-        this.state = 'await';
-        break;
-      case 'markpass':
-        makeVisitCookie('logon');  //we have a password in the database, so next time we can logon (fall throu this time)
-      case 'await':
-        this.state = 'await';
-        break;
-      case 'verify':
-        makeVisitCookie('emailverify');
-        this.state = 'validate';
-        break;
-      case 'cancelmem':
-        this.state = 'cancelmem';
-        break;
-      case 'cancel':
-        this.state = 'consent'; //just pretend we are re-entering the site.
-        break;
-      case 'logonrem':
-      case 'logon':
-        if (global.cid === 0) updateCid(global.lcid);
-        makeVisitCookie(e.status.type);
-        this.state = 'consent'; //just act like we are coming in afresh
-        break;
-      default:
-        makeVisitCookie(e.status.type);
-        this.state = e.status.type;
-    }
+    if (e.status.email !== undefined) this.email = e.status.email;
+    this.state = e.status.state;
   }
-  _processExpire(e) {
-    e.stopPropagation();
+  }
 
-    if (e.status.type === 'verify') {
-      this.state = 'emailverify';
-    } else if (e.status.type === 'logon') {
-      makeVisitCookie('logon');
-      this.state = 'logon';
-    }
-  }
-  _reset() {
-    this.state = 'consent';
-  }
 }
 customElements.define('app-session', AppSession);
