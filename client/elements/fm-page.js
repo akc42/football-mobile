@@ -20,10 +20,12 @@
 import { LitElement, html, css } from '../libs/lit-element.js';
 
 import global from '../modules/globals.js';
+import page from '../styles/page.js';
+
 /*
      <app-page>
 */
-class AppPage extends LitElement {
+class FmPage extends LitElement {
   static get styles() {
     return css`
       :host{
@@ -41,7 +43,9 @@ class AppPage extends LitElement {
         flex:0 1 0;
       }
       img {
-        background-color: var(--header-icon-background-color);
+        background-color: var(--color);
+        padding: 3px;
+        border-radius:2px;
       }
       #hcont {
         margin-left: 10px;
@@ -117,4 +121,4 @@ class AppPage extends LitElement {
     `;
   }
 }
-customElements.define('app-page', AppPage);
+customElements.define('fm-page', FmPage);

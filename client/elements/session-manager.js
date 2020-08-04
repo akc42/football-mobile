@@ -25,14 +25,13 @@ import api from '../modules/api.js';
 import global from '../modules/globals.js';
 import { AuthChanged } from '../modules/events.js';
 import Debug from '../modules/debug.js';
-import {switchPath} from '../modules/utils.js';
+
 
 
 
 const debug = Debug('session');
 
 import './waiting-indicator.js';
-import './dialog-box.js';
 
 
 /*
@@ -57,7 +56,7 @@ class SessionManager extends LitElement {
     this.state = ''
     this.authorised = false;
     this.waiting = false;
-    this._logOff = this._logOff.bind(this);
+
     this.email = '';
     this._setState = this._setState.bind(this);
   }
@@ -68,7 +67,7 @@ class SessionManager extends LitElement {
   }
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.removeEventListener('session-status', this.__setState);
+    this.removeEventListener('session-status', this._setState);
     this.authorised = null;
   }
   update(changed) {
@@ -97,51 +96,25 @@ class SessionManager extends LitElement {
                   global.user = response.user; 
                   this.state = 'authorised';
                 } else {
-                  this.state = 'email'
+                  this._readHash();
                 }                
               });
             } else {
-              this.state = 'email';
+              this._readHash();
             }
           });
           break;
         case 'authorised':
           this.authorised = true;
           break;
-        case 'await':
-          import('./session-await.js').then(this.waiting = false);
-          break;
-        case 'cancelmem':
-          import('./app-cancel-mem.js').then(this.waiting = false);
-          break;
-        case 'email':
-          import('./session-email.js').then(this.waiting = false);
-          break;
-        case 'linkexpired':
-          import('./app-expired.js').then(this.waiting = false);
-          break;
         case 'logoff':
           document.cookie = `${global.cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
-          this.state = 'consent';
           this.authorised = false;
+          this.state='email';
           break;
-        case 'logonrem':
-        case 'logon':
-          import('./app-logon.js').then(this.waiting = false);
-          break;        
-        case 'member':
-        case 'memberapprove':
-        case 'memberpin':
-          import ('./app-member.js').then(this.waiting=false);
-          break;
-        case 'profile':
-          switchPath('/profile');
-          this.authorised = true;
-          break;
-        case 'requestpin':
-          import('./app-request-pin.js').then(this.waiting = false);
-          break;
+
         default:
+          import(`./session-${this.state}.js`).then(this.waiting = false);
       } 
     }
     super.updated(changed);
@@ -154,34 +127,26 @@ class SessionManager extends LitElement {
       </style>
       <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       ${cache(this.authorised? '' : html`
-<<<<<<< HEAD:client/elements/session-manager.js
-        ${cache({
-          validate: html`<div>Validating</div>`,
-          await: html`<app-await .email=${this.email}></app-await>`,
-          emailverify: html`<session-email @session-status=${this._processEmail}></session-email>`,
-          linkexpired: html`<app-expired @session-status=${this._processExpire}></app-expired>`,
-          logon: html`<app-logon .email=${this.email} @session-status=${this._processEmail}></app-logon>`,
-          logonrem: html`<app-logon remember .email=${this.email} @session-status=${this._processEmail}></app-logon>`,
-          member: html`<app-member .step=${1} .email=${this.email} @session-status=${this._processEmail}></app-member>`,
-          memberapprove: html`<app-member .step=${2} @session-status=${this._processEmail}></app-member>`,
-          memberpin: html`<app-member .step=${3} @session-status=${this._processEmail}></app-member>`,
-          requestpin: html`<app-request-pin @session-status=${this._processEmail}></app-request-pin>`,
-          cancelmem: html`<app-cancel-mem @session-status=${this._processEmail}></app-cancel-mem>`
-        }[this.state])}
-=======
           ${cache({
             approve: html`<session-approve></session-approve>`,
             authorised:html`<div class="authorised"></div>`,
             email: html`<session-email></session-email>`,
             expired: html`<session-expired></session-expired>`,
+            logoff: html`<div class="logoff"></div>`,
             member: html`<session-member .email=${this.email}></session-member>`,
             password: html`<session-password .email=${this.email}></session-password>`,
             pin: html`<session-pin .email=${this.email}></session-pin>`,
             validate: html`<div class="validate"></div>`
           }[this.state])}
->>>>>>> temp:client/elements/app-session.js
       `)}
     `;
+  }
+  _readHash() {
+    if(typeof window.location.hash != "undefined" && window.location.hash == "#linkexpired"){
+      this.state = 'expired';
+    } else {
+      this.state = 'email';
+    }
   }
   _setState(e) {
     e.stopPropagation();

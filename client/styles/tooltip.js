@@ -38,8 +38,8 @@ export default  css`
     width: fit-content;
     min-width: 44px;
     white-space: pre;
-    color: var(--app-accent-text);
-    background: var(--app-accent-color);
+    color: var(--secondary-contrast-color);
+    background: var(--secondary-color);
     font-size: 12px;
     font-weight: normal;
     font-family: helvetica;
@@ -59,8 +59,8 @@ export default  css`
       left: -200vw; /* way off screen to the left */
       margin: 0;
       width: 0;
-      box-shadow: 0px 0px 50px 3px rgba(0,0,0,0.37);
-      border-bottom: 5px solid var(--app-accent-color);
+      box-shadow: 0px 0px 50px 3px var(--shadow-color);
+      border-bottom: 5px solid var(--secondary-color);
       border-right: 5px solid transparent;
       border-left: 5px solid transparent;
       border-top: 0px;
@@ -142,7 +142,7 @@ export default  css`
     right: 100%;
     left: auto;
     margin: -2px 5px 0px 0px;
-    border-left: 5px solid var(--app-accent-color);
+    border-left: 5px solid var(--secondary-color);
     border-top: 5px solid transparent;
     border-bottom: 5px solid transparent;
     border-right: 0px;
@@ -158,7 +158,7 @@ export default  css`
     top: 50%;
     left: 100%;
     margin: -2px 0px 0px 5px;
-    border-right: 5px solid var(--app-accent-color);
+    border-right: 5px solid var(--secondary-color);
     border-top: 5px solid transparent;
     border-bottom: 5px solid transparent;
     border-left: 0px;

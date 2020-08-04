@@ -17,7 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html } from '../libs/lit-element.js';
+import { LitElement, html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 import {SessionStatus, AuthChanged, LocationAltered } from "../modules/events.js";
 import './fm-page.js';
@@ -31,7 +31,12 @@ import global from '../modules/globals.js';
 */
 class ErrorManager extends LitElement {
   static get styles() {
-    return [button,page];
+    return [button, css`
+      .forbidden {
+        color: red;
+        font-weight: bold;
+      }
+    `, page];
   }
   static get properties() {
     return {
@@ -65,16 +70,8 @@ class ErrorManager extends LitElement {
   }
   render() {
     return html`
-      <style>
-
-        .forbidden {
-          color: red;
-          font-weight: bold;
-        }
-
-      </style>
       ${cache(this.anError?html`
-        <app-page .heading=${this.forbidden?'Forbidden': 'Something Went Wrong'}>
+        <fm-page .heading=${this.forbidden?'Forbidden': 'Something Went Wrong'}>
           ${cache(this.forbidden ? html`
             <p class="forbidden">You have tried to access a forbidden area.</p>
           `:html`
@@ -84,7 +81,7 @@ class ErrorManager extends LitElement {
             them know that there has been an issue.</p>             
             <button slot="action" @click=${this._reset}>Restart</button>
           `)}
-        </app-page>
+        </fm-page>
       `: '')}
     `;
   }

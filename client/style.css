@@ -19,22 +19,36 @@
 */
 
 :root {
-  --color: white;
+  --color:white;
   --background-color: rgb(5, 5, 5);
-  --accent-background-color: #ff00ff;
-  --accent-color: white;
-  --secondary-color: #131335;
+  --accent-color: fuchsia;
+  --accent-constrast-color: white;
+  --secondary-color: navy;
+  --secondary-contrast-color: white;
+  --cancel-color: lavender;
+  --cancel-contrast-color: navy;
+  --shadow-color: rgba(255,255,255,0.7);
+
   --header-icon-background-color: var(--accent-color);
-  --header-icon-color: var(--secondary-color);
-  --overlay-background-color: white;
+  --header-icon-color: var(--accent-constrast-color);
   --overlay-color: var(--secondary-color);
+  --overlay-background-color: var(--secondary-constrast-color);
   --menu-separator: lightgrey;
   --comment-panel-background: white;
   --comment-panel-color: black;
   /*invert(100%) sepia(0%) saturate(5322%) hue-rotate(84deg) brightness(113%) contrast(102%); */
   --logo-background: url('/appimages/football-logo.svg');
 
+ 
+  --fm-win-color:darkorange;
+  --fm-in-playoff: gold;
+  --fm-correct-pick:orangered; 
+  --fm-incorrect-pick:mediumorchid; 
+  --fm-indeterminate-pick:lawngreen; 
+
   --email-input-length: 240px;
+  --name-input-length: 120px; 
+  --pw-input-length: 100px; 
 }
   
 body {

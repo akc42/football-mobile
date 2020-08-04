@@ -27,6 +27,7 @@ import { SessionStatus } from '../modules/events.js';
 import api from '../modules/api.js';
 import './waiting-indicator.js';
 import './fm-page.js';
+import './re-captcha.js';
 import AppKeys from '../modules/keys.js';
 
 
@@ -71,19 +72,19 @@ class SessionEmail extends LitElement {
           width: var(--email-input-length);
         }
       </style>
-      <app-waiting ?waiting=${this.waiting}></app-waiting>
-      <app-page heading="Welcome">
-        <form-manager id="verify" action="session/email_verify" @form-submit=${this._submit}>
-          <fm-input name="email" type="email" label="Email" message="Valid Email Address Required"></fm-input>
-          <re-captcha></re-captcha>
-          <button type="submit">Continue</button>
-        </form-Manager>
+      <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
+      <fm-page heading="Welcome">
+        <fm-input name="email" type="email" label="Email" message="Valid Email Address Required"></fm-input>
+        <re-captcha></re-captcha>
+       
+    
+        <button type="submit" slot="action" @click=${this._submit}>Continue</button>
         <p>By continuing you agree to Melinda's Backups <a href="#" @click=${this._privacy}>conditions of use</a></p>
-      </app-page>
+      </fm-page>
     `;
   }
   _submit(e) {
-    e.preventDefault();
+    e.stopPropagation;
 
 
 

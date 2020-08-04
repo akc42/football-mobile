@@ -30,7 +30,7 @@ import api from '../modules/api.js';
 import walk from '../modules/walk.js';
 import {FormResponse } from '../modules/events.js';
 
-class AppForm extends LitElement  {
+class FormManager extends LitElement  {
   static get properties() {
     return {
       action: { type: String }
@@ -102,4 +102,4 @@ class AppForm extends LitElement  {
 
   }
 }
-customElements.define('app-form', AppForm);
+customElements.define('form-manager', FormManager);

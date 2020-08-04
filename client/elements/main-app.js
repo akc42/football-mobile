@@ -28,6 +28,7 @@ import './session-manager.js';
 import './material-icon.js';
 
 import tooltip from '../styles/tooltip.js';
+import page from '../styles/page.js';
 
 import { SessionStatus, PageClose } from '../modules/events.js';
 import AppKeys from '../modules/keys.js';
@@ -66,15 +67,6 @@ class MainApp extends LitElement {
     this.compVersion=0;
     this.scores = false;
     this.close = false;
-
-    window.fetch('/api/config/styles', { method: 'get' }).then(response => {
-      if (response.status === 200) return response.json();
-      return {};
-    }).then(styles => {
-      for (let key in styles) {
-        this.style.setProperty('--' + key.replace(/_/g,'-'), styles[key]);
-      }
-    });
     this.serverError = false;
     this._keyPressed = this._keyPressed.bind(this);
   }
@@ -161,14 +153,14 @@ class MainApp extends LitElement {
           border: none;
           padding: 5px;
           border-radius:5px;
-          box-shadow: 2px 2px 5px 4px rgba(0,0,0,0.2);
+          box-shadow: 2px 2px 5px 4px var(--shadow-color);
           --icon-size:30px;
         }
         #menuicon:active, #closeicon.active {
           border: none;
           padding: 5px;
           border-radius:5px;
-          box-shadow: 2px 2px 5px 4px rgba(0,0,0,0.2);
+          box-shadow: 2px 2px 5px 4px var(--shadow-color);
           box-shadow:none;
         }
         .menucontainer {
@@ -201,8 +193,8 @@ class MainApp extends LitElement {
           flex: 0 1 64px;
         }
         .primary {
-          color: var(--accent-color);
-          background-color: var(--accent-background-color);
+          color: var(--accent-constrast-color);
+          background-color: var(--accent-color);
           display: flex;
           flex-direction: row;
           justify-content: flex-start;
@@ -239,7 +231,7 @@ class MainApp extends LitElement {
         #copy {
           font-size: 8px;
         }
-        app-session[hidden], fm-pages[hidden], app-error[hidden] {
+        app-session[hidden], fm-pages[hidden], error-manager[hidden] {
           display: none !important;
         }
         .admins{

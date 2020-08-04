@@ -24,9 +24,9 @@ import './fm-page.js';
 import page from '../styles/page.js';
 
 /*
-     <session-await>
+     <session-pin>
 */
-class SessionAwait extends LitElement {
+class SessionPin extends LitElement {
   static get styles() {
     return [page];
   }
@@ -53,4 +53,4 @@ class SessionAwait extends LitElement {
     `;
   }
 }
-customElements.define('session-await', SessionAwait);
+customElements.define('session-pin', SessionPin);

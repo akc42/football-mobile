@@ -183,12 +183,6 @@ CREATE TABLE settings (
     name character varying(20) PRIMARY KEY, -- Setting Name
     value integer -- although an Int, We can store strings in here
 );
---Styles used throughout the application
-CREATE TABLE styles (
-    name character varying PRIMARY KEY, --style variable name without the leading double dashes
-    style character varying DEFAULT NULL --the value of the style.  Note it could refer to another style using 'var(--my-other-style)'
-);
-
 
 CREATE TABLE team (
     tid varchar(3) PRIMARY KEY,
@@ -414,33 +408,6 @@ INSERT INTO settings (name,value) VALUES('mail_wordwrap',130); -- word wrap colu
 INSERT INTO settings (name,value) VALUES('mail_signature', '/appimages/signature.png;Name of Signature'); --email signature if starts with a slash is an image url which maybe followed by a semi-colon and then caption, else html
 INSERT INTO settings (name,value) VALUES('site_baseref','https://example.com'); -- basic site url without trailing slash to be added to hostless image urls to 
 INSERT INTO settings (name,value) VALUES('first_time_message','Welcome to the <strong>Football Mobile Results Picking Competition</strong>.  This appears to be your first visit to the site. You will be have to provide your email address and later your password but, with your permission, we can remember you so you won''t have to keep entering it.'); -- First Paragraph of text for First time Users
-
------------------------------------------------------------------------------------------- STYLES
----COLOURS 
-INSERT INTO styles (name,style) VALUES('app-primary-color', '#42d9ff'); --Main colour for use in the application
-INSERT INTO styles (name,style) VALUES('primary-color-filter', 'invert(69%) sepia(72%) saturate(792%) hue-rotate(160deg) brightness(102%) contrast(102%)'); --Filter needed to color svg to match app-primary-color NOTE this is done by putting desired color in calcfilter.js 
-INSERT INTO styles (name,style) VALUES('app-accent-color', '#131335'); --Colour to use when something is to stand out - Main Button etc 
-INSERT INTO styles (name,style) VALUES('accent-color-filter', 'invert(9%) sepia(23%) saturate(2922%) hue-rotate(213deg) brightness(92%) contrast(102%)'); --Filter needed to color svg to match app-accent-color NOTE this is done by putting desired color in calcfilter.js 
-INSERT INTO styles (name,style) VALUES('app-primary-text', 'var(--app-accent-color)'); --Main text colour to use on primary colour backgrounds
-INSERT INTO styles (name,style) VALUES('app-accent-text', 'white'); --Text colour to use when writing on accent colour backgrounds
-INSERT INTO styles (name,style) VALUES('app-user-color', '#f3fcff'); --Background used to indicate the particular user
-INSERT INTO styles (name,style) VALUES('app-user-text', 'var(--app-accent-color)'); --text Color for highlighted user
-INSERT INTO styles (name,style) VALUES('app-spinner-color', 'var(--app-accent-color)'); --Spinner Dot Colour
-INSERT INTO styles (name,style) VALUES('app-button-color', 'var(--app-accent-color)'); --Main Button Colour
-INSERT INTO styles (name,style) VALUES('app-cancel-button-color', 'lightsteelblue'); --Cancel Button Colour
-INSERT INTO styles (name,style) VALUES('button-text-color', 'var(--app-accent-text)'); --Color of text on primary buttons
-INSERT INTO styles (name,style) VALUES('cancel-button-text-color', '#212121'); --Color of text on cancel buttons
-INSERT INTO styles (name,style) VALUES('app-form-color', '#fcffc0'); --Background Color of Forms;
-INSERT INTO styles (name,style) VALUES('fm-win-color', 'darkorange'); --Color of icon to indicate a match win or an over/under result.
-INSERT INTO styles (name,style) VALUES('fm-in-playoff','gold'); -- colour of trophy indicating a team in the playoff
-INSERT INTO styles (name,style) VALUES('fm-correct-pick', 'orangered'); --colour of a correct pick
-INSERT INTO styles (name,style) VALUES('fm-incorrect-pick', 'mediumorchid'); --colour of incorrect pick
-INSERT INTO styles (name,style) VALUES('fm-indeterminate-pick', 'lawngreen'); --colour of pick where result not yet available.
-
---- FIELD SIZES
-INSERT INTO styles (name,style) VALUES('email-input-length','240px'); --input field width for e-mail input 
-INSERT INTO styles (name,style) VALUES('name-input-length','120px'); --input field width for display input 
-INSERT INTO styles (name,style) VALUES('pw-input-length','100px'); --input field width for password input 
 
 
 

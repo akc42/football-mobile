@@ -30,14 +30,12 @@ export default css`
     align-items: stretch;
     box-sizing: border-box;
   }
-  :host[hidden] {
-    display: !important none;
+  
+  [hidden] {
+    display: none !important;
     flex:0, 1, 0px;
   }
-  .form {
-    background-color: var(--app-form-color);
-    border-radius:5px;
-  }
+
   .scrollable {
     overflow-y:auto;
     scroll-snap-type: y mandatory;

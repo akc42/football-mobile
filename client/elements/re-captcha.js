@@ -19,6 +19,7 @@
 */
 import { LitElement, html } from '../libs/lit-element.js';
 import api from '../modules/api.js';
+import global from '../modules/globals.js';
 
 let instance = 1;
 
@@ -46,14 +47,12 @@ class ReCaptcha extends LitElement {
   }
   static get properties() {
     return {
-      theme: {type: String},
       invalid: {type: Boolean}, //failed to provide capture response
       message: {type: String}  //Error message to display when invalid
     };
   }
   constructor() {
     super();
-    this.theme = 'dark';
     this.invalid = false;
     this.captureCompleted = false;
     this.message = 'Captcha Not Completed';
@@ -66,18 +65,30 @@ class ReCaptcha extends LitElement {
   }
   connectedCallback() {
     super.connectedCallback();
-  
+    const cssColor = getComputedStyle(document.documentElement).getPropertyValue('--background-color');
+    const ctx = document.createElement("canvas").getContext("2d");
+    ctx.fillStyle = cssColor;
+    let color = ctx.fillStyle;
+    // If RGB --> Convert it to HEX: http://gist.github.com/983661
+    color = +("0x" + color.slice(1).replace(color.length < 5 && /./g, '$&$&'));
+    const r = color >> 16;
+    const g = color >> 8 & 255;
+    const b = color & 255;
+    // HSP (Highly Sensitive Poo) equation from http://alienryderflex.com/hsp.html
+    const hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
     //append an absolute div to the body in which to render our div.
     this.float = document.createElement('div'); 
     const captchaId = `captcha_${instance++}`;
     this.float.setAttribute('id', this.captchaId)
     this.float.style = 'position:absolute;';
     document.body.appendChild(this.float);
-    recaptcha.then(grepcaptcha => grepcaptcha.render(this.captureId,{
-      'sitekey': global.recaptchaKey,
-      'theme': this.theme,
-      'callback': this._captured
-    }));
+    recaptcha.then(grepcaptcha => 
+      grepcaptcha.render(this.captureId,{
+        'sitekey': global.reCaptchaKey,
+        'theme': hsp > 127.5 ? 'light' : 'dark',
+        'callback': this._captured
+      })
+    );
     if (this.reserver !== undefined) {
       this.resizeObserver.observe(this.reserve);
     }
