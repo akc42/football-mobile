@@ -74,15 +74,15 @@ class SessionManager extends LitElement {
     if (changed.has('authorised')) {
       if (!this.authorised) {
         this.state = 'validate';
-      } 
+      }
       this.dispatchEvent(new AuthChanged(this.authorised));
     }
     super.update(changed);
   }
   updated(changed) {
     if (changed.has('state')) {
-      debug(`state-changed to ${this.state}`); 
-      this.waiting = true;   
+      debug(`state-changed to ${this.state}`);
+      this.waiting = true;
       switch(this.state) {
         case 'validate':
           global.ready.then(() => { //only using this to wait until globals has been read, since this is the first state
@@ -93,11 +93,11 @@ class SessionManager extends LitElement {
                 performance.mark('end_user_validate');
                 performance.measure('user_validate','start_user_validate','end_user_validate');
                 if (response.user.uid !== 0) {
-                  global.user = response.user; 
+                  global.user = response.user;
                   this.state = 'authorised';
                 } else {
                   this._readHash();
-                }                
+                }
               });
             } else {
               this._readHash();
@@ -115,7 +115,7 @@ class SessionManager extends LitElement {
 
         default:
           import(`./session-${this.state}.js`).then(this.waiting = false);
-      } 
+      }
     }
     super.updated(changed);
   }
@@ -142,8 +142,17 @@ class SessionManager extends LitElement {
     `;
   }
   _readHash() {
-    if(typeof window.location.hash != "undefined" && window.location.hash == "#linkexpired"){
-      this.state = 'expired';
+    if(typeof window.location.hash != "undefined")
+      switch (window.location.hash) {
+        case '#expired':
+          this.state = 'expired';
+          break;
+        case '#member':
+          this.state = 'approve';
+          break;
+        default:
+          this.state = 'email';
+      }
     } else {
       this.state = 'email';
     }

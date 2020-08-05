@@ -25,7 +25,7 @@
   const debug = require('debug')('football:db');
 
   const Database = require('better-sqlite3');
-  const dbfilename = path.resolve(__dirname, process.env.FOOTBALL_DB_DIR, process.env.FOOTBALL_DB);
+  const dbfilename = path.resolve(__dirname, '../',process.env.FOOTBALL_DB_DIR, process.env.FOOTBALL_DB);
   let db;
   try {
     db = new Database(dbfilename, {fileMustExist:true, timeout: parseInt(process.env.FOOTBALL_DB_BUSY,10)});
@@ -44,7 +44,7 @@
       }
     } else {
       throw new Error(`Encountered ${e.toString()} error when opening database`);
-    }      
+    }
   }
 
   db.pragma('foreign_keys = ON');
