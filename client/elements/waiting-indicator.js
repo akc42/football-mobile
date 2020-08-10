@@ -22,7 +22,7 @@
 import { LitElement, html } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
-class AppWaiting extends LitElement {
+class WaitingIndicator extends LitElement {
   render() {
     return html`
       <style>
@@ -49,7 +49,7 @@ class AppWaiting extends LitElement {
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: var(--app-spinner-color, darkblue);
+          background: var(--accent-color);
           margin: -3px 0 0 -3px;
         }
         .spinner div:nth-child(1) {
@@ -133,4 +133,4 @@ class AppWaiting extends LitElement {
     this.waiting = false;
   }
 }
-customElements.define('app-waiting', AppWaiting);
+customElements.define('waiting-indicator', WaitingIndicator);
