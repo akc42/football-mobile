@@ -17,9 +17,12 @@
     You should have received a copy of the GNU General Public License
     along with Football-Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html } from '../libs/lit-element.js';
+import { LitElement, html, css } from '../libs/lit-element.js';
+import {cache} from '../libs/cache.js';
+
 import api from '../modules/api.js';
 import global from '../modules/globals.js';
+import error from '../styles/error.js';
 
 let instance = 1;
 
@@ -43,7 +46,19 @@ const recaptcha = new Promise(function (resolve, reject) {
 */
 class ReCaptcha extends LitElement {
   static get styles() {
-    return [];
+    return [error, css`        
+      #reserve {
+        width: 364px;
+        height: 78px;
+        margin-top: 5px;
+      }
+      @media (max-width: 300px) {
+        #reserve {
+          width: 278px;
+          height: 60px;
+        }
+      }
+    `];
   }
   static get properties() {
     return {
@@ -65,87 +80,75 @@ class ReCaptcha extends LitElement {
   }
   connectedCallback() {
     super.connectedCallback();
-    const cssColor = getComputedStyle(document.documentElement).getPropertyValue('--background-color');
-    const ctx = document.createElement("canvas").getContext("2d");
-    ctx.fillStyle = cssColor;
-    let color = ctx.fillStyle;
-    // If RGB --> Convert it to HEX: http://gist.github.com/983661
-    color = +("0x" + color.slice(1).replace(color.length < 5 && /./g, '$&$&'));
-    const r = color >> 16;
-    const g = color >> 8 & 255;
-    const b = color & 255;
-    // HSP (Highly Sensitive Poo) equation from http://alienryderflex.com/hsp.html
-    const hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
     //append an absolute div to the body in which to render our div.
     this.float = document.createElement('div'); 
     const captchaId = `captcha_${instance++}`;
-    this.float.setAttribute('id', this.captchaId)
+    this.float.setAttribute('id', captchaId)
     this.float.style = 'position:absolute;';
     document.body.appendChild(this.float);
     recaptcha.then(grepcaptcha => 
-      grepcaptcha.render(this.captureId,{
+      this.captchaId = grepcaptcha.render(this.float,{
         'sitekey': global.reCaptchaKey,
-        'theme': hsp > 127.5 ? 'light' : 'dark',
+        'theme': 'light' ,
         'callback': this._captured
       })
     );
-    if (this.reserver !== undefined) {
-      this.resizeObserver.observe(this.reserve);
-    }
+    this.resizeObserver.observe(document.body);
+    if (this.reserve !== undefined) this.resizeObserver.observe(this.reserve);
+    if (this.errorcontainer !== undefined) this.resizeObserver.observe(this.errorcontainer);
+
     let parent = this;
     while (parent = parent.parentNode) {
       parent.addEventListener('scroll', this._scroll);
     }
-
   }
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.float.remove();  //take our recapture element away
+    if (this.float) this.float.remove();  //take our recapture element away if we haven't already
     this.isScrolling = false;
     this.captureCompleted = false;
-    this.resizeObserver.unobserve(this.reserve);
+    this.resizeObserver.disconnect();
+    
     let parent = this;
     while (parent = parent.parentNode) {
       parent.removeEventListener('scroll', this._scroll);
     }
-  }
-  update(changed) {
-    super.update(changed);
+
   }
   firstUpdated() {
     this.reserve = this.shadowRoot.querySelector('#reserve');
+    this.errorcontainer = this.shadowRoot.querySelector('#errorcontainer');
     this.resizeObserver.observe(this.reserve);
+    this.resizeObserver.observe(this.errorcontainer);
+  }
 
-  }
-  updated(changed) {
-    super.updated(changed);
-  }
   render() {
     return html`
-      <style>
-        #reserve {
-          width: 398px;
-          height: 98px;
-        }
-      </style>
-      <div class="error">${this.invalid? this.message: ' '}</div>
+      <div id="errorcontainer">
+        ${cache(this.invalid ? html`
+          <div class="error" role="alert">
+            <material-icon>cancel</material-icon><span>${this.message}</span>
+          </div>
+        `: '')}
+      </div>
       <!-- we reserve space in the dom for this -->
       <div id="reserve"></div>
     `;
   }
   validate() {
     if (!this.captureCompleted) {
-      this.invalid = false;
+      this.invalid = true;
     }
     return !this.invalid;
   }
   _captured(token) {
-console.log('captured called with token', token);
     //I don't want the client to see my secret key, so I am going to send the token to my server, and it can do the validation
     api('session/recaptcha_verify',{token:token}).then(response => {
       if (response.success) {
         this.captureCompleted = true;
         this.invalid = false;
+        this.float.remove();
+        this.float = null;
       } else {
         this.invalid = true;
         window.grecaptcha.reset(this.captchaId);
@@ -162,12 +165,18 @@ console.log('captured called with token', token);
 
   }
   _setLocationOfBodyFloat() {
-    if (this.reserve !== undefined) {
-      const rect = this.reserve.getBoundingClientRect();
-      this.float.style.left = rect.left + 'px';
-      this.float.style.top = rect.top + 'px';
-      this.float.style.width = rect.width + 'px';
-      this.float.style.height = rect.height + 'px';
+    if (this.reserve !== undefined && this.float !== null) {
+
+      const rbox = this.reserve.getBoundingClientRect();
+      if (rbox.width < 364) {
+        const scaling = rbox.width/364;
+        this.float.style.transformOrigin =  'left top';
+        this.float.style.transform = `scale(${scaling})`;
+      }
+      this.float.style.left = rbox.left + 'px';
+      this.float.style.top = rbox.top + 'px';
+      this.float.style.width = rbox.width + 'px';
+      this.float.style.height = rbox.height + 'px';
     }
   }
 }
