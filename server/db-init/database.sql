@@ -90,6 +90,13 @@ CREATE TABLE match (
     FOREIGN KEY (cid,aid) REFERENCES team_in_competition(cid,tid),
     FOREIGN KEY (cid,hid) REFERENCES team_in_competition(cid,tid)    
 );
+CREATE TABLE membership_request (
+    mid INTEGER PRIMATY_KEY ASC,
+    request_time INTEGER DEFAULT  (strftime('%s','now')) NOT NULL, --Time of Request
+    computer CHARACTER VARYING,  -- session id of memebership request
+    email CHARACTER VARYING COLLATE NOCASE, --email used for the request
+    ipaddress CHARACTER VARYING --ip address of requester
+);
 
 -- Holds one possible answer to the round question
 CREATE TABLE option (
@@ -393,22 +400,25 @@ INSERT INTO settings (name,value) VALUES('site_logo','/appimages/site_logo.png')
 INSERT INTO settings (name,value) VALUES('min_pass_len', 6); --minimum password length
 INSERT INTO settings (name,value) VALUES('dwell_time', 2000); --time to elapse before new urls get to be pushed to the history stack
 INSERT INTO settings (name,value) VALUES('recaptcha_key',''); --stardard recaptcha key for the recapcha element
+INSERT INTO settings (name,value) VALUES('organisation_name', 'Football Mobile Organisation'); --Name of Organisation running the site.
+INSERT INTO settings (name,value) VALUES('coming_soon_message','Your new picking competition will be coming soon, get ready to register and join.'); -- First Paragraph of text for a coming soon page
 --values for server config
 INSERT INTO settings (name,value) VALUES('cache_age',0);--cache age before invalid (in hours), 0 is infinite
 INSERT INTO settings (name,value) VALUES('server_port', 2040); --port the api server should listen on.
-INSERT INTO settings (name,value) VALUES('cookie_name', 'FOOTBALL'); --name used for our main cookie
+INSERT INTO settings (name,value) VALUES('cookie_name', 'MBBall'); --name used for our main cookie
 INSERT INTO settings (name,value) VALUES('cookie_key', 'newCookieKey'); --key used to encrypt/decrypt cookie token
 INSERT INTO settings (name,value) VALUES('cookie_expires', 720); --hours until expire for standard logged on token
 INSERT INTO settings (name,value) VALUES('recaptch_secret','');  -- secret key or verification of recaptcha.
 INSERT INTO settings (name,value) VALUES('verify_expires', 24); --hours until expire for verification tokens.
-INSERT INTO settings (name,value) VALUES('rate_limit', 30); --minutes that must elapse by verification emails
+INSERT INTO settings (name,value) VALUES('rate_limit', 30); --minutes that must elapse between verification emails
+INSERT INTO settings (name,value) VALUES('membership_rate', 60); --minutes that must elapse between membership requests
+INSERT INTO settings (name,value) VALUES('max_membership', 3); --max membership requests from same computer in a month
+INSERT INTO settings (name,value) VALUES('membership_key','FMMember'); --key for sid generation
 INSERT INTO settings (name,value) VALUES('email_from', 'admin@example.com'); --email address that mail comes from (do not reply)
 INSERT INTO settings (name,value) VALUES('mail_footer','<p>Some footer html</p>'); --mail footer
-INSERT INTO settings (name,value) VALUES('mail_wordwrap',130); -- word wrap column in html to text conversion
+INSERT INTO settings (name,value) VALUES('mail_wordwrap',130); --word wrap column in html to text conversion
 INSERT INTO settings (name,value) VALUES('mail_signature', '/appimages/signature.png;Name of Signature'); --email signature if starts with a slash is an image url which maybe followed by a semi-colon and then caption, else html
-INSERT INTO settings (name,value) VALUES('site_baseref','https://example.com'); -- basic site url without trailing slash to be added to hostless image urls to 
-INSERT INTO settings (name,value) VALUES('first_time_message','Welcome to the <strong>Football Mobile Results Picking Competition</strong>.  This appears to be your first visit to the site. You will be have to provide your email address and later your password but, with your permission, we can remember you so you won''t have to keep entering it.'); -- First Paragraph of text for First time Users
-
+INSERT INTO settings (name,value) VALUES('site_baseref','https://example.com'); -- basic site url without trailing slash to be added to hostless image urls to make complete
 
 
 -- Configuration Settings That are just examples and MUST be changed.  There are others that you might want to change so review them all.
@@ -422,7 +432,8 @@ INSERT INTO settings (name,value) VALUES('first_time_message','Welcome to the <s
 -- UPDATE settings SET value = 'newCookieKey' WHERE name = 'cookie_key';
 -- UPDATE settings SET value = 'recaptcha_key' WHERE name = 'recaptcha_key';
 -- UPDATE settings SET value = 'recaptcha_secret_key' WHERE name = 'recaptcha_secret';
-COMMIT;
+-- UPDATE settings SET value = 'Football Mobile Organisation' WHERE name = 'organisation_name';
+-- UPDATE settings SET value = 'Your new picking competition will be coming soon, get ready to register and join.' WHERE NAME 'coming_soon_message';
 VACUUM;
 -- set it all up as Write Ahead Log for max performance and minimum contention with other users.
 PRAGMA journal_mode=WAL;
