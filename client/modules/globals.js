@@ -27,6 +27,7 @@ let cookieName = '';
 let webmaster = '';
 let siteLogo = '/appimages/site-logo.png';
 let verifyExpires = 12;
+let rateLimit = 30;
 let minPassLen = 6;
 let dwellTime = 2000;
 let reCaptchaKey = '';
@@ -35,9 +36,11 @@ let lcid = 0;
 let luid = 0;
 let lgap = 0;
 let cid = 0;
+let comingSoonMessage = '';
+let organisationName = '';
+let membershipRate = 60;
+let maxMembership = 3;
 
-let usage = '';
-let cookieConsent = false;
 
 let globalPromise;
 
@@ -65,9 +68,14 @@ const global = {
       webmaster = conf.webmaster;
       siteLogo = conf.siteLogo;
       verifyExpires = conf.verifyExpires;
+      rateLimit = conf.rateLimit;
       minPassLen = conf.minPassLen;
       dwellTime = conf.dwellTime;
       reCaptchaKey = conf.reCaptchaKey;
+      comingSoonMessage = conf.comingSoonMessage;
+      organisationName = conf.organisationName;
+      membershipRate = conf.membershipRate;
+      maxMembership = conf.maxMembership;
       lrid = conf.lrid;
       lcid = conf.lcid;
       luid = conf.luid;
@@ -126,6 +134,9 @@ const global = {
   get siteLogo () {
     return siteLogo;
   },
+  get rateLimit () {
+    return rateLimit;
+  },
   get verifyExpires () {
     return verifyExpires;
   },
@@ -134,6 +145,18 @@ const global = {
   },
   get dwellTime () {
     return dwellTime;
+  },
+  get comingSoonMessage () {
+    return comingSoonMessage;
+  },
+  get organisationName () {
+    return organisationName;
+  },
+  get membershipRate () {
+    return membershipRate;
+  },
+  get maxMembership () {
+    return maxMembership;
   },
   get lrid () {
     return lrid;

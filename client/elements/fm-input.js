@@ -22,66 +22,48 @@
 
 import { LitElement, html, css } from '../libs/lit-element.js';
 import {ifDefined} from '../libs/if-defined.js';
-import {classMap} from '../libs/class-map.js';
+import {cache} from '../libs/cache.js';
 
 import { ValueChanged } from '../modules/events.js';
+import error from '../styles/error.js';
 
 class FmInput extends LitElement {
   static get styles() {
-    return css`
+    return [error,css`
       :host {
         display: block;
         margin-bottom: 10px;
         margin-top: 10px
       }
       input, textarea {
-        border-left: none;
-        border-right: none;
-        border-top: none;
-        border-bottom: 1px solid grey;
-        position: relative;
+        border: 2px solid var(--accent-color);
+        padding: 2px;
+        border-radius: 4px;
         font-family: Roboto, sans-serif;
-        padding: 2px 0;
-        margin: 0 2px 10px 2px;
         width: 100%;
         box-sizing: border-box;
       }
       input:focus, textarea:focus {
         outline: none;
       }
-      input:valid:focus, textarea:valid:focus {
-        border-bottom-color: var(--pas-input-focus-colour, blue);
-      }
-      input:invalid, textarea:invalid {
-        border-bottom-color: red;
-      }
+
       textarea {
-        resize: none;
-        height: 5em;
+        font-family:'NotoColorEmoji', 'Roboto Mono', monospace;
       }
-      .error {
-        color: red;
-      }
-      div.errorcontainer {
-        position: relative
-      }
-      div.error {
-        position: absolute;
-        left: 2px;
-        top: -10px;
-        font-size: 8pt;
+      .labelcontainer {
+        display: flex;
+        flex-direction: row;
+        padding: 2px;
+        width: 100%;
+
       }
       label {
-        display:block;
-        transform: translate(5px, 20px);
-        transition: 0.5s ease-in-out;
-        font-size: 8pt;
-      }
-      label.inplace {
-        transform: translate(0,0);
         font-size: 10pt;
       }
-    `;
+      .error {
+        white-space: nowrap;
+      }
+    `];
   }
 
   static get properties() {
@@ -102,6 +84,7 @@ class FmInput extends LitElement {
       name: {type: String},
       readonly: {type: Boolean},
       required: {type: Boolean},
+      _required: {type: Boolean},
       value: {type: String},
       maxlength: {type: Number},
       minlength: {type: Number},
@@ -109,7 +92,6 @@ class FmInput extends LitElement {
       min: {type: Number},
       step: {type: Number},
       message:{type: String},
-      _placeholder: {type: String},
       validator: {type: Function},
       textArea: {type: Boolean},
       cols: {type: Number},
@@ -128,6 +110,7 @@ class FmInput extends LitElement {
     this.autofocus = false;
     this.readonly = false;
     this.required = false;
+    this._required = false;
     this.preventInvalid = false;
     this.value = '';
     this.invalid = false;
@@ -136,22 +119,14 @@ class FmInput extends LitElement {
     this._placeholder = this.label; //only for now
     this._inputChanged = this._inputChanged.bind(this);
   }
-  update(changed) {
-    if (changed.has('placeholder') || changed.has('label')) {
-      this._placeholder = this.placeholder || this.label;
-    }
-    if (changed.has('value') && changed.get('value') !== undefined) {
-      this.validate();
-      this.dispatchEvent(new ValueChanged(this.value));
-    }
-    if (changed.has('required')) {
-      this.validate();
-    }
-    super.update();
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this._required = false;
   }
+
   firstUpdated() {
     this.input = this.shadowRoot.querySelector('#input');
-    this.validate(); //just make sure we know the current situation
+    this.invalid = !this.input.validity.valid; //just make sure we know the current situation
   }
   updated(changed) {
     if (changed.has('combo')) {
@@ -161,15 +136,29 @@ class FmInput extends LitElement {
         delete this.list;
       }
     }
+    if (changed.has('value') && changed.get('value') !== undefined) {
+      this.validate();
+      this.dispatchEvent(new ValueChanged(this.value));
+    }
+    if (changed.has('_required') && this.input !== undefined) {
+      this.invalid = !this.input.validity.valid;
+    }
+    if (changed.has('required') && !this.required) this._required = false; //removed the required flag so make _required match
     super.updated(changed);
   }
   render() {
     const value = (this.combo && this.items.length > 0 && typeof this.items[0] !== 'string' ?
       this.items.find(i => i.id === this.value).name : this.value) || '';
     return html`
-      <label id="label" for="input" class=${classMap({
-    inplace: value.length > 0,
-    error: this.invalid})}>${this.label}</label>
+      <div class="labelcontainer">
+        <label id="label" for="input" >${this.label}</label>
+        ${cache(this.invalid? html`
+          <div class="error" role="alert">
+            <material-icon>cancel</material-icon><span>${this.message}</span>
+          </div>
+        `:'')}
+
+      </div>   
       ${this.textArea ?  html`
         <textarea
           id="input"
@@ -177,7 +166,7 @@ class FmInput extends LitElement {
           ?disabled=${this.disabled}
           name=${this.name}
           ?readonly=${this.readonly}
-          placeholder=${this._placeholder}
+          placeholder=${this.placeholder}
           autocomplete=${ifDefined(this.autocomplete)}
           ?autofocus=${this.autofocus}
           form=${ifDefined(this.form)}
@@ -187,7 +176,8 @@ class FmInput extends LitElement {
           rows=${ifDefined(this.rows)}
           wrap=${ifDefined(this.wrap)}
           .value=${value}
-          @input=${this._inputChanged}></textarea>
+          @input=${this._inputChanged}
+          @blur=${this._blur}></textarea>
       ` : html`
         <input
           id="input"
@@ -205,21 +195,19 @@ class FmInput extends LitElement {
           maxlength="${ifDefined(this.maxlength)}"
           minlength="${ifDefined(this.minlength)}"
           ?readonly=${this.readonly}
-          ?required=${this.required}
+          ?required=${this._required}
           .value=${value}
           max=${ifDefined(this.max)}
           min=${ifDefined(this.min)}
           step=${ifDefined(this.step)}
           @input=${this._inputChanged}
+          @blur=${this._blur}
         />
         ${this.combo ? html`
           <datalist id="dropdown">
-            ${this.items.map(item => html`<option ripple>${typeof item === 'string' ? item : item.name}</option>`)}
+            ${this.items.map(item => html`<option >${typeof item === 'string' ? item : item.name}</option>`)}
           </datalist>`:''}
         `}
-      <div class="errorcontainer">
-        ${this.invalid ? html`<div class="error">${this.message}</div>` : ''}
-      </div>
     `;
   }
 
@@ -234,10 +222,16 @@ class FmInput extends LitElement {
         this.invalid = true;
     } else if (typeof this.validator === 'function' ) {
       this.invalid = !this.validator(this.input === undefined ? this.value : this.input.value);
+    } else if (this.required && !this._required) { //if we do a validity check, the actual required flag should now take its place
+      this.invalid =  this.value.length === 0; 
+      this._required = this.required;
     } else {
-      this.invalid = this.minlength !== undefined && this.value.length < this.minlength;
+      this.invalid = (this.input !== undefined && !this.input.validity.valid);
     }
     return !this.invalid;
+  }
+  _blur() {
+    this._required = this.required;
   }
   _inputChanged(e) {
     e.stopPropagation();

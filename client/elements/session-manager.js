@@ -73,7 +73,7 @@ class SessionManager extends LitElement {
   update(changed) {
     if (changed.has('authorised')) {
       if (!this.authorised) {
-        this.state = 'validate';
+        this.state = 'reset';
       }
       this.dispatchEvent(new AuthChanged(this.authorised));
     }
@@ -84,7 +84,18 @@ class SessionManager extends LitElement {
       debug(`state-changed to ${this.state}`);
       this.waiting = true;
       switch(this.state) {
-        case 'validate':
+        case 'authorised':
+          this.authorised = true;
+          break;
+        case 'error': 
+          break;
+        case 'logoff':
+          document.cookie = `${global.cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
+          this.authorised = false;
+          this.state = 'email';
+          break;
+        case 'reset':
+          this.email = '';
           global.ready.then(() => { //only using this to wait until globals has been read, since this is the first state
             const mbball = new RegExp(`^(.*; +)?${global.cookieName}=([^;]+)(.*)?$`);
             if (mbball.test(document.cookie)) {
@@ -104,15 +115,6 @@ class SessionManager extends LitElement {
             }
           });
           break;
-        case 'authorised':
-          this.authorised = true;
-          break;
-        case 'logoff':
-          document.cookie = `${global.cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
-          this.authorised = false;
-          this.state='email';
-          break;
-
         default:
           import(`./session-${this.state}.js`).then(this.waiting = false);
       }
@@ -131,18 +133,22 @@ class SessionManager extends LitElement {
             approve: html`<session-approve></session-approve>`,
             authorised:html`<div class="authorised"></div>`,
             email: html`<session-email></session-email>`,
+            error: html`<div class="error"></div>`,
             expired: html`<session-expired></session-expired>`,
             logoff: html`<div class="logoff"></div>`,
             member: html`<session-member .email=${this.email}></session-member>`,
             password: html`<session-password .email=${this.email}></session-password>`,
             pin: html`<session-pin .email=${this.email}></session-pin>`,
-            validate: html`<div class="validate"></div>`
+            private: html`<session-private></session-private>`,
+            reset: html`<div class="reset"></div>`,
+            toomany: html`<session-toomany></session-toomany>`,
+            welcome: html`<session-welcome .email=${this.email}></session-welcome>`
           }[this.state])}
       `)}
     `;
   }
   _readHash() {
-    if(typeof window.location.hash != "undefined")
+    if(typeof window.location.hash != "undefined") {
       switch (window.location.hash) {
         case '#expired':
           this.state = 'expired';

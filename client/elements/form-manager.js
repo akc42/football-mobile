@@ -25,12 +25,16 @@
 
 */
 
-import { LitElement, html } from '../libs/lit-element.js';
+import { LitElement, html , css} from '../libs/lit-element.js';
 import api from '../modules/api.js';
 import walk from '../modules/walk.js';
 import {FormResponse } from '../modules/events.js';
+import { s } from '../libs/lit-html-f17e05ab.js';
 
 class FormManager extends LitElement  {
+  static get styles () {
+    return css``;
+  }
   static get properties() {
     return {
       action: { type: String }
@@ -55,11 +59,34 @@ class FormManager extends LitElement  {
   render() {
     return html`
       <style>
+        :host {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          justify-content: start;
+          box-sizing:border-box;
+        }
+
+        .contents {
+          flex: 1 0 0;
+          display: flex;
+          flex-direction: column;
+          overflow-y: auto;
+          scroll-snap-type: y mandatory;
+        }
+
+        .action {
+          display: flex;
+          width:100%;
+          flex-direction:row;
+          flex-wrap: wrap;
+          justify-content: space-evenly;
+          flex:0 1 auto;
+        }
 
       </style>
-      <form id="myform" action="#" method="POST" @submit=${this._submit} @change=${this._change}>
-        <slot id="mychildren"></slot>
-      </form>
+        <slot id="mychildren" class="contents"></slot>
+        <slot class="action" name="action"><div>
     `;
   }
   get params() {
@@ -94,11 +121,13 @@ class FormManager extends LitElement  {
     return result;
   }
   _change(e){
-    
+    e.stopPropagaton();
+    e.target.validate();
 
   }
   _submit(e) {
     e.preventDefault();
+    this.submit();
 
   }
 }

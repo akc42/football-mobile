@@ -310,9 +310,9 @@ class MainApp extends LitElement {
               <div id="closeicon"  class="right" @click=${this._close} data-tooltip="Back a Level">
                 <material-icon>reply</material-icon>
               </div>
-            `:'')}
+            `:html`<div class="iconreplace"></div>`)}
                     
-        `:html`<div class="iconreplace"></div>` )}
+        `: html`<div class="iconreplace"></div><div class="iconreplace"></div>`)}
         <div id="logocontainer" ><div id="logo"></div></div>
         <div id="appinfo">
           <div id="version">${global.version}</div>
@@ -458,7 +458,7 @@ class MainApp extends LitElement {
     } else {
       await this.requestUpdate();
       const session = this.shadowRoot.querySelector('#session');
-      session.dispatchEvent(new SessionStatus('reset'));
+      session.dispatchEvent(new SessionStatus({state:'reset'}));
     }
   }
   _ridChanged(e){
@@ -480,5 +480,6 @@ class MainApp extends LitElement {
     this.mainmenu.close();
     switchPath(`/${e.currentTarget.id}`);
   }
+
 }
 customElements.define('main-app', MainApp);

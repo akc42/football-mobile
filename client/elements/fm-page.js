@@ -20,7 +20,7 @@
 import { LitElement, html, css } from '../libs/lit-element.js';
 
 import global from '../modules/globals.js';
-import page from '../styles/page.js';
+
 
 /*
      <app-page>
@@ -93,6 +93,12 @@ class FmPage extends LitElement {
           box-shadow: 0px 0px 38px -2px rgba(0, 0, 0, 0.5);
           padding: 20px;
           min-width: 500px;
+        }
+      }
+      @media (max-width: 300px) {
+        header {
+          transform: scale(0.75);
+          transform-origin: left top;
         }
       }
     `;

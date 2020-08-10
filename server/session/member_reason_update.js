@@ -21,7 +21,7 @@
 (function() {
   'use strict';
 
-  const debug = require('debug')('football:api:memberpin');
+  const debug = require('debug')('football:api:memberreasonupdate');
   const Mailer  = require('../utils/mail');
   const mailPromise = Mailer();
   const bcrypt = require('bcrypt');
@@ -29,71 +29,73 @@
   const db = require('../utils/database');
 
   module.exports = async function(params) {
+    debug('request received with params', params);
     const mail = await mailPromise;
     const pin = ('000000' + (Math.floor(Math.random() * 999999)).toString()).slice(-6); //make a new pin 
     debug('going to use pin', pin);
     const hashedPin = await bcrypt.hash(pin, 10);
-    let rateLimitExceeded = false;
+    debug('have a hashed pin now');
+    let rateLimitExceeded = true;
     const checkParticipant = db.prepare('SELECT * FROM participant WHERE uid = ?');
     const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
 
     const updateParticipant = db.prepare(`UPDATE participant SET verification_key = ?, verification_sent = (strftime('%s','now')) WHERE uid = ?`);
-    let returnValue = {found:false};
-    let user;  
-    db.transaction(()=>{
+    db.transaction(() => {
+      debug('in transaction about to check participant ');
       const result = checkParticipant.get(params.email);
       if (result !== undefined) {
-
+        debug('found user');
         const cookieKey = s.get('cookie_key');
         const webmaster = s.get('webmaster');
         const verifyExpires = s.get('verify_expires');
         const siteBaseref = s.get('site_baseref');
         const rateLimit = s.get('rate_limit');
-              
+        debug('read the config values');
         const now = Math.floor((new Date().getTime() / 1000));
-
-
-        user = { ...result, password: !!result.password, verification_key: !!result.verification_key };
-        debug('found user as uid = ', user.uid);
-        rateLimitExceeded = (user.verification_key && (user.verification_sent + (rateLimit * 60)) > now);
+        rateLimitExceeded = (!!result.verification_key && (result.verification_sent + (rateLimit * 60)) > now);
         debug(
-          'verification_sent rate end @', user.verification_sent + (rateLimit * 60),
-          'rate limit =', rateLimit,
+          'verification_sent rate end @ ', result.verification_sent + (rateLimit * 60),
+          'rate limit = ', rateLimit,
           'now is', now,
-          'verification_key', user.verification_key,
+          'verification_key', !!result.verification_key,
           'exceeded', rateLimitExceeded);
-  
+
         if (!rateLimitExceeded) {
           //not doing this too fast since last time
           const payload = {
             exp: new Date().setTime(now + (verifyExpires * 60 * 60)),
-            user: user.uid,
+            uid: params.uid,
+            reason: params.reason,
+            email: params.email,
             pin: pin,
-            usage: 'profile'
+            usage: '/#member'
           }
-          debug('with user', user.uid, 'so about to send pin', pin, 'with expiry in', verifyExpires, 'hours');
+          debug('with user', result.uid, 'so about to send pin', pin, 'with expiry in', verifyExpires, 'hours');
           const token = jwt.encode(payload, cookieKey);
           debug('made token', token);
-          const html = `<h3>Good News</h3><p>Your membership request to join <a href="${siteBaseref}">${siteBaseref}</a> has been approved.</p> 
-          <p>If it was not you, you can safely ignore this email but might like to inform <a href="mailto:${webmaster}">${webmaster}</a> that 
-          you were not expecting it.</p>
-          <p>Click on the link <a href="${siteBaseref}/api/pin/${token}">${siteBaseref}/api/pin/${token}</a> to log on
-          and set up your profile. There you may set up your display name and password, or make other changes to your account.</p>
+          const html = `<h3>Hi ${result.name}</h3><p>Someone requested an update to their membership application from this
+          email address. If it was not you, you can safely ignore this email but might like to inform 
+          <a href="mailto:${webmaster}">${webmaster}</a> that you were not expecting it.</p>
+          <p>Click on the link <a href="${siteBaseref}/api/pin/${token}">${siteBaseref}/api/pin/${token}</a> to confirm
+          the update and store it in your profilee.</p>
           <p>This link will only work <strong>once</strong>, and it will <strong>not</strong> work after <strong>${verifyExpires} hours</strong> from
-          the time it was first sent to you.</p>
-          <p>Regards</p>`;
-          mail.setHtmlBody('Membership Approval', html);
-          updateParticipant.run(hashedPin, now, user.uid); //update user with new hashed pin we just sent
-
+          the time you requested it.</p>
+          <p>Regards</p>`;        
+          mail.setHtmlBody('Temporary Password', html);
+          debug('built the e-mail');
+          updateParticipant.run(hashedPin, result.uid); //update user with new hashed pin we just sent
+          debug('upated user ', result.uid, 'with new pin we just made')
         } else {
           //silently do nothing if rateLimit is exceeded
-          updateParticipant.run(result.verification_key, now, user.uid); //change the time, but just update with the same key as we already had
+          debug('rate limit exceeded to silently update user')
+          updateParticipant.run(result.verification_key, result.uid); //change the time, but just update with the same key as we already had
         }
-        returnValue = { found: true, password: user.password, remember: user.remember };
-      } 
+      }
     })();
-    //outside of the transaction, which needs to remain synchronous.
-    if (!rateLimitExceeded) await mail.send('Membership Approval', user.email);
-    return returnValue;
+    //outside of the transaction, so can now be asynchonous again.
+
+    if (!rateLimitExceeded ) await mail.send('Your Temporary Password', params.email);
+    debug('All done');
+    return !rateLimitExceeded;
   };
 })();

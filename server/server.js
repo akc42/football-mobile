@@ -139,6 +139,7 @@
         serverConfig.cookieKey = s.get('cookie_key');
         serverConfig.cookieExpires = s.get('cookie_expires');
         serverConfig.cookieVisitName = s.get('cookie_visit_name');
+        serverConfig.membershipKey = s.get('membership_key');
       })();
 
 
@@ -190,12 +191,12 @@
         let location = '/';
         try {
           const payload = jwt.decode(req.params.token, serverConfig.cookieKey);
-
+          location = payload.usage;
           debugapi('/api/pin payload uid', payload.uid, );
           const result = db.prepare(`SELECT * FROM participant WHERE ${payload.uid === 0 ? 'email': 'uid'} = ?`)
             .get(payload.uid === 0 ? payload.email: payload.uid);
           if (result !== undefined) {
-            debugapi('/api/pin found the user');
+            debugapi('/api/pin found the user with email ', result.email);
             const correct = await bcrypt.compare(payload.pin, result.verification_key);
             if (correct) {
               debugapi('/api/pin pin is correct, so update verification_key to NULL');
@@ -204,27 +205,31 @@
                 If the token included an e-mail address, we were verifing a new email, so we update
                 that also.
               */
-              db.prepare('UPDATE participant SET verification_key = NULL, email = ? WHERE uid = ?')
-                .run(payload.email? payload.email:result.email,payload.user);
-              debugapi('/api/pin setting up cookie for user', payload.user.uid);
-              res.setHeader('Set-Cookie', generateCookie(
-                {
-                  ...result,
-                  password: !!result.password,
-                  verification_key: false,
-                  remember: 0, //force a session cookie, so the cookie doesn't persist.
-                }));
-              location = '/profile' ;  //we want to select profile when we next redirect.
+             if (payload.reason !== 'undefined') {
+               debugapi('/api/pin reason update');
+               db.prepare('UPDATE participant SET verification_key = NULL, reason = ? WHERE uid = ?')
+                 .run(payload.reason, payload.uid);
+              } else {
+                db.prepare('UPDATE participant SET verification_key = NULL, email = ? WHERE uid = ?')
+                  .run(payload.email? payload.email:result.email,payload.uid);
+                debugapi('/api/pin setting up cookie for user', payload.uid);
+                res.setHeader('Set-Cookie', generateCookie(
+                  {
+                    ...result,
+                    password: !!result.password,
+                    verification_key: false,
+                    remember: 0, //force a session cookie, so the cookie doesn't persist.
+                  }));
+              }
             } else {
-              debugapi('/api/pin password incorrect, add #linkexpired to return path');
-              location = '/#linkexpired';
+              debugapi('/api/pin password incorrect, add #expired to return path');
+              location = '/#expired';
             }
           } else if (payload.uid === 0 ) {
-            db.prepare(`INSERT INTO participant (name, email, waiting_approval, reason) VALUES( '',?,1,'')`).run(payload.user.email);
-            location = '/#await';  //we just await for member approval.
+            db.prepare(`INSERT INTO participant (name, email, waiting_approval, reason) VALUES( '',?,1,'')`).run(payload.email);
           } else {
-            debugapi('/api/pin user not found, add #linkexpired to return path')
-            location = '/#linkexpired';
+            debugapi('/api/pin user not found, add #expired to return path')
+            location = '/#expired';
           }
       
         } catch (e) {
@@ -233,7 +238,7 @@
             just set the visit cookie to say the pin expired, and the client can deal with it
           */
           debugapi('In /api/pin failed with error',e.toString());
-          location = '/#linkexpired';
+          location = '/#expired';
         }
         debugapi(`In /api/pin set 302 header for ${location}`);
         res.statusCode = 302;
@@ -242,7 +247,54 @@
         res.end();
         debugapi('/api/pin sent end');
       });
-
+      /*
+        the next is a special route used to load a tracking id.  This call "generates" a javascript file to provide a tracking id
+      */
+      debug('setting up tracking.js response')
+      api.get('/tracking.js', (req,res) => {
+        debugapi('got /api/tracking.js request')
+        const token = req.headers['if-none-match'];
+        const modify = req.headers['if-modified-since'];
+        const ip = req.headers['x-forwarded-for'];  //note this is ip Address Now, it might be different later. Is a useful indication for misuse.
+        function makeResponse(res,sid) {
+          const payload = {
+            sid: sid,
+            ip: ip
+          };
+          debugapi('making response of sid', sid, 'ip', ip);
+          const token = jwt.encode(payload, serverConfig.membershipKey);
+          debugapi('tracking token = ', token);
+          res.writeHead(200, {
+            'ETag': token,
+            'Last-Modified': new Date(0).toUTCString(),
+            'Cache-Control': 'private, max-age=31536000, s-max-age=31536000, must-revalidate',
+            'Content-Type': 'application/javascript'
+          })
+          res.write(`
+             const cid = '${token}';
+             export default cid;
+          `);
+        }
+        
+        if (token !== undefined && token.length > 0) {
+          debugapi('tracking token found as ', token);
+          try {
+            const payload = jwt.decode(token, serverConfig.membershipKey);
+            debugapi('Decoded tracking token as payload', payload);
+            res.statusCode = 304;
+          } catch(e) {
+            // someone has been messing with things, lets generate some code that
+            makeResponse(res, 'NoEmail');
+          }
+        } else if (modify !== undefined && modify.length > 0) {
+          debugapi('tracking modify has a date so 304 it');
+          res.StatusCode = 304;
+        } else {
+          makeResponse(res, new Date().getTime().toString()); //unique enough id
+        }
+        res.end();
+        debugapi('/api/tracking.js response complete');
+      });
       /*
         The next set of routes are from the session directory.  These are routes 
         that occur before the session manager has establised who you are and given you a

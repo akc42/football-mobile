@@ -17,17 +17,17 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
 (function() {
   'use strict';
 
-  const debug = require('debug')('football:api:first_time');
+  const debug = require('debug')('football:api:readreason');
   const db = require('../utils/database');
 
-  module.exports = function() {
-    debug('got request');
-    const firsttime = db.prepare(`SELECT value FROM settings WHERE name = 'first_time_message'`).pluck().get();
-    debug('Success');
-    return firsttime;
+  module.exports = async function(params) {
+    debug('new request with params', params );
+    const result = db.prepare('SELECT uid,reason FROM participant WHERE waiting_approval = 1 AND email = ?').get(params.email);
+    return result;
+    
   };
 })();

@@ -47,5 +47,24 @@ export default css`
   section {
     flex: 1 0 0;
   }
+  a:link {
+    color: var(--link-color);
+    text-decoration: none;
+  }
+
+  a:visited {
+    color: var(--link-color);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--link-color);
+    text-decoration: underline;
+  }
+
+  a:active {
+    color: var(--link-color);
+    text-decoration: underline;
+  }
 
 `;

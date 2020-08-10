@@ -28,19 +28,16 @@
   module.exports = async function(params) {
     debug('request received for email', params.email);
 
-    const result = db.prepare('SELECT email,password, FROM participant WHERE email = ?').get(params.email);
-      return {state: 'approve'};
+    const result = db.prepare('SELECT email,password, waiting_approval FROM participant WHERE email = ?').get(params.email);;
     if (result !== undefined) {
-      if (result.awaiting_approval === 1) {}
-      debug('found the user')
-      if (!!result.password) {
-        return {state: 'password'};
-      } else {
-        debug('user does not have a password');
-        const requestPin = require('./request_pin');
-        const result = await requestPin(params);
-        return {state: 'pin'};
-      }
+      debug('result = ', result);
+      if (result.waiting_approval === 1) return {state: 'approve'};
+      debug('not a user waiting approval');
+      if (!!result.password) return {state: 'password'};
+      debug('user does not have a password so this must be first visit so we will request pin');
+      const requestPin = require('./request_pin');
+      await requestPin(params);
+      return {state: 'welcome'};
     }
     return {state: 'member'};
   };

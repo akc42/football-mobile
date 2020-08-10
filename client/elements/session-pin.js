@@ -44,11 +44,9 @@ class SessionPin extends LitElement {
   render() {
     return html`
       <fm-page heading="Check Your Email">
-        <p>You have been sent an email (to ${this.email}) which contains a link.  This link is a special one, in that it cannot 
-        be used more than once.  Also, as added protection, it has to be used within ${global.verifyExpires} hours from when it was
-        requested.</p>
+        <p>You have been sent an email (to <strong>${this.email}</strong>) which contains a link to enable you to proceed.  This link has to be used within ${global.verifyExpires} hours from now, and once used cannot be used again.</p>
         <p>If you do not receive it, or are unable to use it within the alotted time, just request another one using the same
-        mechanism that you used last time.  Be aware that only the last link sent will work</p>
+        mechanism that you used last time, taking into account any limits on multiple requests you have already been informed of.  Be aware that in most cases only the last link sent will work.</p>
       </fm-page>
     `;
   }

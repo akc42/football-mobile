@@ -21,7 +21,7 @@
 (function() {
   'use strict';
 
-  const debug = require('debug')('football:api:reqpin');
+  const debug = require('debug')('football:api:memberpin');
   const Mailer  = require('../utils/mail');
   const mailPromise = Mailer();
   const bcrypt = require('bcrypt');
@@ -29,22 +29,20 @@
   const db = require('../utils/database');
 
   module.exports = async function(params) {
-    debug('request received for email', params.email);
     const mail = await mailPromise;
     const pin = ('000000' + (Math.floor(Math.random() * 999999)).toString()).slice(-6); //make a new pin 
     debug('going to use pin', pin);
     const hashedPin = await bcrypt.hash(pin, 10);
-    debug('have a hashed pin now');
     let rateLimitExceeded = true;
-    const checkParticipant = db.prepare('SELECT * FROM participant WHERE email = ?');
+    const checkParticipant = db.prepare('SELECT * FROM participant WHERE uid = ?');
     const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
 
     const updateParticipant = db.prepare(`UPDATE participant SET verification_key = ?, verification_sent = (strftime('%s','now')) WHERE uid = ?`);
-    db.transaction(() => {
-      debug('in transaction about to check participant with email', params.email);
-      const result = checkParticipant.get(params.email);
+
+    db.transaction(()=>{
+      const result = checkParticipant.get(params.uid);
       if (result !== undefined) {
-        debug('found user from email as uid = ', result.uid);
+        debug('found user as uid = ', result.uid);
         const cookieKey = s.get('cookie_key');
         const webmaster = s.get('webmaster');
         const verifyExpires = s.get('verify_expires');
@@ -64,22 +62,22 @@
           //not doing this too fast since last time
           const payload = {
             exp: new Date().setTime(now + (verifyExpires * 60 * 60)),
-            uid: result.uid,
+            uid: user.uid,
             pin: pin,
             usage: '/profile'
           }
-          debug('with user', result.uid, 'so about to send pin', pin, 'with expiry in', verifyExpires, 'hours');
+          debug('with user', user.uid, 'so about to send pin', pin, 'with expiry in', verifyExpires, 'hours');
           const token = jwt.encode(payload, cookieKey);
           debug('made token', token);
-          const html = `<h3>Hi ${result.name}</h3><p>Someone requested a short term password to log on to <a href="${siteBaseref}">${siteBaseref}</a>. They
-          requested for it to be sent to this email address. If it was not you, you can safely ignore this email but might like to inform 
-          <a href="mailto:${webmaster}">${webmaster}</a> that you were not expecting it.</p>
+          const html = `<h3>Good News</h3><p>Your membership request to join <a href="${siteBaseref}">${siteBaseref}</a> has been approved.</p> 
+          <p>If it was not you, you can safely ignore this email but might like to inform <a href="mailto:${webmaster}">${webmaster}</a> that 
+          you were not expecting it.</p>
           <p>Click on the link <a href="${siteBaseref}/api/pin/${token}">${siteBaseref}/api/pin/${token}</a> to log on
-          and access your profile. There you may reset your passwords or make other changes to your account.</p>
+          and set up your profile. There you may set up your display name and password, or make other changes to your account.</p>
           <p>This link will only work <strong>once</strong>, and it will <strong>not</strong> work after <strong>${verifyExpires} hours</strong> from
-          the time you requested it.</p>
-          <p>Regards</p>`;        
-          mail.setHtmlBody('Temporary Password', html);
+          the time it was first sent to you.</p>
+          <p>Regards</p>`;
+          mail.setHtmlBody('Membership Approval', html);
           debug('built the e-mail');
           updateParticipant.run(hashedPin, result.uid); //update user with new hashed pin we just sent
           debug('upated user ', result.uid, 'with new pin we just made')
@@ -88,13 +86,10 @@
           debug('rate limit exceeded to silently update user')
           updateParticipant.run(result.verification_key, result.uid); //change the time, but just update with the same key as we already had
         }
-       
-      }
+      } 
     })();
-    //outside of the transaction, so can now be asynchonous again.
-
-    if (!rateLimitExceeded ) await mail.send('Your Temporary Password', params.email);
-    debug('All done');
-    return !rateLimitExceeded;
+    //outside of the transaction, which needs to remain synchronous.
+    if (!rateLimitExceeded) await mail.send('Membership Approval', user.email);
+    return returnValue;
   };
 })();

@@ -23,22 +23,18 @@
 import { css } from '../libs/lit-element.js';
 
 export default css`
-  button {
-    background-color: var(--accent-color);
-    min-width:80px;
-    min-height:30px;
-    color: var(--accent-constrast-color);
-    border: none;
-    padding: 5px;
-    border-radius:5px;
-    box-shadow: 2px 2px 5px 4px var(--shadow-color);
-    cursor: pointer;
-  }
-  button[cancel] {
-    background-color: var(--cancel-color);
-    color: var(--cancel-contrast-color);
-  }
-  button:active {
-    box-shadow: none;
-  }
+
+     .error {
+        display: block;
+        font-size: 8pt;
+        border-radius: 4px;
+        background-color: var(--error-color);
+        color: var(--error-text-color);
+
+      }
+      .error material-icon {
+        --icon-size: 10pt;
+        color: var(--error-icon-color);
+        margin-right: 10px;
+      }
 `;

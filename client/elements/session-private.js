@@ -18,40 +18,33 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
+import {unsafeHTML} from '../libs/unsafe-html.js';
 
 
 import './fm-input.js';
 import button from '../styles/button.js';
 import page from '../styles/page.js';
+
 import { SessionStatus } from '../modules/events.js';
 import global from '../modules/globals.js';
 import './waiting-indicator.js';
 import './fm-page.js';
 import AppKeys from '../modules/keys.js';
-import api from '../modules/api.js';
-
 
 
 
 
 /*
-     <session email>: Collects an Email Address and verifies against our participant database.
+     <session-private>: contains the privacy Policy.
 */
-class SessionEmail extends LitElement {
+class SessionPrivate extends LitElement {
   static get styles() {
-    return [ button, page];
+    return [ button,page];
   }
-  static get properties() {
-    return {
-      email: {type: String},
-      waiting: {type: Boolean}
-    };
-  }
+
   constructor() {
     super();
-    this.email = '';
     this._keyPressed = this._keyPressed.bind(this);
-
   }
   connectedCallback() {
     super.connectedCallback();
@@ -67,47 +60,48 @@ class SessionEmail extends LitElement {
     this.keys.disconnect();
     document.body.removeEventListener('key-pressed', this._keyPressed);
   }
-  firstUpdated() {
-    this.input = this.shadowRoot.querySelector('#email');
-    this.target = this.shadowRoot.querySelector('#page');
-  }
 
   render() {
     return html`
       <style>
-        #email {
-          width: var(--email-input-length);
-        }
+
       </style>
-      <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
-      <fm-page heading="Welcome">
-        <fm-input id="email" name="email" type="email" required label="Email" message="Valid Email Address Required"></fm-input>
-        <button slot="action" @click=${this._continue}>Continue</button>
-        <p>By continuing you agree to ${global.organisationName} <a href="/" @click=${this._privacy}>Privacy Policy</a></p>
+
+      <fm-page heading="Privacy Notice">      
+        
+        <p>${global.organisationName} privacy policy explains how we use the data collected at
+        this site.  We collect the following data:-
+        <ul>
+          <li>Your e-mail address, which will be coupled with your chosen user name
+          (which does not need to be your real name).</li> 
+          <li>Your entries into Competitions hosted on this site, and details of all picks made.  These will
+          be available to all approved members of this site</li>
+        </ul> 
+          This is stored in a file on the server which hosts the competitions.
+          Access is only available to the webmaster. We will only use the data for the
+          purpose of running the competitions.  We will not pass it to third parties or
+          use it for Marketing.</p> 
+        <p>We use a single cookie stored on your computer to technically manage
+        your navigation of this site.  <strong>You</strong> can decide whether we delete
+        this cookie when you finish using the site (in which case you will have to sign
+        in on the next visit), or whether you want us to retain it so that you are
+        automatically signed in on the next visit</p>
+        <button slot="action" @click=${this._retry}>Return To Email</button>  
       </fm-page>
     `;
   }
-  async _continue(e) {
-    e.stopPropagation();
-    if (this.input !== undefined && this.input.validate()) {
-      this.email = this.input.value;
-      this.waiting = true;
-      const response = await api('session/email_verify',{email: this.email});
-      this.waiting = false;
-      this.dispatchEvent(new SessionStatus({ state: response.state, email: this.email }));
-    }
-  }
+
   _keyPressed(e) {
-    if (e.key.combo === 'Enter') {
-      this._continue(e); 
+    if(e.key.combo === 'Enter') {
+      this._retry;
       return true;
     }
     return false;
   }
-  _privacy(e) {
-    e.preventDefault();
+  _retry(e) {
     e.stopPropagation();
-    this.dispatchEvent(new SessionStatus({state: 'private'}));
+    this.dispatchEvent(new SessionStatus({ state: 'email'}));
   }
+
 }
-customElements.define('session-email', SessionEmail);
+customElements.define('session-private', SessionPrivate);

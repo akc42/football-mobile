@@ -92,7 +92,7 @@ class ErrorManager extends LitElement {
 ${e.error.stack}
 has occured`;
     api('session/log', {type:'Error', message: message});
-    this.dispatchEvent(new SessionStatus({type:'error'}));
+    this.dispatchEvent(new SessionStatus({state:'error'}));
     this.anError = true;
   }
   _promiseRejection(e) {
@@ -105,14 +105,14 @@ has occured`;
     } else {
       const message = `Client Error: Uncaught Promise Rejection with reason ${e.reason} has occured`;
       api('session/log', { type: 'Error', message: message });
-      this.dispatchEvent(new SessionStatus({ type: 'error' }));
+      this.dispatchEvent(new SessionStatus({ state: 'error' }));
       this.anError = true;
     }
   }
   _reset() {
     this.anError = false;
     this.forbidden = false;
-    this.dispatchEvent(new SessionStatus({type:'reset'}));
+    this.dispatchEvent(new SessionStatus({state:'reset'}));
   }
   _serverError(e) {
     if (this.anError) return;
@@ -126,7 +126,7 @@ has occured`;
       this.forbidden=true;
 
     }
-    this.dispatchEvent(new SessionStatus({type: 'error'}));
+    this.dispatchEvent(new SessionStatus({state: 'error'}));
     this.anError = true;
   }
 

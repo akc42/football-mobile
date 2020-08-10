@@ -18,15 +18,12 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
-
-
-import './fm-input.js';
 import button from '../styles/button.js';
 import page from '../styles/page.js';
 
 import { SessionStatus } from '../modules/events.js';
-import api from '../modules/api.js';
-import './waiting-indicator.js';
+
+
 import './fm-page.js';
 import AppKeys from '../modules/keys.js';
 
@@ -36,7 +33,7 @@ import AppKeys from '../modules/keys.js';
 /*
      <Session expired>: Displays an Error Message when A Pin token has expired.
 */
-class AppExpired extends LitElement {
+class SessionExpired extends LitElement {
   static get styles() {
     return [ button,page];
   }
@@ -87,4 +84,4 @@ class AppExpired extends LitElement {
   }
 
 }
-customElements.define('app-expired', AppExpired);
+customElements.define('session-expired', SessionExpired);
