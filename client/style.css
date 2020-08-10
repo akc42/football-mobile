@@ -28,6 +28,10 @@
   --cancel-color: lavender;
   --cancel-contrast-color: navy;
   --shadow-color: rgba(255,255,255,0.7);
+  --link-color: limegreen;
+  --error-color: var(--secondary-contrast-color);
+  --error-text-color: var(--secondary-color);
+  --error-icon-color: red;
 
   --header-icon-background-color: var(--accent-color);
   --header-icon-color: var(--accent-constrast-color);
