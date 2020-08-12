@@ -271,7 +271,7 @@ class MainApp extends LitElement {
             <hr class="sep"/>
             <div id="navref" role="menuitem" @click=${this._selectPage}><material-icon>place</material-icon><span>Navigation Help</span></div>
             <div id="help" role="menuitem" @click=${this._selectPage}><material-icon>help</material-icon><span>How To Play</span><span>F1</span></div>
-            ${cache((admin || this.user.approve) ? html`
+            ${cache((admin || global.user.approve) ? html`
               <hr class="sep"/>
               <div id="approve" role="menuitem" @click=${this._selectPage}>
                 <material-icon>grading</material-icon>Approve Members</div>         
