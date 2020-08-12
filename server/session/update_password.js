@@ -21,28 +21,26 @@
 (function() {
   'use strict';
 
-  const debug = require('debug')('football:api:email');
-
+  const debug = require('debug')('football:api:updatememberpass');
+  const bcrypt = require('bcrypt');
   const db = require('../utils/database');
 
   module.exports = async function(params) {
-    debug('request received for email', params.email);
+    debug('request received for uid', params.uid);
 
-    const result = db.prepare('SELECT * FROM participant WHERE email = ?').get(params.email);;
-    if (result !== undefined) {
-      debug('result = ', result);
-      const user = {
-        ...result,
-        password: !!result.password, //anonymise sensitive fields.
-        verification_key: !!result.verification_key
-      };
-      if (!!result.password) return {state: 'password', user: user};
-      if (result.waiting_approval === 1) return { state: 'mempass', user: user}; //means forgot pin and requested new
-      debug('full user does not have a password so this must be first visit so we will request pin');
-      const requestPin = require('./request_pin');
-      await requestPin(user);
-      return {state: 'welcome',user: user};
-    }
-    return {state: 'member'};
+    const approve = db.prepare('SELECT waiting_approval FROM participant WHERE uid = ?').pluck();
+    const updateUser = db.prepare('UPDATE participant SET password = ? WHERE uid = ?');
+    const hashedPassword = await bcrypt.hash(params.password, 10);
+    let returnValue = {state:'approve'}
+    db.transaction(() => {
+      const waiting = approve.get(params.uid);
+      debug('waiting = ', waiting);
+      if (waiting === 1) {
+        updateUser.run(hashedPassword, params.uid);
+      } else {
+        returnValue = {state: 'email' };
+      }
+    })();
+    return returnValue;
   };
 })();

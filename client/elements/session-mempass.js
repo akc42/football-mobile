@@ -25,6 +25,7 @@ import page from '../styles/page.js';
 import sid from '/api/tracking.js';
 
 import { SessionStatus } from '../modules/events.js';
+import api from '../modules/api.js';
 import global from '../modules/globals.js';
 
 import './waiting-indicator.js';
@@ -42,13 +43,13 @@ import AppKeys from '../modules/keys.js';
 /*
      <Session expired>: Displays an Error Message when A Pin token has expired.
 */
-class SessionMember extends LitElement {
+class SessionMempass extends LitElement {
   static get styles() {
     return [ button,page];
   }
   static get properties () {
     return {
-      email: {type: String},
+      user: {type: Object},
       waiting: {type: Boolean},
       showpass: {type: Boolean},
       password: {type: String},
@@ -57,7 +58,7 @@ class SessionMember extends LitElement {
   }
   constructor() {
     super();
-    this.email='';
+    this.user = {uid:0};
     this.waiting = false;
     this.showpass = false;
     this.password = '';
@@ -128,10 +129,8 @@ class SessionMember extends LitElement {
       </style>
       <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       <fm-page heading="Membership">
-        <form-manager id="makereq" action="session/new_member_verify" @form-response=${this._formResponse}>
-          <re-captcha></re-captcha>      
-          <input type="hidden" name="email" value="${this.email}" /> 
-          <input type="hidden" name="sid" value="${sid}" />
+        <form-manager id="makereq" action="session/update_password" @form-response=${this._formResponse}>
+          <input type="hidden" name="uid" value="${this.user.uid}" /> 
           <div id="passwords">
             <fm-input
               label="Password"
@@ -159,19 +158,16 @@ class SessionMember extends LitElement {
           </div>
         </form-manager>
         <p>Click on the link to find out about the <a href="#" @click=${this._mprocess}>Membership Process</a></p>
-        <button slot="action" cancel @click=${this._cancel}>Cancel</button>
-        <button slot="action" @click=${this._proceed}>Proceed</button>  
+        <button slot="action" @click=${this._proceed}>Update</button>  
       </fm-page>
     `;
   }
-  _cancel (e) {
-    e.stopPropagation();
-    this.dispatchEvent(new SessionStatus({state: 'email'}));
-  }
+
   _formResponse(e) {
     e.stopPropagation();
     this.waiting = false;
-    this.dispatchEvent(new SessionStatus({ state: e.response.state, email: this.email }));
+    
+    this.dispatchEvent(new SessionStatus({ state: e.response.state}));
   }
   _keyPressed(e) {
     if (e.key.combo === 'Enter') {
@@ -193,7 +189,6 @@ class SessionMember extends LitElement {
       const result = this.request.submit();
       if (result) {
         this.waiting = true;
-
         this.pinput.invalid = false;
         this.rinput.invalid = false;
       }
@@ -223,4 +218,4 @@ class SessionMember extends LitElement {
     this.rinput = this.shadowRoot.querySelector('#replica');
   }
 }
-customElements.define('session-member', SessionMember);
+customElements.define('session-mempass', SessionMempass);

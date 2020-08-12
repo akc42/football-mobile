@@ -32,7 +32,7 @@
   --error-color: var(--secondary-contrast-color);
   --error-text-color: var(--secondary-color);
   --error-icon-color: red;
-
+  --disabled-color: grey;
   --header-icon-background-color: var(--accent-color);
   --header-icon-color: var(--accent-constrast-color);
   --overlay-color: var(--secondary-color);

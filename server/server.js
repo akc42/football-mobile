@@ -192,7 +192,7 @@
         try {
           const payload = jwt.decode(req.params.token, serverConfig.cookieKey);
           location = payload.usage;
-          debugapi('/api/pin payload uid', payload.uid, );
+          debugapi('/api/pin payload uid', payload.uid);
           const result = db.prepare(`SELECT * FROM participant WHERE ${payload.uid === 0 ? 'email': 'uid'} = ?`)
             .get(payload.uid === 0 ? payload.email: payload.uid);
           if (result !== undefined) {
@@ -205,11 +205,16 @@
                 If the token included an e-mail address, we were verifing a new email, so we update
                 that also.
               */
-             if (payload.reason !== 'undefined') {
-               debugapi('/api/pin reason update');
-               db.prepare('UPDATE participant SET verification_key = NULL, reason = ? WHERE uid = ?')
-                 .run(payload.reason, payload.uid);
+              if (result.waiting_approval === 1) {
+                /*
+                  still a member awaiting approval, so can't allow log-on.  The best we can do is
+                  clear the current password and so when they enter their e-mail address, we redirect them
+                  to set up a password.
+                */
+                db.prepare('UPDATE participant SET password = NULL,  verification_key = NULL, email = ? WHERE uid = ?')
+                  .run(payload.email ? payload.email : result.email, payload.uid);
               } else {
+                //already a full member, so we can generate a one time cookie to all them to login.
                 db.prepare('UPDATE participant SET verification_key = NULL, email = ? WHERE uid = ?')
                   .run(payload.email? payload.email:result.email,payload.uid);
                 debugapi('/api/pin setting up cookie for user', payload.uid);
@@ -220,13 +225,32 @@
                     verification_key: false,
                     remember: 0, //force a session cookie, so the cookie doesn't persist.
                   }));
-              }
+                }
             } else {
               debugapi('/api/pin password incorrect, add #expired to return path');
               location = '/#expired';
             }
           } else if (payload.uid === 0 ) {
-            db.prepare(`INSERT INTO participant (name, email, waiting_approval, reason) VALUES( '',?,1,'')`).run(payload.email);
+            /*
+              We are going to try and invent a username for the user (they can change it later).  We do this by
+              taking their email address and extracting the part before the @ sign
+              Then we progressively try that (lets call it xxx), and then xxx_0, xxx_1 etc unitl we have a unique
+              name.
+            */
+            
+            let suffix = '';
+            let suffixCount = 0;
+            const parts = payload.email.split('@');
+            debugapi('/api/pin insert new member - make username based on', parts[0]);
+            const count = db.prepare('SELECT COUNT(*) FROM participant WHERE name = ?').pluck();
+            const newMember = db.prepare(`INSERT INTO participant (name, email, waiting_approval, password) VALUES( ?,?,1,?)`);
+            db.transaction(() => {
+              while (count.get(`${parts[0]}${suffix}`) > 0) {
+                suffix = `_${suffixCount++}`;
+                debugapi('/api/pin/ new member, not unique name, so trying with suffix', suffix);
+              }
+              newMember.run(`${parts[0]}${suffix}`,payload.email, payload.password); //password already hashed.
+            })();
           } else {
             debugapi('/api/pin user not found, add #expired to return path')
             location = '/#expired';
@@ -317,7 +341,7 @@
           debugapi(`Received /api/session/${session} request`);
           try {
             const data = await sessions[session](req.body, req.headers);
-            if(data.user !== undefined) {
+            if(data.user !== undefined && data.state === 'authorised') { //only for a user who is authorised
               res.setHeader('Set-Cookie', generateCookie(data.user)); //get ourselves a cookie
             }
             res.end(JSON.stringify(data));

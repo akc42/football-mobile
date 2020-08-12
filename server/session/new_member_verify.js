@@ -31,11 +31,9 @@
   module.exports = async function(params) {
     debug('got new request');
     const mail = await mailPromise;
-    /*
-      Before we do much, we want to check that we are not breaking rate limits.  However I want do do that in transaction
-      so I am goin to waste a little resource preparing a pin for use later so I can have a completely synchronous transaction
-    */
 
+    debug('going to make a hashed version of the incoming password');
+    const hashedPassword = await bcrypt.hash(params.password, 10);
     /* 
       So the next step it to prepare the queries that check rate limits
     */
@@ -92,7 +90,8 @@
                   exp: new Date().setTime(now + (verifyExpires * 60 * 60)),
                   uid: 0,
                   email: params.email,
-                  usage: '/#member'
+                  password: hashedPassword,
+                  usage: '/'
                 }
                 const token = jwt.encode(payload, cookieKey);
                 debug('made token', token);

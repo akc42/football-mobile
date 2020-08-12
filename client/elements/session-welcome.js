@@ -53,12 +53,12 @@ class SessionWelcome extends LitElement {
   }
   static get properties() {
     return {
-      email: { type: String }
+      user: { type: Object }
     };
   }
   constructor() {
     super();
-    this.email = '';
+    this.user = {uid: 0, email:''};
 
   }
 

@@ -66,6 +66,7 @@ export class AuthChanged extends Event {
 
   constructor(changed) {
     super('auth-changed',{composed: true, bubbles: true});
+    console.log('Auth Changed Event', this)
     this.changed = changed;
   }
 };
@@ -133,19 +134,19 @@ export class CompetitionsChanged extends Event {
   }
 };
 
-export class EmoticonSelected extends Event {
-  static eventType = 'emoticon-selected';
+export class EmojiSelect extends Event {
+  static eventType = 'emoji-select';
 
   /*
      The following are the fields provided by this event
 
-     emoticon: code of emoticon selected (including leading ":")
+     emoji: a single character from the range of emojis available
 
   */
 
-  constructor(emoticon) {
-    super('emoticon-selected',{composed: true, bubbles: true});
-    this.emoticon = emoticon;
+  constructor(emoji) {
+    super('emoji-select',{composed: true, bubbles: true});
+    this.emoji = emoji;
   }
 };
 
@@ -486,6 +487,7 @@ export class SessionStatus extends Event {
 
   constructor(status) {
     super('session-status',{composed: true, bubbles: true});
+    if (status === 'authorised') console.log('session event', this);
     this.status = status;
   }
 };

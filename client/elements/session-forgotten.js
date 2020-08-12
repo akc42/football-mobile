@@ -25,8 +25,6 @@ import './fm-input.js';
 import './fm-page.js';
 import './re-captcha.js';
 import './waiting-indicator.js';
-
-
 import button from '../styles/button.js';
 import page from '../styles/page.js';
 import { SessionStatus } from '../modules/events.js';
@@ -37,24 +35,22 @@ import global from '../modules/globals.js';
 
 
 /*
-     <session-approve>: Allows a user to make his membership application pending approval.
+     <session-forgotten>: Allows a user to make Request Pin.
 */
-class SessionApprove extends LitElement {
+class SessionForgotten extends LitElement {
   static get styles() {
     return [ button, page];
   }
   static get properties() {
     return {
       user: {type: Object},
-      reason: {type: String},
       waiting: {type: Boolean}
     };
   }
   constructor() {
     super();
-    this.user = {uid:0};
+    this.user = {uid:0, email:''}
     this.waiting = false;
-    this.reason = '';
     this._keyPressed = this._keyPressed.bind(this);
   }
   connectedCallback() {
@@ -65,16 +61,21 @@ class SessionApprove extends LitElement {
     } else {
       this.keys.connect();
     }
-    if (this.doneFirstCall) api('session/read_reason', { uid: this.user.uid }).then(response => this.reason = response.reason);
   }
   disconnectedCallback() {
     super.disconnectedCallback();
     this.keys.disconnect();
     document.body.removeEventListener('key-pressed', this._keyPressed);
   }
+  update(changed) {
+    if (changed.has('email') && this.email.length > 0) {
+      api('session/read_reason', {email: this.email}).then;
+    }
+    super.update(changed);
+  }
   firstUpdated() {
-    this.doneFirstCall = true;
-    api('session/read_reason', { uid: this.user.uid }).then(response => this.reason = response.reason);
+    this.application = this.shadowRoot.querySelector('#reason');
+    this.recaptcha = this.shadowRoot.querySelector('re-captcha');
   }
 
   render() {
@@ -83,40 +84,32 @@ class SessionApprove extends LitElement {
 
       </style>
       <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
-      <fm-page heading="Application">
-        <fm-input 
-          id="reason" 
-          textArea 
-          autofocus
-          label="Application Reason" 
-          .value=${this.reason} 
-          @value-changed=${this._valueChange} 
-          rows="6" 
-          cols="30"></fm-input>
-        <p>Your application for membership is available for the senior members of ${global.organisationName} to view.</p>
-        <p>You may update this application at anytime to provide a short reason as to why you want to become a member. So feel free to enter or revise the text below.</p>
-        
-        <button slot="action" @click=${this._update}>Update</button>
+      <fm-page heading="Forgotten">
+          <re-captcha></re-captcha>
+          <p>You have indicated that you have forgotton your password.  Please prove you a not a robot, and then we
+          will send an email to <strong>${this.user.email}</strong> with a link that will enable you to access your profile
+          and reset your password.</p>
+         
+          <button slot="action" @click=${this._update}>Send Link</button>
         
       </fm-page>
     `;
   }
 
   _keyPressed(e) {
-    if (e.key === 'Enter') {
+    if (e.key.combo === 'Enter') {
       this._update(e);
       return true;
     }
     return false;
   }
   async _update(e) {
-    this.waiting = true;
-    const result =  await api('session/update_reason',{uid: this.user.uid, reason: this.reason});
-    this.waiting = false;
-    if (result.state === 'error') {
-      throw new Error ('Reason Update Failed');
+    if (this.recaptcha !== undefined && this.recaptcha.validate()) {
+      this.waiting = true;
+      await api('session/request_pin',{uid: this.user.uid });
+      this.waiting = false;
+      this.dispatchEvent(new SessionStatus({state: 'pin'}));
     }
-
   }
   _valueChange(e) {
     this.reason = e.changed;
@@ -125,4 +118,4 @@ class SessionApprove extends LitElement {
 
 
 }
-customElements.define('session-approve', SessionApprove);
+customElements.define('session-forgotten', SessionForgotten);

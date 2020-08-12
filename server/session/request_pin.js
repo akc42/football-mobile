@@ -29,22 +29,22 @@
   const db = require('../utils/database');
 
   module.exports = async function(params) {
-    debug('request received for email', params.email);
+    debug('request received for uid', params.uid);
     const mail = await mailPromise;
     const pin = ('000000' + (Math.floor(Math.random() * 999999)).toString()).slice(-6); //make a new pin 
     debug('going to use pin', pin);
     const hashedPin = await bcrypt.hash(pin, 10);
     debug('have a hashed pin now');
-    let rateLimitExceeded = true;
-    const checkParticipant = db.prepare('SELECT * FROM participant WHERE email = ?');
+    let rateLimitExceeded = true;  //start that way until proved otherwise, so we don't send mail if user not found
+    const checkParticipant = db.prepare('SELECT * FROM participant WHERE uid = ?');
     const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
-
+    let email;
     const updateParticipant = db.prepare(`UPDATE participant SET verification_key = ?, verification_sent = (strftime('%s','now')) WHERE uid = ?`);
     db.transaction(() => {
-      debug('in transaction about to check participant with email', params.email);
-      const result = checkParticipant.get(params.email);
+      debug('in transaction about to check participant with uid', params.uid);
+      const result = checkParticipant.get(params.uid);
       if (result !== undefined) {
-        debug('found user from email as uid = ', result.uid);
+        debug('found user from uid as email = ', result.email);
         const cookieKey = s.get('cookie_key');
         const webmaster = s.get('webmaster');
         const verifyExpires = s.get('verify_expires');
@@ -66,7 +66,7 @@
             exp: new Date().setTime(now + (verifyExpires * 60 * 60)),
             uid: result.uid,
             pin: pin,
-            usage: '/profile'
+            usage: result.waiting_approval === 1 ? '/':'/profile'
           }
           debug('with user', result.uid, 'so about to send pin', pin, 'with expiry in', verifyExpires, 'hours');
           const token = jwt.encode(payload, cookieKey);
@@ -83,6 +83,7 @@
           debug('built the e-mail');
           updateParticipant.run(hashedPin, result.uid); //update user with new hashed pin we just sent
           debug('upated user ', result.uid, 'with new pin we just made')
+          email = result.email;
         } else {
           //silently do nothing if rateLimit is exceeded
           debug('rate limit exceeded to silently update user')
@@ -93,7 +94,7 @@
     })();
     //outside of the transaction, so can now be asynchonous again.
 
-    if (!rateLimitExceeded ) await mail.send('Your Temporary Password', params.email);
+    if (!rateLimitExceeded ) await mail.send('Your Temporary Password', email);
     debug('All done');
     return !rateLimitExceeded;
   };

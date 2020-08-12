@@ -48,7 +48,7 @@ class SessionManager extends LitElement {
       authorised: {type: Boolean},
       waiting: {type: Boolean},
       email: {type: String},
-      user: {type:String},
+      user: {type:Object},
     };
   }
   constructor() {
@@ -56,7 +56,7 @@ class SessionManager extends LitElement {
     this.state = ''
     this.authorised = false;
     this.waiting = false;
-
+    this.user = {uid: 0};
     this.email = '';
     this._setState = this._setState.bind(this);
   }
@@ -130,14 +130,17 @@ class SessionManager extends LitElement {
       <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       ${cache(this.authorised? '' : html`
           ${cache({
-            approve: html`<session-approve></session-approve>`,
+            approve: html`<session-approve .user=${this.user}></session-approve>`,
             authorised:html`<div class="authorised"></div>`,
             email: html`<session-email></session-email>`,
             error: html`<div class="error"></div>`,
             expired: html`<session-expired></session-expired>`,
+            forgotten: html`<session-forgotten .user=${this.user}></session-forgotten>`,
             logoff: html`<div class="logoff"></div>`,
             member: html`<session-member .email=${this.email}></session-member>`,
-            password: html`<session-password .email=${this.email}></session-password>`,
+            mempass: html`<session-mempass .user=${this.user}></session-mempass>`,
+            mprocess: html`<session-mprocess .email=${this.email}></session-mprocess>`,
+            password: html`<session-password .user=${this.user}></session-password>`,
             pin: html`<session-pin .email=${this.email}></session-pin>`,
             private: html`<session-private></session-private>`,
             reset: html`<div class="reset"></div>`,
@@ -166,6 +169,7 @@ class SessionManager extends LitElement {
   _setState(e) {
     e.stopPropagation();
     if (e.status.email !== undefined) this.email = e.status.email;
+    if (e.status.user !== undefined) this.user = e.status.user;
     this.state = e.status.state;
   }
 }

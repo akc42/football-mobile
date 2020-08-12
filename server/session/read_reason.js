@@ -26,7 +26,8 @@
 
   module.exports = async function(params) {
     debug('new request with params', params );
-    const result = db.prepare('SELECT uid,reason FROM participant WHERE waiting_approval = 1 AND email = ?').get(params.email);
+    const result = db.prepare('SELECT reason FROM participant WHERE waiting_approval = 1 AND uid = ?').get(params.uid);
+    if (result.reason === null) result.reason = '';
     return result;
     
   };

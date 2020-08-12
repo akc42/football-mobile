@@ -83,7 +83,7 @@ class SessionEmail extends LitElement {
       <fm-page heading="Welcome">
         <fm-input id="email" name="email" type="email" required label="Email" message="Valid Email Address Required"></fm-input>
         <button slot="action" @click=${this._continue}>Continue</button>
-        <p>By continuing you agree to ${global.organisationName} <a href="/" @click=${this._privacy}>Privacy Policy</a></p>
+        <p>By continuing you agree to ${global.organisationName} <a href="#" @click=${this._privacy}>Privacy Policy</a></p>
       </fm-page>
     `;
   }
@@ -94,11 +94,15 @@ class SessionEmail extends LitElement {
       this.waiting = true;
       const response = await api('session/email_verify',{email: this.email});
       this.waiting = false;
-      this.dispatchEvent(new SessionStatus({ state: response.state, email: this.email }));
+      if (response.state !== 'error') {
+        this.dispatchEvent(new SessionStatus({ state: response.state, user: response.user }));
+      } else {
+        throw new Error('Email Verify Failed ')
+      }
     }
   }
   _keyPressed(e) {
-    if (e.key.combo === 'Enter') {
+    if (e.key === 'Enter') {
       this._continue(e); 
       return true;
     }
