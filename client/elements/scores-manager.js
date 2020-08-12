@@ -20,7 +20,7 @@
 import { html } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
-import PageManager from './page-manager.js';
+import RouteManager from './route-manager.js';
 import { MenuReset, MenuAdd } from '../modules/events.js';
 import Route from '../modules/route.js';
 import api from '../modules/api.js';
@@ -30,9 +30,9 @@ import Debug from '../modules/debug.js';
 const debug = new Debug('scores');
 
 /*
-     <fm-scores>
+     <scores-manager>
 */
-class FmScores extends PageManager {
+class ScoresManager extends RouteManager {
   static get properties() {
     return {
       users: {type: Array}, //to hold full competitions cache result
@@ -122,26 +122,21 @@ class FmScores extends PageManager {
         }
       </style>
       ${cache({
-        home: html`<fm-scores-home 
+        home: html`<scores-home 
           managed-page
           .users=${this.users} 
-          @user-selected=${this._selectUser}></fm-scores-home>`,
-        user: html`<fm-scores-user 
+          @user-selected=${this._selectUser}></scores-home>`,
+        user: html`<scores-user 
           managed-page
           .user=${this.user}
           .rounds=${this.rounds}
           .name=${this.name}
-          @round-selected=${this._selectRound}></fm-scores-user>` 
+          @round-selected=${this._selectRound}></scores-user>` 
       }[this.page])}
     `;
   }
   loadPage(page) {
-    if (page === 'home') {
-      import('./fm-scores-home.js');
-    } else {
-      import('./fm-scores-user.js');
-    }
-
+    import (`scores-${page}.js`);
   }
   async _newRoute() {
     if (this.lastCid !== global.cid) {  //don't repeat if we don't have to
@@ -167,4 +162,4 @@ class FmScores extends PageManager {
     switchPath(`/rounds/${e.rid}/user/${this.user.uid}`);
   }
 }
-customElements.define('fm-scores', FmScores);
+customElements.define('scores-manager', ScoresManager);

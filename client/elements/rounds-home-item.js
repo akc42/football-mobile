@@ -27,11 +27,12 @@ import { UserSelected } from '../modules/events.js';
 
 import './material-icon.js';
 import './user-pick.js';
+import './rounds-home-item.js';
 
 /*
-     <fw-round-user>
+     <rounds-home-item>
 */
-class FmRoundUser extends LitElement {
+class RoundsHomeItem extends LitElement {
   static get styles() {
     return css`
   :host {
@@ -138,4 +139,4 @@ class FmRoundUser extends LitElement {
     this.dispatchEvent(new UserSelected(this.item.uid));
   }
 }
-customElements.define('fm-round-user', FmRoundUser);
+customElements.define('rounds-home-item', RoundsHomeItem);

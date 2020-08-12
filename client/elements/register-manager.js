@@ -19,13 +19,13 @@
 */
 import { LitElement, html } from '../libs/lit-element.js';
 
-import './app-page.js';
+import './fm-page.js';
 import page from '../styles/page.js';
 
 /*
      <fm-register>
 */
-class FmRegister extends LitElement {
+class RegisterManager extends LitElement {
   static get styles() {
     return [page];
   }
@@ -53,9 +53,10 @@ class FmRegister extends LitElement {
   }
   render() {
     return html`
-        <app-page id="page" heading="Registration">
-        </app-page>
+        <fm-page id="page" heading="Registration">
+          <p>NOT YET IMPLEMENTED</p>
+        </fm-page>
     `;
   }
 }
-customElements.define('fm-register', FmRegister);
+customElements.define('register-manager', RegisterManager);

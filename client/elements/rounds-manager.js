@@ -20,7 +20,7 @@
 import { html } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
-import PageManager from './page-manager.js';
+import RouteManager from './route-manager.js';
 import { MenuReset, MenuAdd, PageClose } from '../modules/events.js';
 import Route from '../modules/route.js';
 import api from '../modules/api.js';
@@ -30,9 +30,9 @@ import Debug from '../modules/debug.js';
 const debug = new Debug('rounds');
 
 /*
-     <fm-rounds>
+     <rounds-manager>
 */
-class FmRounds extends PageManager {
+class RoundsManager extends RouteManager {
   static get properties() {
     return {
       roundRoute: {type: Object}, //the route that got used here
@@ -114,30 +114,24 @@ class FmRounds extends PageManager {
         }
       </style>
       ${cache({
-        home: html`<fm-rounds-home 
+        home: html`<rounds-home 
           managed-page
           ?iCanPick=${this.iCanPick}
           .users=${this.users} 
           .round=${this.round}
-          @user-selected=${this._selectUser}></fm-rounds-home>`,
-        user: html`<fm-rounds-user 
+          @user-selected=${this._selectUser}></rounds-home>`,
+        user: html`<rounds-user 
           managed-page
           ?iCanPick=${this.iCanPick}
           .user=${this.user}
           .round=${this.round}
           @option-pick=${this._optionPick}
-          @@match-pick=${this._matchPick}></fm-rounds-user>` 
+          @@match-pick=${this._matchPick}></rounds-user>` 
       }[this.page])}
     `;
   }
   loadPage(page) {
-    if (page === 'home') {
-      debug('about to fetch rounds home')
-      import('./fm-rounds-home.js');
-    } else {
-      import('./fm-rounds-user.js');
-    }
-
+    import(`./rounds-${page}.js`);
   }
   async _newRoute() {
     if (typeof this.route.params.rid === 'number' && (this.lastRid !== this.route.params.rid || this.lastcid !== global.cid)) {
@@ -224,4 +218,4 @@ class FmRounds extends PageManager {
 
   }
 }
-customElements.define('fm-rounds', FmRounds);
+customElements.define('rounds-manager', RoundsManager);

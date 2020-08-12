@@ -144,6 +144,9 @@ class FmInput extends LitElement {
       this.invalid = !this.input.validity.valid;
     }
     if (changed.has('required') && !this.required) this._required = false; //removed the required flag so make _required match
+    if (changed.has('textArea') && this.textArea) {
+      import('./emoji-panel.js');
+    }
     super.updated(changed);
   }
   render() {
@@ -156,7 +159,7 @@ class FmInput extends LitElement {
           <div class="error" role="alert">
             <material-icon>cancel</material-icon><span>${this.message}</span>
           </div>
-        `:'')}
+        `: this.textArea? html`<emoji-panel @emoji-select=${this._emoji}></emoji-panel>` :'')}
 
       </div>   
       ${this.textArea ?  html`
@@ -166,7 +169,7 @@ class FmInput extends LitElement {
           ?disabled=${this.disabled}
           name=${this.name}
           ?readonly=${this.readonly}
-          placeholder=${this.placeholder}
+          placeholder=${this._placeholder}
           autocomplete=${ifDefined(this.autocomplete)}
           ?autofocus=${this.autofocus}
           form=${ifDefined(this.form)}
@@ -175,9 +178,8 @@ class FmInput extends LitElement {
           cols=${ifDefined(this.cols)}
           rows=${ifDefined(this.rows)}
           wrap=${ifDefined(this.wrap)}
-          .value=${value}
           @input=${this._inputChanged}
-          @blur=${this._blur}></textarea>
+          @blur=${this._blur}>${value}</textarea>
       ` : html`
         <input
           id="input"
@@ -232,6 +234,14 @@ class FmInput extends LitElement {
   }
   _blur() {
     this._required = this.required;
+  }
+  _emoji(e) {
+    e.stopPropagation();
+    if (this.input !== undefined) {
+      this.input.setRangeText(e.emoji);
+      this.value += e.emoji;
+
+    }
   }
   _inputChanged(e) {
     e.stopPropagation();

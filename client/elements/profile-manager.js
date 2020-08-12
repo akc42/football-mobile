@@ -39,9 +39,9 @@ import { AuthChanged } from '../modules/events.js';
 import { switchPath } from '../modules/utils.js';
 
 /*
-     <user-profile>
+     <profile-manager>
 */
-class UserProfile extends LitElement {
+class ProfileManager extends LitElement {
   static get styles() {
     return [button, page];
   }
@@ -362,4 +362,4 @@ class UserProfile extends LitElement {
     this.rinput = this.shadowRoot.querySelector('#replica');
   }
 }
-customElements.define('user-profile', UserProfile);
+customElements.define('profile-manager', ProfileManager);

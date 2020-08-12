@@ -22,8 +22,8 @@ import {cache} from '../libs/cache.js';
 import {classMap} from '../libs/class-map.js';
 
 import './fm-page.js';
-import './fm-list.js';
-import './fm-user-match.js';
+import './list-manager.js';
+import './rounds-user-item.js';
 import './material-icon.js';
 import './user-pick.js';
 import './comment-button.js';
@@ -37,9 +37,9 @@ import global from '../modules/globals.js';
 import { OptionComment } from '../modules/events.js';
 
 /*
-     <fm-scores-user>
+     <rounds-user>
 */
-class FmRoundsUser extends LitElement {
+class RoundsUser extends LitElement {
   static get styles() {
     return [page, tooltip,emoji];
   }
@@ -145,8 +145,8 @@ class FmRoundsUser extends LitElement {
           @click=${this._playoff} 
           class="poff"><strong>${this.user.name}</strong></div>
         <div slot="heading">${this.round.name}</div>
-        <fm-list 
-          custom="fm-user-match"  
+        <list-manager 
+          custom="rounds-user-item"  
           .items=${this.round.matches}
           @comment-changed=${this._commentMatch}>
           <div slot="header" class="container">
@@ -181,7 +181,7 @@ class FmRoundsUser extends LitElement {
             <div class="mt">Match Total: ${this.user.mscore}</div>
             <div class="rs">Round Score: ${this.user.score}</div>
           </div>
-        </fm-list>
+        </list-manager>
       </fm-page>
     `;
   }
@@ -207,4 +207,4 @@ class FmRoundsUser extends LitElement {
     switchPath(`/teams/${this.user.uid}`);
   }
 }
-customElements.define('fm-rounds-user', FmRoundsUser);
+customElements.define('rounds-user', RoundsUser);

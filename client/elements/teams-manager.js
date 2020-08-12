@@ -17,22 +17,22 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html } from '../libs/lit-element.js';
+import { html } from '../libs/lit-element.js';
 
 import api from '../modules/api.js';
 import Route from '../modules/route.js';
 import { cache } from '../libs/cache.js';
 import './fm-page.js';
 
-import './fm-confdiv.js'
-import PageManager from './page-manager.js';
+import './conf-div.js'
+import RouteManager from './route-manager.js';
 import page from '../styles/page.js';
 import {MenuReset, MenuAdd} from '../modules/events.js';
 
 /*
      <fm-teams>
 */
-class FmTeams extends PageManager {
+class TeamsManager extends RouteManager {
   static get styles() {
     return [page];
   }
@@ -157,7 +157,7 @@ class FmTeams extends PageManager {
           ${cache({
             home: html`
               ${this.confs.map(conf => this.divs.map(div => html`
-                <fm-confdiv .teams=${this.teams} .conf=${conf} .div=${div} user .picks=${this.userPicks}></fm-confdiv>
+                <conf-div .teams=${this.teams} .conf=${conf} .div=${div} user .picks=${this.userPicks}></conf-div>
                 </div>
               `))}`,
             users: html`<p>Still to Implement</p>`
@@ -177,4 +177,4 @@ class FmTeams extends PageManager {
 
   }
 }
-customElements.define('fm-teams', FmTeams);
+customElements.define('teams-manager', TeamsManager);

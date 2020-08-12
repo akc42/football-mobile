@@ -20,17 +20,17 @@
 import { LitElement, html } from '../libs/lit-element.js';
 
 import './fm-page.js';
-import './fm-list.js';
-import './fm-user-score.js';
+import './list-manager.js';
+import './scores-user-item.js';
 
 import page from '../styles/page.js';
 import tooltip from '../styles/tooltip.js';
 import { switchPath } from '../modules/utils.js';
 
 /*
-     <fm-scores-user>
+     <scores-user>
 */
-class FmScoresUser extends LitElement {
+class ScoresUser extends LitElement {
   static get styles() {
     return [page, tooltip];
   }
@@ -108,7 +108,7 @@ class FmScoresUser extends LitElement {
           @click=${this._playoff} 
           class="poff"><strong>${this.user.name}</strong></div>
         <div slot="heading">${this.user.rscore}:${this.user.lscore}:${this.user.tscore}</div>
-        <fm-list custom="fm-user-score"  .items=${this.rounds}>
+        <list-manager custom="scores-user-item"  .items=${this.rounds}>
           <div slot="header" class="container">
             <div class="rn">Round Name</div>
             <div class="mp">Match Picks</div>
@@ -117,7 +117,7 @@ class FmScoresUser extends LitElement {
             <div class="bs">Bonus Score</div>
             <div class="rs">Round Score</div>
           </div>
-        </fm-list>
+        </list-manager>
       </fm-page>
     `;
   }
@@ -126,4 +126,4 @@ class FmScoresUser extends LitElement {
     switchPath(`/teams/${this.user.uid}`);
   }
 }
-customElements.define('fm-scores-user', FmScoresUser);
+customElements.define('scores-user', ScoresUser);

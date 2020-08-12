@@ -25,7 +25,7 @@ import api from '../modules/api.js';
 import {switchPath} from '../modules/utils.js';
 
 import './date-format.js';
-import './app-page.js';
+import './fm-page.js';
 import page from '../styles/page.js';
 import emoji from '../styles/emoji.js';
 
@@ -34,9 +34,9 @@ import './calendar-input.js';
 
 
 /*
-     <fm-soon>
+     <soon-manager>
 */
-class FmSoon extends LitElement {
+class SoonManager extends LitElement {
   static get styles() {
     return [page, emoji];
   }
@@ -75,15 +75,15 @@ class FmSoon extends LitElement {
           color: red;
         }
       </style>
-       <app-page id="page" heading="Coming Soon">
+       <fm-page id="page" heading="Coming Soon">
         <p>${unsafeHTML(this.soon)}</p>
         ${cache(this.expected !== 0 ? html`
           <p>The competition is expected to be open on <date-format .date=${this.expected}></date-format></p>
         `:'')}
         ${cache(this.condition? html`<p>When open, the condition for registering will be:- </p>
         <p class="condition emoji">${this.condition}.</p>`:'')}
-      </app-page>
+      </fm-page>
     `;
   }
 }
-customElements.define('fm-soon', FmSoon);
+customElements.define('soon-manager', SoonManager);

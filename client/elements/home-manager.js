@@ -34,7 +34,7 @@ import api from '../modules/api.js';
 
      If we are registered for the competiion we have to check with there are any matches not passed their pick deadline, in which case we go to /picks, otherwise if there any picks from me already made then I go to /results, otherwise I go to /teams.
 */
-class FmHome extends LitElement {
+class HomeManager extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
@@ -82,4 +82,4 @@ class FmHome extends LitElement {
     }
   }
 }
-customElements.define('fm-home', FmHome);
+customElements.define('home-manager', HomeManager);

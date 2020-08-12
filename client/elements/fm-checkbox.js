@@ -64,34 +64,6 @@ class FmCheckbox extends LitElement {
         display: none;
       }
 
-      #checkmark {
-        width: 16px;
-        height:16px;
-        --icon-size:  12px;
-        -webkit-box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.5);
-        -moz-box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.5);
-        box-shadow: 2px 2px 6px 0px rgba(0,0,0,0.5);
-        border-radius: 4px;
-        cursor: pointer;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        background-color: var(--app-cancel-button-color);
-      }
-      #checkmark:focus {
-        outline:none;
-      }
-      #checkmark[checked] {
-        background-color: var(--app-accent-color,#131335);
-        color: var(--app-reverse-text-color,white);
-      }
-      #checkmark[disabled], #checkmark[checked][disabled] {
-        background: var(--app-disabled-color, lightgrey);
-        color: var(--app-disabled-text, lightgrey)
-      }
-      #checklabel {
-        margin-left: 10px;
-      }
     `;
   }
   static get properties() {
@@ -126,6 +98,31 @@ class FmCheckbox extends LitElement {
   }
   render() {
     return html`
+    <style>
+      #checkmark {
+        width: 14px;
+        height:14px;
+        --icon-size:  12px;
+        cursor: pointer;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        border-radius: 4px;
+      }
+      #checkmark:focus {
+        outline:none;
+      }
+      #checkmark[checked] {
+        background-color: var(--accent-color);
+        color: var(--accent-constrast-color);
+      }
+      #checkmark[disabled], #checkmark[checked][disabled] {
+        background: var(--disabled-color);
+      }
+      #checklabel {
+        margin-left: 10px;
+      }
+    </style>
       <div
         id="checkmark"
         role="checkbox"
@@ -133,7 +130,7 @@ class FmCheckbox extends LitElement {
         aria-labeled-by="checklabel"
         ?checked="${this.value}"
         ?aria-checked=${this.value}
-        ?disabled="${this.disabled}">${this.value ? html`<material-icon>check</material-icon>` : ''}</div>
+        ?disabled="${this.disabled}"><material-icon>${this.value ? 'check': 'check_box_outline_blank'}</material-icon></div>
       <label id=checklabel for="checkmark"><slot></slot></label>
     `;
   }

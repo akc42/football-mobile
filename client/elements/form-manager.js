@@ -75,18 +75,8 @@ class FormManager extends LitElement  {
           scroll-snap-type: y mandatory;
         }
 
-        .action {
-          display: flex;
-          width:100%;
-          flex-direction:row;
-          flex-wrap: wrap;
-          justify-content: space-evenly;
-          flex:0 1 auto;
-        }
-
       </style>
-        <slot id="mychildren" class="contents"></slot>
-        <slot class="action" name="action"><div>
+      <slot id="mychildren" class="contents"></slot>        
     `;
   }
   get params() {

@@ -23,9 +23,9 @@ import { RoundSelected } from '../modules/events.js';
 
 
 /*
-     <fw-user-score>
+     <scores-user-item>
 */
-class FmUserScore extends LitElement {
+class ScoresUserItem extends LitElement {
   static get styles() {
     return css`
       :host {
@@ -94,4 +94,4 @@ class FmUserScore extends LitElement {
     this.dispatchEvent(new RoundSelected(this.item.rid));
   }
 }
-customElements.define('fm-user-score', FmUserScore);
+customElements.define('scores-user-item', ScoresUserItem);

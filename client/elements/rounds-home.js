@@ -18,12 +18,12 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
-import {classMap} from '../libs/class-map.js';
+
 import page from '../styles/page.js';
 import emoji from '../styles/emojijs';
 
-import './fm-list.js';
-import './fm-round-user.js';
+import './list-manager.js';
+import './rounds-home-item.js';
 import './fm-page.js';
 import './date-format.js';
 
@@ -32,9 +32,9 @@ import global from '../modules/globals.js';
 
 
 /*
-     <fm-rounds-home>
+     <rounds-home>
 */
-class FmRoundsHome extends LitElement {
+class RoundsHome extends LitElement {
   static get styles() {
     return [page,emoji];
   }
@@ -138,7 +138,7 @@ class FmRoundsHome extends LitElement {
       ${this.iCanPick?html`
         <div id="canpick" slot="heading" @click=${this._makePicks}>Round Picks</div>
       `:''}
-      <fm-list custom="fm-round-user"  .items=${this.users} style="${this.round.valid_question === 1? '--list-height:700px':''}">
+      <list-manager custom="rounds-home-item"  .items=${this.users} style="${this.round.valid_question === 1? '--list-height:700px':''}">
         <div slot="header" class="container">
           <div class="matches">Matches ${this.round.matches.length}</div>
           <div class="points"><strong>Points ${this.round.value}</strong><br/>per correct pick (excluding underdog)</div>
@@ -168,7 +168,7 @@ class FmRoundsHome extends LitElement {
             <div class="tl">Total <span>(Done?)</span></div> 
           </div>
         </div>
-      </fm-list>
+      </list-manager>
     </fm-page>
     `;
   }
@@ -176,4 +176,4 @@ class FmRoundsHome extends LitElement {
     switchPath(`/rounds/${this.round.rid}/user/${global.uid}`)
   }
 }
-customElements.define('fm-rounds-home', FmRoundsHome);
+customElements.define('rounds-home', RoundsHome);

@@ -90,7 +90,7 @@ class FmPage extends LitElement {
           margin: 40px auto 40px auto;
           max-height: 100%;
           border-radius: 10px;
-          box-shadow: 0px 0px 38px -2px rgba(0, 0, 0, 0.5);
+          box-shadow: 0px 0px 38px -2px var(--shadow-color);
           padding: 20px;
           min-width: 500px;
         }

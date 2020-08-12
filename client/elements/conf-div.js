@@ -22,9 +22,9 @@ import './user-pick.js';
 import './material-icon.js';
 
 /*
-     <fm-confdiv>
+     <conf-div>
 */
-class FmConfDiv extends LitElement {
+class ConfDiv extends LitElement {
   static get styles() {
     return [];
   }
@@ -142,4 +142,4 @@ class FmConfDiv extends LitElement {
 
   }
 }
-customElements.define('fm-confdiv', FmConfDiv);
+customElements.define('conf-div', ConfDiv);

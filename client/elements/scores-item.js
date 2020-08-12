@@ -24,9 +24,9 @@ import global from '../modules/globals.js';
 import { UserSelected } from '../modules/events.js';
 
 /*
-     <fw-score-user>
+     <scores-item>
 */
-class FmScoreUser extends LitElement {
+class ScoresItem extends LitElement {
   static get styles() {
     return css`
   
@@ -92,4 +92,4 @@ class FmScoreUser extends LitElement {
     this.dispatchEvent(new UserSelected(this.item.uid));
   }
 }
-customElements.define('fm-score-user', FmScoreUser);
+customElements.define('scores-item', ScoresItem);

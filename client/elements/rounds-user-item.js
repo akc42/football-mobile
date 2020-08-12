@@ -19,52 +19,18 @@
 */
 import { LitElement, html } from '../libs/lit-element.js';
 
-import page from '../styles/page.js';
-
-import './fm-list.js';
-import './fm-score-user.js';
-import './fm-page.js';
+import { RoundSelected } from '../modules/events.js';
 
 
 /*
-     <fm-scores-home>
+     <fw-user-score>
 */
-class FmScoresHome extends LitElement {
+class RoundsUserItem extends LitElement {
   static get styles() {
-    return [page];
-  }
-  static get properties() {
-    return {
-      users: {type: Array},
-      name: {type: String}
-    };
-  }
-  constructor() {
-    super();
-    this.users = [];
-    this.name = '';
-  }
-  connectedCallback() {
-    super.connectedCallback();
- }
-  disconnectedCallback() {
-    super.disconnectedCallback();
-  }
+    return css`      
+      :host {
 
-  firstUpdated() {
-  }
-  updated(changed) {
-    super.updated(changed);
-  }
-  render() {
-    return html`
-    <style>
-      .container {
         background-color: var(--app-primary-color);
-        border:2px solid var(--app-accent-color);
-        border-radius: 5px;
-        box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
-        margin:5px 5px 5px 3px;
         display: grid;
         grid-gap:2px;
         grid-template-columns: 1fr 1fr 1fr;
@@ -72,13 +38,13 @@ class FmScoresHome extends LitElement {
           "user rs ps"
           "user ts ts";
       }
-
       .un,.rs,.ps,.ts {
+        padding:2px;
         background-color: white;
         color:var(--app-primary-text);
         text-align: center;
         vertical-align: center;
-        font-weight: bold;
+        cursor:pointer;
       }
       .un {
         grid-area:user
@@ -93,18 +59,44 @@ class FmScoresHome extends LitElement {
       .ts {
         grid-area:ts;
       }
-    </style>
-    <fm-page heading="Summary Scores">
-      <fm-list custom="fm-score-user"  .items=${this.users}>
-        <div slot="header" class="container">
-          <div class="un">Name</div>
-          <div class="rs">Round Score</div>
-          <div class="ps">Playoff Score</div>
-          <div class="ts">Total Score</div>
-        </div>
-      </fm-list>
-    </fm-page>
+      .me {
+        background-color: var(--app-user-color);
+        color: var(--app-user-text);
+        font-weight: bold;
+      }
+
     `;
   }
+  static get properties() {
+    return {
+      item: {type: Object}
+    };
+  }
+  constructor() {
+    super();
+    this.item = {name:'',rscore:'',pscore:'',tscore:''};
+  }
+
+  render() {
+    return html`
+      <style>
+        :host {
+          display:grid;
+          grid-gap: 2px;
+        }
+      
+      </style>
+        <img class="aid-logo" src="/appimage/teams/${this.item.aid}.png"/>
+        <div class="name">${this.item.aid}</div>
+        <div class="result"> </div>
+        <img class="hid-logo" src="/appimage/teams/${this.item.hid}.png"/>
+      <div class="team hid">
+      </div>
+    `;
+  }
+  _select(e) {
+    e.stopPropagation();
+    this.dispatchEvent(new RoundSelected(this.item.rid));
+  }
 }
-customElements.define('fm-scores-home', FmScoresHome);
+customElements.define('rounds-user-item', RoundsUserItem);
