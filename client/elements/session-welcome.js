@@ -53,12 +53,12 @@ class SessionWelcome extends LitElement {
   }
   static get properties() {
     return {
-      user: { type: Object }
+      email: { type: String }
     };
   }
   constructor() {
     super();
-    this.user = {uid: 0, email:''};
+    this.email = '';
 
   }
 
@@ -75,12 +75,12 @@ class SessionWelcome extends LitElement {
           screen.  The original football worked with the forum so if you were signed in to the forum you were signed in to football.  This is no longer the case.
         </p>
         <p>One immediate issue is that alhough we have your e-mail address, we don't have a password for you.  To overcome that, we have sent you a special 
-          e-mail (to ${this.email}) from Hephy (remember him!) with a link. This link will log you into the system and take you to a profile page where you can
+          e-mail (to <strong>${this.email}</strong>) from Hephy (remember him!) with a link. This link will log you into the system and take you to a profile page where you can
           set up passwords (and some other things).  To provide you with protection against misuse it has to be used within ${global.verifyExpires} hours from now and it cannot be used more than once.</p>
 
         <p>As this is now a mobile oriented application, if at all possible, use the link from your mobile device.  If that is not possible just set up your password in the profile page and then use your mobile device to log in using it.</p>
 
-        <p>If you do not receive the link, or are unable to use it within the alotted time, just try to log in again and you will be sent another link.  Please wait at least 30 minutes between attemtps as there is also protection against misuse here too.</p>
+        <p>If you do not receive the link, or are unable to use it within the alotted time, just try to log in again and you will be sent another link.  Please wait at least ${global.rateLimit} minutes between attemtps as there is protection against misuse here too.</p>
       </fm-page>
     `;
   }

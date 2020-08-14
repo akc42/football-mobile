@@ -31,8 +31,6 @@ import './waiting-indicator.js';
 import button from '../styles/button.js';
 import page from '../styles/page.js';
 import api from '../modules/api.js';
-import {markSeen} from '../modules/visit.js';
-import './app-waiting.js';
 import AppKeys from '../modules/keys.js';
 import global from '../modules/globals.js';
 import { AuthChanged } from '../modules/events.js';
@@ -93,7 +91,7 @@ class ProfileManager extends LitElement {
     super.disconnectedCallback();
     this.keyTarget.removeEventListener('keys-pressed', this._keyPressed);
     this.keys.disconnect();
-    markSeen(); //say we've seen the remember consent
+   
   }
 
   firstUpdated() {
@@ -105,7 +103,6 @@ class ProfileManager extends LitElement {
   }
 
   render() {
-    const unseen = !global.cookieConsent;
     return html`
       <style>
         #email {
@@ -173,96 +170,82 @@ class ProfileManager extends LitElement {
       </style>
       <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       <fm-page @key-pressed=${this._keyPressed} id="page" heading="Your Profile">
-        <div class="form">
-          <form-manager
-            id="doprofile" 
-            action="profile/update_profile" 
-            class="inputs" 
-            @form-response=${this._formResponse}>
-              <input type="hidden" name="uid" value="${global.user.uid}" />
-              <input type="hidden" name="usage" value="${global.scope}" />
-              <div class="names">
-                <fm-input 
-                  id="displayname" 
-                  label="Display Name" 
-                  name="name"
-                  .message=${this.name.length > 0 ?'Name already in use':'Required'}
-                  required 
-                  value=${this.name}
-                  autofocus
-                  @value-changed=${this._dnChanged}
-                  @blur=${this._checkDisplayName}
-                  autocomplete="off"></fm-input>
-                <p class="title."> User Profile<br/>
-                  <span class="subtitle">User Id: ${global.user.uid}</span></p>
-              </div>
-            ${cache(global.scope === 'authorised'? html`
-              <fm-input
-                label="E-Mail"
-                .message="Required"
-                autocomplete="off"
-                required
-                type="email"
-                name="email"
-                id="email"
-                .value="${this.email}"
-                @value-changed="${this._emChanged}"
-                @blur=${this._doneFirst}></fm-input>
-              <p id="enote">If you change this, you will be sent a link to verify it before you can use it to log in.  Use your original
-              email before then.</p> 
-            `:html`
-                <p id="email" class="fixedemail">Email <span>${this.email}</span></p>
-                <p id="enote" class="explain">You may only change your email when you have logged on via the logon screen.</p>
-            ` )}
+     
+        <form-manager
+          id="doprofile" 
+          action="profile/update_profile" 
+          class="inputs" 
+          @form-response=${this._formResponse}>
+            <input type="hidden" name="uid" value="${global.user.uid}" />
+            <div class="names">
+              <fm-input 
+                id="displayname" 
+                label="Display Name" 
+                name="name"
+                .message=${this.name.length > 0 ?'Name already in use':'Required'}
+                required 
+                value=${this.name}
+                validate=${this._checkDisplayName}
+                autofocus
+                @value-changed=${this._dnChanged}
+                autocomplete="off"></fm-input>
+              <p class="title."> User Profile<br/>
+                <span class="subtitle">User Id: ${global.user.uid}</span></p>
+            </div>
+      
+            <fm-input
+              label="E-Mail"
+              message="Use a valid email address"
+              autocomplete="off"
+              type="email"
+              name="email"
+              id="email"
+              .value="${this.email}"
+              @value-changed="${this._emChanged}"></fm-input>
+            <p id="enote">If you change this, you will be sent a link to verify it before you can use it to log in.  Use your original
+            email before then.</p> 
 
+
+            
+            <div id="passwords">
+              <fm-input              
+                label="Password"
+                .message="min ${global.minPassLen} chars"
+                type="${this.showpass? 'text':'password'}"
+                name="password"
+                id="pw"
+                .value=${this.password}
+                @value-changed=${this._pwChanged}
+                .validator=${this._pwValidate}>
+              </fm-input>
+              <fm-input
+                label="Repeat"
+                .message="${'does not match'}"
+                type="${this.showpass ? 'text' : 'password'}"
+                name="replica"
+                id="replica"
+                .value=${this.replica}
+                @value-changed=${this._repChanged}
+                .validator=${this._replicaValidate}>
+              </fm-input>
+              <p id="see">
+                <material-icon @click=${this._toggleVisibility}>${this.showpass ? 'visibility_off' : 'visibility'}</material-icon>
+                Click the eye to ${this.showpass?'hide':'show'} passwords</p>
               
-              <div id="passwords">
-                <fm-input              
-                  label="Password"
-                  .message="min ${global.minPassLen} chars"
-                  type="${this.showpass? 'text':'password'}"
-                  name="password"
-                  id="pw"
-                  .value=${this.password}
-                  @value-changed=${this._pwChanged}
-                  .validator=${this._pwValidate}>
-                </fm-input>
-                <fm-input
-                  label="Repeat"
-                  .message="${'does not match'}"
-                  type="${this.showpass ? 'text' : 'password'}"
-                  name="replica"
-                  id="replica"
-                  .value=${this.replica}
-                  @value-changed=${this._repChanged}
-                  .validator=${this._replicaValidate}>
-                </fm-input>
-                <p id="see">
-                  <material-icon @click=${this._toggleVisibility}>${this.showpass ? 'visibility_off' : 'visibility'}</material-icon>
-                  Click the eye to ${this.showpass?'hide':'show'} passwords</p>
-                
-                <p id="pnote" class="explain">Only enter a password if you wish to change it.</p>
-              </div>
-  
-              <fm-checkbox ?value=${this.remember} @value-changed=${this._rememberChanged} name="remember">Remember Me</fm-checkbox>
-              ${cache(global.cookieConsent? '': html`<p class="consent">The Remember checkbox, when checked formally gives us permission to store a cookie with your user details on your computer until you next formally log out. Do not do this if this computer is public.</p>`)} 
-          </form-manager>
-        </div> 
+              <p id="pnote" class="explain">Only enter a password if you wish to change it.</p>
+            </div>
+
+            <fm-checkbox ?value=${this.remember} @value-changed=${this._rememberChanged} name="remember">Remember Me</fm-checkbox>
+        </form-manager>
+
         <button slot="action" @click=${this._changeProfile}>Update</button>
         <button slot="action" cancel @click=${this._cancel}>Cancel</button>
       
       </fm-page>
     `;
   }
-  _cancel() {
-    if (global.scope !== 'authorised') {
-      //we were given a temporary permit to come in here and set stuff up, if we are not doing so that 
-      //that temporary permit is no longer valid.
-      document.cookie = `${global.cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
-      global.scope = '';
-      this.dispatchEvent(new AuthChanged(false));
-    }
-    markSeen();
+  _cancel(e) {
+    e.stopPropagation();
     switchPath('/');
   }
   _changeProfile() {
@@ -271,7 +254,7 @@ class ProfileManager extends LitElement {
       if (result) {
         this.waiting = true;
         this.dinput.invalid = false;
-        if (global.scope === 'authorised') this.einput.invalid = false;
+        this.einput.invalid = false;
         this.pinput.invalid = false;
         this.rinput.invalid = false;
       }
@@ -280,7 +263,7 @@ class ProfileManager extends LitElement {
   async _checkDisplayName() {
     if (this.name.length > 0 && this.name !== global.user.name) {
       this.waiting = true;
-      const found = await api('admin/check_names', { name: this.name });
+      const found = await api('profile/check_names', {name: this.name });
       this.waiting = false;
       this.dinput.invalid = found;
     }
@@ -299,7 +282,6 @@ class ProfileManager extends LitElement {
   }
   _formResponse(e) {
     e.stopPropagation();
-    markSeen();
     this.waiting = false;
     if (e.response.usage === 'authorised') {
       global.scope = 'authorised'; //just in case it wasn't before
@@ -345,7 +327,6 @@ class ProfileManager extends LitElement {
   }
   _rememberChanged(e) {
     this.remember = e.changed;
-    markSeen();
   }
   _repChanged(e) {
     this.replica = e.changed;

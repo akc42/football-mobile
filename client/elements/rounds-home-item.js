@@ -34,12 +34,28 @@ import './rounds-home-item.js';
 */
 class RoundsHomeItem extends LitElement {
   static get styles() {
-    return css`
-  :host {
+    return css``;
+  }
+  static get properties() {
+    return {
+      item: {type: Object}
+    };
+  }
+  constructor() {
+    super();
+    this.item = {uid:0, name:'',rscore:'',lscore:'',tscore:''};
+  }
 
-    background-color: var(--app-primary-color);
+  render() {
+    return html`
+      <style>
+      :host {
+
+    background-color: var(--accent-color); 
+    border-radius: 5px;
+    border: 2px solid var(--accent-color);
     display: grid;
-    grid-gap:2px;
+    grid-gap: 2px;
     grid-template-columns: 2fr repeat(4,1fr);
     grid-template-areas:
       "un mr ou bn tl"
@@ -47,8 +63,7 @@ class RoundsHomeItem extends LitElement {
   }
   .un, .mr, .ou, .bn, .tl, .pk, .op, .done {
     padding:2px;
-    background-color: white;
-    color:var(--app-primary-text);
+    background-color: var(--background-color);
     text-align: center;
     vertical-align: center;
     cursor:pointer;
@@ -77,8 +92,8 @@ class RoundsHomeItem extends LitElement {
     color: green;
   }
   .me {
-    background-color: var(--app-user-color);
-    color: var(--app-user-text);
+    background-color: var(--accent-contrast-color);
+    color: var(--colour);
     font-weight: bold; 
   }
   .late {
@@ -88,21 +103,7 @@ class RoundsHomeItem extends LitElement {
   .support {
     color: red;
     font-weight: normal;
-  }
-`;
-  }
-  static get properties() {
-    return {
-      item: {type: Object}
-    };
-  }
-  constructor() {
-    super();
-    this.item = {uid:0, name:'',rscore:'',lscore:'',tscore:''};
-  }
-
-  render() {
-    return html`
+  }</style>
       <div class="un ${classMap({me: global.user.uid === this.item.uid})}" @click=${this._select}>${this.item.name}</div>
       <div class="mr ${classMap({ me: global.user.uid === this.item.uid })}" @click=${this._select}>${this.item.pscore}</div>
       <div 
