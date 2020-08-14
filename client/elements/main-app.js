@@ -231,7 +231,7 @@ class MainApp extends LitElement {
         #copy {
           font-size: 8px;
         }
-        app-session[hidden], fm-pages[hidden], error-manager[hidden] {
+        session-manager[hidden], fm-pages[hidden], error-manager[hidden] {
           display: none !important;
         }
         .admins{
@@ -240,7 +240,7 @@ class MainApp extends LitElement {
 
         hr.sep {
           width:100%;
-          border-top: 1px dotted red;
+          border-top: 1px -solid var(--menu-separator);
         }
         @media (min-width: 500px) {
           :host, .menucontainer {
