@@ -38,7 +38,7 @@ CREATE TABLE participant (
     uid integer PRIMARY KEY,
     name character varying,
     email character varying COLLATE NOCASE,
-    password character varying, --stores md5 of password to enable login if doing local authentication
+    password character varying, --stores bcrypt hash of password to enable login if doing local authentication
     last_logon bigint DEFAULT (strftime('%s','now')) NOT NULL, --last time user connected
     member_approve boolean DEFAULT 0 NOT NULL,--Set true if user may approve membership
     global_admin boolean DEFAULT 0 NOT NULL, -- Set true if user is global admin (automatically allows approve membership)
