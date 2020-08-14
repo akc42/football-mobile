@@ -256,30 +256,33 @@ with the `${variable}` construct
 
 ```html
 <main-app>
-  <app-error>
-    ${anError? 'Text about the error':''}
-  </app-error>
   <header>Menu Bar, Logo and Sw Version, with copyright notice</header>
-  <app-session>
-    ${anError || authorised ? '' : {
-        verify: <app-email-verify></app-email-verify>
-        ...
-        logon: <app-logon></app-logon>
-      }[state];
-    }
-  </app-session>
-  ${authorised?
-    <fw-pages>
-      ${
-        {
-          home: <fw-summary></fw-summary>
-          profile:<app-profile></app-profile>
-          admin:<fw-admin .route=${subroute}>
+  <section>
+    <error-manager>
+      ${anError? 'Text about the error':''}
+    </error-manager>
+    
+    <session-manager>
+      ${anError || authorised ? '' : {
+          email: <session-email></session-email>
           ...
-        }[page];
+          password: <session-password></session-password>
+        }[state];
       }
-    </fw-pages>
-  }
+    </session-manager>
+    ${authorised?
+      <page-manager>
+        ${
+          {
+            home: <fw-summary></fw-summary>
+            profile:<app-profile></app-profile>
+            admin:<fw-admin .route=${subroute}>
+            ...
+          }[page];
+        }
+      </pages-manager>
+    }
+  </section>
 ```
 This setup is fundementally controlled by 4 variables
 <dl>
