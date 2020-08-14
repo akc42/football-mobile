@@ -394,8 +394,8 @@
           debugapi(`Received /api/profile/${p} request`);
           try {
             const data = await profs[p](req.user,req.body);
-            if (data.usage !== undefined) {
-              res.setHeader('Set-Cookie', generateCookie(data.user, data.usage)); //get ourselves a cookie
+            if (data.user !== undefined) {
+              res.setHeader('Set-Cookie', generateCookie(data.user)); //get ourselves a cookie
             }
             res.end(JSON.stringify(data));
           } catch(e) {
@@ -507,10 +507,10 @@
       for (const u in users) {
         debugapi(`Setting up /api/user/:cid/${u} route`);
         usr.post(`/${u}`, (req, res) => {
-          debugapi(`Received /api/user/${req.cid}/${u}`);
+          debugapi(`Received /api/user/${req.params.cid}/${u}`);
           try {
             const responder = new Responder(res);
-            users[u](req.user, req.cid, req.body, responder);
+            users[u](req.user, req.params.cid, req.body, responder);
             responder.end(); 
           } catch (e) {
             errored(req,res,e.toString());
