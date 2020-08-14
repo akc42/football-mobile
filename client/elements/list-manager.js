@@ -37,12 +37,6 @@ class ListManager extends LitElement {
       height: 100%;
     }
 
-    #list > .item {
-    scroll-snap-align:start;
-    border-radius: 5px;
-    box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
-    margin:0 5px 5px 3px;
-  }
 `];
   }
   static get properties() {
@@ -63,7 +57,15 @@ class ListManager extends LitElement {
   }
   render() {
     return html`
-   
+      <style>
+        #list > .item {
+          scroll-snap-align:start;
+          border-radius: 5px;
+          box-shadow: 1px 1px 3px 0px var(--shadow-color);
+          margin:0 5px 5px 3px;
+        }
+
+      </style>
      
       <header>
         <slot name="header"></slot>
