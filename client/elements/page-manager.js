@@ -23,7 +23,6 @@ import { html } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
 import {connectUrl, disconnectUrl} from '../modules/location.js';
-import global from '../modules/globals.js';
 
 import RouteManager from './route-manager.js';
 import './waiting-indicator.js';
@@ -51,15 +50,15 @@ export class PageManager extends RouteManager {
     return html`
       <comment-dialog></comment-dialog>
       <comment-panel></comment-panel>
-      <app-waiting ?waiting=${this.waiting}></app-waiting>
+      <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       ${cache({
         approve: html`<approve-manager managed-page></approve-manager>`,
         admin: html`<admin-manager managed-page .route=${this.subRoute}></admin-manager>`,
         gadm: html`<gadm-manager managed-page .route=${this.subRoute}></gadm-manager>`,
-        profile: html`<profile-manager managed-page></profile-manager>`,
-        navref: html`<navref-manager managed-page></navref-manager>`,
         help: html`<help-manager managed-page></help-manager>`,
         home:html`<home-manager managed-page></home-manager>`,
+        navref: html`<navref-manager managed-page></navref-manager>`,
+        profile: html`<profile-manager managed-page></profile-manager>`,
         register: html`<register-manager managed-page></register-manager>`,
         rounds: html`<rounds-manager managed-page .roundRoute=${this.subRoute}></rounds-manager>`,
         soon: html`<soon-manager namaged-page></soon-manager>`,
