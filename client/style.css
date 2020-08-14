@@ -37,7 +37,7 @@
   --header-icon-color: var(--accent-constrast-color);
   --overlay-color: var(--secondary-color);
   --overlay-background-color: var(--secondary-constrast-color);
-  --menu-separator: lightgrey;
+  --menu-separator: grey;
   --comment-panel-background: white;
   --comment-panel-color: black;
   /*invert(100%) sepia(0%) saturate(5322%) hue-rotate(84deg) brightness(113%) contrast(102%); */
