@@ -84,9 +84,9 @@
 					"import page from '../styles/page.js';",
 					"",
 					"/*",
-					"     <fm-${3:page}>",
+					"     <${3:page}>: ${5:description}",
 					"*/",
-					"class Fm${2:class} extends LitElement {",
+					"class ${2:class} extends LitElement {",
 					"  static get styles() {",
 					"    return [page, css``];",
 					"  }",
@@ -121,7 +121,7 @@
 					"    `;",
 					"  }",
 					"}",
-					"customElements.define('fm-${3:page}', Fm${2:class});"
+					"customElements.define('${3:page}', ${2:class});"
 				],
 				"description": "New Page Element"
 			}
