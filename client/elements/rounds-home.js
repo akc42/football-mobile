@@ -20,7 +20,7 @@
 import { LitElement, html } from '../libs/lit-element.js';
 
 import page from '../styles/page.js';
-import emoji from '../styles/emojijs';
+import emoji from '../styles/emoji.js';
 
 import './list-manager.js';
 import './rounds-home-item.js';
@@ -72,10 +72,10 @@ class RoundsHome extends LitElement {
         color: red;
       }
       .container {
-        background-color:white;
-        border:2px solid var(--app-accent-color);
+        background-color:var(--background-color);
+        border:2px solid var(--accent-color);
         border-radius: 5px;
-        box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
+        box-shadow: 1px 1px 3px 0px var(--shadow-color);
         margin:5px 5px 5px 3px;
         display: grid;
         grid-gap:2px;
@@ -107,15 +107,15 @@ class RoundsHome extends LitElement {
       }
       .userhead {
         grid-area: user;
-        background-color: var(--app-accent-color);
-        border-top: 2px solid var(--app-accent-color);
+        background-color: var(--accent-color);
+        border-top: 2px solid var(--accent-color);
         display: grid;
         grid-gap: 2px;
         grid-template-columns: 2fr repeat(4, 1fr);
 
       }
       .userhead>* {
-        background-color: white;
+        background-color: var(--background-color);
         text-align: center
       }
       .userhead>.mh span {
