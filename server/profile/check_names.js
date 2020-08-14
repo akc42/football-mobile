@@ -24,10 +24,10 @@
   const debug = require('debug')('football:api:checknames');
   const db = require('../utils/database');
 
-  module.exports = function(user, cid, params, responder) {
+  module.exports = function(user, params) {
     debug('request received to check name', params.name, 'as user ', user.uid);
     const found = db.prepare('SELECT Count(*) FROM Participant WHERE uid <> ? AND name = ?').pluck().get(user.uid,params.name);
-    responder.addSection('found', found > 0);
-    debug('Success with found = ', found);
+    debug('Success with found = ', found > 0);
+    return {found: found > 0};
   };
 })();
