@@ -95,7 +95,11 @@ class SessionEmail extends LitElement {
       const response = await api('session/email_verify',{email: this.email});
       this.waiting = false;
       if (response.state !== 'error') {
-        this.dispatchEvent(new SessionStatus({ state: response.state, user: response.user }));
+        if (response.user !== undefined) {
+          this.dispatchEvent(new SessionStatus({ state: response.state, user: response.user }));
+        } else {
+          this.dispatchEvent(new SessionStatus({ state: response.state, email: response.email }));
+        }
       } else {
         throw new Error('Email Verify Failed ')
       }

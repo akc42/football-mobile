@@ -41,8 +41,8 @@
       debug('full user does not have a password so this must be first visit so we will request pin');
       const requestPin = require('./request_pin');
       await requestPin(user);
-      return {state: 'welcome',user: user};
+      return {state: 'welcome',email: params.email};
     }
-    return {state: 'member'};
+    return {state: 'member', email: params.email};
   };
 })();
