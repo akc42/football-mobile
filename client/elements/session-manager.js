@@ -39,7 +39,7 @@ import './waiting-indicator.js';
 */
 class SessionManager extends LitElement {
   static get styles() {
-    return [page];
+    return page;
   }
 
   static get properties() {
@@ -124,9 +124,6 @@ class SessionManager extends LitElement {
 
   render() {
     return html`
-      <style>
-
-      </style>
       <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       ${cache(this.authorised? '' : html`
           ${cache({
