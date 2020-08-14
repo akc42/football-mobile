@@ -20,6 +20,7 @@
 import { LitElement, html } from '../libs/lit-element.js';
 
 import './dialog-box.js';
+
 import domHost from '../modules/host.js';
 import { CommentReply } from '../modules/events.js';
 
@@ -67,12 +68,10 @@ class CommentDialog extends LitElement {
       <style>
       
       </style>
-      <app-overlay id="diag" position="target" @overlay-closed=${this._dialogClosed}>
+      <dialog-box id="diag" position="target" @overlay-closed=${this._dialogClosed}>
         <textarea id="comment" class="emoji">${this.comment}</textarea>
-
         <button @click=${this._replyToCaller}>Save</button>
-
-      </app-overlay>
+      </dialog-box>
 
     `;
   }

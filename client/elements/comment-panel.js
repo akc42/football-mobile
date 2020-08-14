@@ -64,9 +64,9 @@ class CommentPanel extends LitElement {
       <style>
       
       </style>
-      <app-overlay id="diag" position="target" @overlay-closed=${this._dialogClosed}>
+      <dialog-box id="diag" position="target" @overlay-closed=${this._dialogClosed}>
         <div class="emoji">${this.comment}</div>
-      </app-overlay>
+      </dialog-box>
 
     `;
   }
