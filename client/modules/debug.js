@@ -20,28 +20,21 @@
 
 import api from './api.js';
 import global from './globals.js';
-import {manageVisitCookie} from './visit.js';
-
-let topics = '';
-let debugEnabled = false;
-let limitedUser = 0;
-global.ready.then(() => {
-  if (global.clientLog.length > 0) {
-    limitedUser = global.clientLogUid;
-    topics = global.clientLog;
-    debugEnabled = true;
-  }
-
-});
 
 export default function(t) {
   if (typeof t !== 'string' || t.length === 0 || t.toUpperCase() === 'ALL') {
     console.error('Debug requires topic which is a non zero length string which is not "ALL"',t, 'Received');
     throw new Error('Debug requires a non zero length string which is not "ALL"'); 
   }
-  const topic = `:${t}:`;
+  const topic = t; //need to store it for the closure use.
   let timestamp = new Date().getTime();
-  const using = debugEnabled && (topics === 'ALL' || topics.indexOf(topic) >= 0) && (limitedUser === 0 || global.user.uid === limitedUser); //always the same
+  let using = false; //needs to be in close as its unique to this instance.
+  global.ready.then(() => {
+    if (global.clientLog.length > 0) {
+      using = (global.clientLogUid === 0 || global.user.uid === global.clientLogUid) && 
+        (global.clientLog === 'ALL' || global.clientLog.indexOf(`:${topic}:`) >= 0); //always the same
+    }
+  }); 
   return function(message) {
     if (using) {
       const now = new Date().getTime();
