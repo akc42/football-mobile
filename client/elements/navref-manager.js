@@ -17,20 +17,20 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html } from '../libs/lit-element.js';
+import { LitElement, html,css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
-import './app-page.js';
+import './fm-page.js';
 import page from '../styles/page.js';
 import { MenuAdd } from '../modules/events.js';
 import global from '../modules/globals.js';
 
 /*
-     <fm-help>
+     <navref-manager>
 */
-class FmNavref extends LitElement {
+class NavrefManager extends LitElement {
   static get styles() {
-    return [page];
+    return [page,css``];
   }
   static get properties() {
     return {
@@ -85,7 +85,7 @@ class FmNavref extends LitElement {
           content:"";
         }
       </style>
-      <app-page id="page" heading="Navigation Reference">
+      <fm-page id="page" heading="Navigation Reference">
         <h1>Introduction</h1>
         
         <p>Football Mobile has a number of challenges to overcome, in that it is designed to work on relatively
@@ -204,9 +204,6 @@ class FmNavref extends LitElement {
 
 
         <h1>How to Change the url</h1>
-        
-
-
         <p>There are just four ways in which user can navigate between pages.  These are:-
         <ol>
           <li>Use buttons on the page to click.  This will generally initiate (or abandon) an action and then navigate you to a follup up page.</li>
@@ -217,7 +214,7 @@ class FmNavref extends LitElement {
         </ol>
         </p>
         <p>This should enable you to access all aspects of the application quite simply.</p>
-      </app-page>
+      </fm-page>
     `;
   }
 }
