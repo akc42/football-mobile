@@ -99,7 +99,7 @@ class RoundsManager extends RouteManager {
             this.rRouter.params = { rid: global.lrid }
           } else {
             //don't know it, so need to go fetch
-            api('users/latest_round').then(response => this.route.params = response);
+            api(`users/${global.cid}/latest_round`).then(response => this.route.params = response);
           }
         }
       }
@@ -139,7 +139,7 @@ class RoundsManager extends RouteManager {
       this.lastCid = global.cid;
       this.fetchdataInProgress = true;
       debug('about to fetch round_data');
-      const response = await api('user/round_data',{rid: this.route.params.rid});
+      const response = await api(`user/${global.cid}/round_data`,{rid: this.route.params.rid});
       debug('got rounddata');
       this.fetchdataInProgress = false;
       this.round = response.round;

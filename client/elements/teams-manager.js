@@ -28,9 +28,10 @@ import './conf-div.js'
 import RouteManager from './route-manager.js';
 import page from '../styles/page.js';
 import {MenuReset, MenuAdd} from '../modules/events.js';
+import global from '../modules/globals.js';
 
 /*
-     <fm-teams>
+     <team-manager>
 */
 class TeamsManager extends RouteManager {
   static get styles() {
@@ -168,7 +169,7 @@ class TeamsManager extends RouteManager {
     `;
   }
   async _newRoute() {
-    const response = await api('user/playoff_picks');
+    const response = await api(`user/${global.cid}/playoff_picks`);
     this.teams = response.teams;
     this.confs = response.confs;
     this.divs = response.divs;

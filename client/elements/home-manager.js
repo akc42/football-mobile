@@ -50,10 +50,10 @@ class HomeManager extends LitElement {
     if (global.cid !== global.lcid) {
       switchPath('/scores');
     } else {
-      const response = await api('/user/can_register');
+      const response = await api(`/user/${global.lcid}/can_register`);
       if (response.isOpen) {
         if (response.isRegistered) {
-          const response = await api('/user/can_pick');
+          const response = await api(`/user/${global.lcid}/can_pick`);
           if (response.canPick) {
             this.dispatchEvent(new MenuAdd('scores'));
             if (response.matches) {

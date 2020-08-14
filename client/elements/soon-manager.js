@@ -23,6 +23,7 @@ import {cache} from '../libs/cache.js';
 
 import api from '../modules/api.js';
 import {switchPath} from '../modules/utils.js';
+import global from '../modules/globals.js';
 
 import './date-format.js';
 import './fm-page.js';
@@ -55,7 +56,7 @@ class SoonManager extends LitElement {
   }
   connectedCallback() {
     super.connectedCallback();
-    api('user/coming_soon').then(response => {
+    api(`user/${global.lcid}/coming_soon`).then(response => {
       if (response.open) {
         //we should not be in this page, lets switch back to home
         switchPath('/');

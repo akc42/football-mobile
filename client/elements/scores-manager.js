@@ -143,7 +143,7 @@ class ScoresManager extends RouteManager {
       this.lastCid = global.cid;
       this.fetchdataInProgress = true;
       debug('about to fetch users_summary');
-      const response = await api('user/competition_scores');
+      const response = await api(`user/${global.cid}/competition_scores`);
       debug('got users_summary');
       this.fetchdataInProgress = false;
       this.users = response.cache.users;
