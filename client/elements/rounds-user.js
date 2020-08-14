@@ -21,7 +21,7 @@ import { LitElement, html } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 import {classMap} from '../libs/class-map.js';
 
-import './fm-page.js';
+import './football-page.js';
 import './list-manager.js';
 import './rounds-user-item.js';
 import './material-icon.js';
@@ -101,9 +101,9 @@ class RoundsUser extends LitElement {
       <style>
       
         .container{
-          border:2px solid var(--app-accent-color);
+          border:2px solid var(--accent-color);
+          box-shadow: 1px 1px 3px 0px var(--shadow-color);
           border-radius: 5px;
-          box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
           margin:5px 5px 5px 3px;
           display: grid;
           grid-gap:2px;
@@ -118,6 +118,7 @@ class RoundsUser extends LitElement {
         .question {
           grid-column:1;
           grid-row: 2 / 3;
+          font-size: 0.7em;
         }
         .answers {
           grid-column: 2;
@@ -138,7 +139,7 @@ class RoundsUser extends LitElement {
         }
 
       </style>
-      <fm-page id="page" heading="User Scores">
+      <football-page id="page" heading="User Scores">
         <div 
           slot="heading" 
           data-tooltip="click for playoff info" 
@@ -152,7 +153,7 @@ class RoundsUser extends LitElement {
           <div slot="header" class="container">
               ${cache(this.round.valid_question === 1 ? html`
                 <div class="option">Option Question</div>
-                <div class="emoji question">${this.round.question}></div>
+                <div class="emoji question">${this.round.question}</div>
                 <div class="answers">
                   <span>Answers</span> ${this.isOpen? html`<span>(Can still Pick)</span>`: ''}
                   <comment-button
@@ -182,7 +183,7 @@ class RoundsUser extends LitElement {
             <div class="rs">Round Score: ${this.user.score}</div>
           </div>
         </list-manager>
-      </fm-page>
+      </football-page>
     `;
   }
   _commentMatch(e) {

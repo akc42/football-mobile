@@ -17,7 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { html } from '../libs/lit-element.js';
+import { html , css} from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
 import RouteManager from './route-manager.js';
@@ -33,6 +33,13 @@ const debug = new Debug('rounds');
      <rounds-manager>
 */
 class RoundsManager extends RouteManager {
+  static get styles () {
+    return css`      
+      :host {
+        height: 100%;
+      }
+    `;
+  }
   static get properties() {
     return {
       roundRoute: {type: Object}, //the route that got used here
@@ -109,9 +116,7 @@ class RoundsManager extends RouteManager {
   render() {
     return html`
       <style>
-        :host {
-          height: 100%;
-        }
+  
       </style>
       ${cache({
         home: html`<rounds-home 
@@ -122,7 +127,7 @@ class RoundsManager extends RouteManager {
           @user-selected=${this._selectUser}></rounds-home>`,
         user: html`<rounds-user 
           managed-page
-          ?iCanPick=${this.iCanPick}
+          ?isOpen=${this.iCanPick}
           .user=${this.user}
           .round=${this.round}
           @option-pick=${this._optionPick}
@@ -145,6 +150,7 @@ class RoundsManager extends RouteManager {
       this.round = response.round;
       this.round.matches = response.cache.matches;
       for (const match of this.round.matches) {
+        if (global.cid === global.lcid) match.deadline = match.match_time - global.lgap;
         const {aid, ...teamData} = response.teams.find(t => t.aid === match.aid);
         if (aid === undefined) {
           Object.assign(match, {aname:'',alogo:'',hname:'',hlogo:''});
@@ -171,10 +177,10 @@ class RoundsManager extends RouteManager {
         user.canBonus = false;
         user.picks = response.cache.picks.filter(p => p.uid === user.uid);
         for (const pick of user.picks) {
-          if (global.cid === global.lcid || pick.submit !== null) {
+          if (global.cid === global.lcid || pick.submit_time !== null) {
             const match = this.round.matches.find(m => m.aid === pick.aid);
-            if (global.cid === global.lcid && match.deadline - global.gap > cutoff) user.canPick = true; //can still make  pick so mark as such
-            if (pick.submit !== null && match.deadline - global.gap < pick.submit_time) user.wasLatePick = true;
+            if (global.cid === global.lcid && match.deadline > cutoff) user.canPick = true; //can still make  pick so mark as such
+            if (pick.submit_time !== null && match.match_time - global.lgap < pick.submit_time) user.wasLatePick = true;
           }
           if (pick.submit_time === null) {
             user.doneAllPicks = false;
@@ -205,11 +211,13 @@ class RoundsManager extends RouteManager {
     } else {
       //we merge user picks into the match as its much easier to deal with in elements below this one
       for (const match of this.round.matches) {
+        match.ouRound = this.user.ouRound;
         const pick = this.user.picks.find(p => p.aid === match.aid);
         if (pick !== undefined) {
           const {aid, comment, ...pickSubset} = pick;
           Object.assign(match, pickSubset, {userComment: comment});
         } else {
+          //we need to clear out anything related to picks left over from maybe another selected user.
           delete match.pid;
           delete match.over_selected;
         }

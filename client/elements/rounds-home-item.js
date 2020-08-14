@@ -18,7 +18,6 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html, css } from '../libs/lit-element.js';
-import {classMap} from '../libs/class-map.js';
 import {cache} from '../libs/cache.js';
 
 
@@ -44,84 +43,104 @@ class RoundsHomeItem extends LitElement {
   constructor() {
     super();
     this.item = {uid:0, name:'',rscore:'',lscore:'',tscore:''};
+    this._select = this._select.bind(this);
+  }
+  connectedCallback() {
+    super.connectedCallback();
+    this.addEventListener('click', this._select);
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.removeEventListener('click', this._select);
   }
 
   render() {
     return html`
+      ${global.user.uid === this.item.uid? html`
+        <style>
+          :host {
+            background-color: var(--accent-color); 
+            border: 2px solid var(--accent-color);
+          }
+        </style>
+      `:html`
+        <style>
+          :host {
+            background-color: var(--secondary-color); 
+            border: 2px solid var(--secondary-color);
+          }
+        </style>
+        `}
+
       <style>
-      :host {
+        :host {
 
-    background-color: var(--accent-color); 
-    border-radius: 5px;
-    border: 2px solid var(--accent-color);
-    display: grid;
-    grid-gap: 2px;
-    grid-template-columns: 2fr repeat(4,1fr);
-    grid-template-areas:
-      "un mr ou bn tl"
-      "un pk pk op done";
-  }
-  .un, .mr, .ou, .bn, .tl, .pk, .op, .done {
-    padding:2px;
-    background-color: var(--background-color);
-    text-align: center;
-    vertical-align: center;
-    cursor:pointer;
-  }
-  .un {
-    grid-area:un;
-  }
+          border-radius: 5px;
+          display: grid;
+          grid-gap: 2px;
+          grid-template-columns: 2fr repeat(4,1fr);
+          grid-template-areas:
+            "un mr ou bn tl"
+            "un pk pk op done";
+          cursor:pointer;
+        }
+        .un, .mr, .ou, .bn, .tl, .pk, .op, .done {
+          padding:2px;
+          background-color: var(--background-color);
+          text-align: center;
+          vertical-align: center;
+       
+        }
+        .un {
+          grid-area:un;
+        }
 
-  .mr {
-    grid-area:mr;
-  }
-  .ou {
-    grid-area: ou;
-  }
-  .tl {
-    grid-area:tl;
-  }
-  .pk {
-    grid-area: pk;
-  }
-  .op {
-    grid-area: op;
-  }
-  .done {
-    grid-area: done;
-    color: green;
-  }
-  .me {
-    background-color: var(--accent-contrast-color);
-    color: var(--colour);
-    font-weight: bold; 
-  }
-  .late {
-    font-size: 8pt;
-    font-weight: normal;
-  }
-  .support {
-    color: red;
-    font-weight: normal;
-  }</style>
-      <div class="un ${classMap({me: global.user.uid === this.item.uid})}" @click=${this._select}>${this.item.name}</div>
-      <div class="mr ${classMap({ me: global.user.uid === this.item.uid })}" @click=${this._select}>${this.item.pscore}</div>
+        .mr {
+          grid-area:mr;
+        }
+        .ou {
+          grid-area: ou;
+        }
+        .tl {
+          grid-area:tl;
+        }
+        .pk {
+          grid-area: pk;
+        }
+        .op {
+          grid-area: op;
+        }
+        .done {
+          grid-area: done;
+          color: green;
+        }
+        .late {
+          font-size: 8pt;
+          font-weight: normal;
+        }
+        .support {
+          color: red;
+          font-weight: normal;
+        }
+      </style>
+      <div class="un">${this.item.name}</div>
+      <div class="mr">${this.item.pscore}</div>
       <div 
-        class="ou ${classMap({ me: global.user.uid === this.item.uid })}" 
-        @click=${this._select}>${this.item.ouRound ? this.item.oscore : ''}</div>
+        class="ou" 
+       >${this.item.ouRound ? this.item.oscore : ''}</div>
       <div 
-        class="bn ${classMap({ me: global.user.uid === this.item.uid })}" 
-        @click=${this._select}>${this.item.validQuestion ?this.item.bscore: ''}</div>
-      <div class="tl ${classMap({ me: global.user.uid === this.item.uid })}" @click=${this._select}>${this.item.score}</div>
-      <div class="pk ${classMap({ me: global.user.uid === this.item.uid })}" @click=${this._select}>
+        class="bn" 
+       >${this.item.validQuestion ?this.item.bscore: ''}</div>
+      <div class="tl">${this.item.score}</div>
+      <div class="pk">
         ${cache(this.item.canPick?html`
           <material-icon>alarm</material-icon>
         `:html`
-          ${this.item.wasLate ? html`<div class="late">L</div>` : (this.item.hadAdminSupport ? html`<div class="support">A</div>` : '')}
+          ${this.item.wasLate ? html`<div class="late">L</div>` : (this.item.hadAdminSupport ? html`<div class="support">A</div>` : html`<div>&nbsp;</div>`)}
 
         `)}
       </div>
-      <div class="op ${classMap({ me: global.user.uid === this.item.uid })}" @click=${this._select}>
+      <div class="op">
       ${cache(this.item.validQuestion ? html`
         ${cache(this.item.canOption ? html`
           <material-icon>alarm</material-icon>
@@ -130,7 +149,7 @@ class RoundsHomeItem extends LitElement {
         `)}
       `:'')}
       </div>
-      <div class="done ${classMap({ me: global.user.uid === this.item.uid })}" @click=${this._select}>
+      <div class="done">
         ${cache(this.item.doneAllPicks?html`<material-icon>check</material-icon>`:'')}
       </div>
     `;

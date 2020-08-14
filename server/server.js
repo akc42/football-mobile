@@ -338,7 +338,6 @@
       for (const session in sessions) {
         debugapi(`Setting up /api/session/${session} route`);
         ses.post(`/${session}`, async (req, res) => {
-          debugapi(`Received /api/session/${session} request`);
           try {
             const data = await sessions[session](req.body, req.headers);
             if(data.user !== undefined && data.state === 'authorised') { //only for a user who is authorised

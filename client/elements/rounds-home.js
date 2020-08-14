@@ -24,7 +24,7 @@ import emoji from '../styles/emoji.js';
 
 import './list-manager.js';
 import './rounds-home-item.js';
-import './fm-page.js';
+import './football-page.js';
 import './date-format.js';
 
 import { switchPath } from '../modules/utils.js';
@@ -86,6 +86,9 @@ class RoundsHome extends LitElement {
           "comment bonus"
           "user user"
       }
+      .container > div {
+        padding: 2px;
+      }
       .matches {
         font-weight: bold;
         grid-area: match;
@@ -133,7 +136,7 @@ class RoundsHome extends LitElement {
 
 
     </style>
-    <fm-page heading="Round Data">
+    <football-page heading="Round Data">
       <div slot="heading">Round ${this.round.rid} - ${this.round.name}</div>
       ${this.iCanPick?html`
         <div id="canpick" slot="heading" @click=${this._makePicks}>Round Picks</div>
@@ -143,7 +146,7 @@ class RoundsHome extends LitElement {
           <div class="matches">Matches ${this.round.matches.length}</div>
           <div class="points"><strong>Points ${this.round.value}</strong><br/>per correct pick (excluding underdog)</div>
           ${this.round.ou_round === 1 ? html`<div class="over">Over Under round</div>`: ''}
-          <div class="emoji">${this.round.comment}></div>
+          <div class="emoji comment">${this.round.comment}</div>
           ${this.round.valid_question === 1? html`
             <div class="bonus">
               ${this.round.optionOpen?html`
@@ -169,7 +172,7 @@ class RoundsHome extends LitElement {
           </div>
         </div>
       </list-manager>
-    </fm-page>
+    </football-page>
     `;
   }
   _makePicks() {

@@ -60,14 +60,14 @@ class UserPick extends LitElement {
 
   render() {
     return html`
-      ${cache(this.made > this.deadline? html`<material-icon class="late">flaky</material-icon>`:'')}
+  
       <material-icon 
         ?outlined=${!(this.result && this.correct)}
         class=${classMap({
           unknown: !this.result,
           correct: this.result & this.correct,
           incorrect: this.result && !this.correct
-          })}>${this.admin?'offline_pin':'check_circle'}</material-icon>
+        })}>${this.made > this.deadline ? 'alarm_on': this.admin?'offline_pin':'check_circle'}</material-icon>
     `;
   }
 }

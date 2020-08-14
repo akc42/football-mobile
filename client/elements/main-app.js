@@ -111,7 +111,7 @@ class MainApp extends LitElement {
 
       this.menuicon = this.shadowRoot.querySelector('#menuicon');
 
-      this.fmPages = this.shadowRoot.querySelector('fm-pages');
+      this.fmPages = this.shadowRoot.querySelector('#pages');
 
     }
 
@@ -328,6 +328,7 @@ class MainApp extends LitElement {
           @auth-changed=${this._authChanged}></session-manager>
         ${cache(this.authorised ? html`
           <page-manager
+            id="pages"
             ?hidden=${this.serverError}
             @competitions-changed=${this._refreshComp}
             @menu-reset=${this._menuReset}
