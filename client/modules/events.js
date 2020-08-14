@@ -66,7 +66,6 @@ export class AuthChanged extends Event {
 
   constructor(changed) {
     super('auth-changed',{composed: true, bubbles: true});
-    console.log('Auth Changed Event', this)
     this.changed = changed;
   }
 };
