@@ -23,7 +23,7 @@ import global from '../modules/globals.js';
 
 
 /*
-     <app-page>
+     <fm-page>
 */
 class FmPage extends LitElement {
   static get styles() {
