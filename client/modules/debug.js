@@ -35,20 +35,20 @@ global.ready.then(() => {
 });
 
 export default function(t) {
-  if (typeof t !== 'string' || t.length === 0) {
+  if (typeof t !== 'string' || t.length === 0 || t.toUpperCase() === 'ALL') {
     console.error('Debug requires topic which is a non zero length string which is not "ALL"',t, 'Received');
     throw new Error('Debug requires a non zero length string which is not "ALL"'); 
   }
   const topic = `:${t}:`;
   let timestamp = new Date().getTime();
+  const using = debugEnabled && (topics === 'ALL' || topics.indexOf(topic) >= 0) && (limitedUser === 0 || global.user.uid === limitedUser); //always the same
   return function(message) {
-    if (debugEnabled && (topics === 'ALL' || topics.indexOf(topic) >=0) && (limitedUser === 0 || global.user.uid === limitedUser)) {
+    if (using) {
       const now = new Date().getTime();
       const gap = now - timestamp;
       timestamp = now;
       console.log(`+${gap}ms`,topic, message);
-      const cookie = manageVisitCookie();
-      if (cookie) api('session/log',{topic:topic, message: message, gap: gap}); //no interest in reply
+      api('session/log',{topic:topic, message: message, gap: gap}); //no interest in reply
     }
   }
 }
