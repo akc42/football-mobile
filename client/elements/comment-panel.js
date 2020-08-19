@@ -19,7 +19,7 @@
 */
 import { LitElement, html } from '../libs/lit-element.js';
 
-import './app-overlay.js';
+import './dialog-box.js';
 import domHost from '../modules/host.js';
 import emoji from '../styles/emoji.js';
 /*
@@ -43,18 +43,19 @@ class CommentPanel extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.domHost = domHost(this);
-    this.domHost.addEventListener('comment-request', this._gotRequest);
+    this.domHost.addEventListener('comment-show', this._gotRequest);
     
   }
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.domHost.removeEventListener('comment-request', this._gotRequest);
+    this.domHost.removeEventListener('comment-show', this._gotRequest);
   }
   update(changed) {
     super.update(changed);
   }
   firstUpdated() {
     this.dialog = this.shadowRoot.querySelector('#diag');
+    this.eventLocked = false;
   }
   updated(changed) {
     super.updated(changed);
@@ -62,11 +63,14 @@ class CommentPanel extends LitElement {
   render() {
     return html`
       <style>
-      
+        .emoji {
+          width: 200px;
+          padding: 5px;
+        }
       </style>
-      <app-overlay id="diag" position="target" @overlay-closed=${this._dialogClosed}>
+      <dialog-box id="diag" position="target" @overlay-closed=${this._dialogClosed}>
         <div class="emoji">${this.comment}</div>
-      </app-overlay>
+      </dialog-box>
 
     `;
   }
@@ -82,10 +86,7 @@ class CommentPanel extends LitElement {
     this.comment = e.comment;
     this.dialog.show();
   }
-  _inputChanged(e) {
-    e.stopPropagation();
-    this.comment = e.changed;
-  }
+
 
 }
 customElements.define('comment-panel', CommentPanel);

@@ -1,0 +1,15 @@
+ Some code to detect if a particular css colour variable is light or dark
+ 
+ 
+    const cssColor = getComputedStyle(document.documentElement).getPropertyValue('--background-color');
+    const ctx = document.createElement("canvas").getContext("2d");
+    ctx.fillStyle = cssColor;
+    let color = ctx.fillStyle;
+    // If RGB --> Convert it to HEX: http://gist.github.com/983661
+    color = +("0x" + color.slice(1).replace(color.length < 5 && /./g, '$&$&'));
+    const r = color >> 16;
+    const g = color >> 8 & 255;
+    const b = color & 255;
+    // HSP (Highly Sensitive Poo) equation from http://alienryderflex.com/hsp.html
+    const hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
+    // hsp > 127.5 ? 'light' : 'dark'

@@ -72,22 +72,16 @@
     logger('error', `Final Error at url ${req.originalUrl} with error ${err.stack}`);
   }
 
-  function generateCookie(user, usage) {
+  function generateCookie(user) {
     const date = new Date();
     const expiry = user.remember !== 0;
-    if (usage !== 'logoff') {
-      date.setTime(date.getTime() + (serverConfig.cookieExpires * 60 * 60 * 1000));
-      const payload = {
-        exp: Math.round(date.getTime()/1000),
-        user: user,
-        usage: usage
-      };
-      debug('generated cookie', serverConfig.cookieName ,'for uid ', user.uid, ' expires ', expiry ? date.toGMTString() : 0);
-      return `${serverConfig.cookieName}=${jwt.encode(payload, serverConfig.cookieKey)}; expires=${expiry ? date.toGMTString(): 0}; Path=/`;
-    } else {
-      return `${serverConfig.cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
-    }
-
+    date.setTime(date.getTime() + (serverConfig.cookieExpires * 60 * 60 * 1000));
+    const payload = {
+      exp: Math.round(date.getTime()/1000),
+      user: user
+    };
+    debug('generated cookie', serverConfig.cookieName ,'for uid ', user.uid, ' expires ', expiry ? date.toGMTString() : 0);
+    return `${serverConfig.cookieName}=${jwt.encode(payload, serverConfig.cookieKey)}; expires=${expiry ? date.toGMTString(): 0}; Path=/`;
   }
 
   let server;
@@ -145,6 +139,7 @@
         serverConfig.cookieKey = s.get('cookie_key');
         serverConfig.cookieExpires = s.get('cookie_expires');
         serverConfig.cookieVisitName = s.get('cookie_visit_name');
+        serverConfig.membershipKey = s.get('membership_key');
       })();
 
 
@@ -162,17 +157,6 @@
     
       debug('tell router to use api router for /api/ routes');
       router.use('/api/', api);
-      /*
-        Just a little helper utility for development - not normally needed
-      */
-     debug('setup delete visit cookie helper')
-      api.get('/delete_cookie', (req,res) => {
-        debugapi('Received Delete Cookie request with names as ', serverConfig.cookieName, ' and ', serverConfig.cookieVisitName);
-        const cookie = `${serverConfig.cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
-        const vcookie = `${serverConfig.cookieVisitName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
-        res.setHeader('Set-cookie', [cookie, vcookie]);
-        res.end('DONE');
-      });
 
       /*
         Our first set of calls are almost related to the static files.  They are a few api calls to retrieve configuration items
@@ -207,10 +191,12 @@
         let location = '/';
         try {
           const payload = jwt.decode(req.params.token, serverConfig.cookieKey);
-          debugapi('/api/pin payload uid', payload.user, 'pin', payload.pin);
-          const result = db.prepare('SELECT * FROM participant WHERE uid = ?').get(payload.user);
+          location = payload.usage;
+          debugapi('/api/pin payload uid', payload.uid);
+          const result = db.prepare(`SELECT * FROM participant WHERE ${payload.uid === 0 ? 'email': 'uid'} = ?`)
+            .get(payload.uid === 0 ? payload.email: payload.uid);
           if (result !== undefined) {
-            debugapi('/api/pin found the user');
+            debugapi('/api/pin found the user with email ', result.email);
             const correct = await bcrypt.compare(payload.pin, result.verification_key);
             if (correct) {
               debugapi('/api/pin pin is correct, so update verification_key to NULL');
@@ -218,25 +204,56 @@
                 we got the expected result so we can reset the verification key
                 If the token included an e-mail address, we were verifing a new email, so we update
                 that also.
-                We return the usage in the cookie (which will determine next step)
               */
-              db.prepare('UPDATE participant SET verification_key = NULL, email = ? WHERE uid = ?')
-                .run(payload.email? payload.email:result.email,payload.user);
-              debugapi('/api/pin setting up cookie for user', payload.user, ' with usage', payload.usage);
-              res.setHeader('Set-Cookie', generateCookie(
-                {
-                  ...result,
-                  password: !!result.password,
-                  verification_key: false,
-                  remember: 0, //force a session cookie, so the cookie doesn't persist.
-                }, payload.usage));
+              if (result.waiting_approval === 1) {
+                /*
+                  still a member awaiting approval, so can't allow log-on.  The best we can do is
+                  clear the current password and so when they enter their e-mail address, we redirect them
+                  to set up a password.
+                */
+                db.prepare('UPDATE participant SET password = NULL,  verification_key = NULL, email = ? WHERE uid = ?')
+                  .run(payload.email ? payload.email : result.email, payload.uid);
+              } else {
+                //already a full member, so we can generate a one time cookie to all them to login.
+                db.prepare('UPDATE participant SET verification_key = NULL, email = ? WHERE uid = ?')
+                  .run(payload.email? payload.email:result.email,payload.uid);
+                debugapi('/api/pin setting up cookie for user', payload.uid);
+                res.setHeader('Set-Cookie', generateCookie(
+                  {
+                    ...result,
+                    password: !!result.password,
+                    verification_key: false,
+                    remember: 0, //force a session cookie, so the cookie doesn't persist.
+                  }));
+                }
             } else {
-              debugapi('/api/pin password incorrect, add #linkexpired to return path');
-              location = '/#linkexpired';
+              debugapi('/api/pin password incorrect, add #expired to return path');
+              location = '/#expired';
             }
+          } else if (payload.uid === 0 ) {
+            /*
+              We are going to try and invent a username for the user (they can change it later).  We do this by
+              taking their email address and extracting the part before the @ sign
+              Then we progressively try that (lets call it xxx), and then xxx_0, xxx_1 etc unitl we have a unique
+              name.
+            */
+            
+            let suffix = '';
+            let suffixCount = 0;
+            const parts = payload.email.split('@');
+            debugapi('/api/pin insert new member - make username based on', parts[0]);
+            const count = db.prepare('SELECT COUNT(*) FROM participant WHERE name = ?').pluck();
+            const newMember = db.prepare(`INSERT INTO participant (name, email, waiting_approval, password) VALUES( ?,?,1,?)`);
+            db.transaction(() => {
+              while (count.get(`${parts[0]}${suffix}`) > 0) {
+                suffix = `_${suffixCount++}`;
+                debugapi('/api/pin/ new member, not unique name, so trying with suffix', suffix);
+              }
+              newMember.run(`${parts[0]}${suffix}`,payload.email, payload.password); //password already hashed.
+            })();
           } else {
-            debugapi('/api/pin user not found, add #linkexpired to return path')
-            location = '/#linkexpired';
+            debugapi('/api/pin user not found, add #expired to return path')
+            location = '/#expired';
           }
       
         } catch (e) {
@@ -245,7 +262,7 @@
             just set the visit cookie to say the pin expired, and the client can deal with it
           */
           debugapi('In /api/pin failed with error',e.toString());
-          location = '/#linkexpired';
+          location = '/#expired';
         }
         debugapi(`In /api/pin set 302 header for ${location}`);
         res.statusCode = 302;
@@ -255,33 +272,53 @@
         debugapi('/api/pin sent end');
       });
       /*
-         Beyond here, if the user doesn't have the visit cookie set, this is most likely a spoofed attempt, so
-         we need to check it.  From a users perspective we will have silently ignored his request, from our perspective
-         we just log it with ip address.
-       */
-
-      debug('Setting up to check Visit Cookie')
-      api.use((req, res, next) => {
-        debugapi('checking for Visit Cookie')
-        const cookies = req.headers.cookie;
-        if (!cookies) {
-          forbidden(req,res,'No cookies in request');
-        } else {
-          const mbvisited = new RegExp(`^(.*; +)?${serverConfig.cookieVisitName}=([^;]+)(.*)?$`);
-          const matches = cookies.match(mbvisited);
-          if (matches) {
-            debugapi('Visit Cookie found');
-            //extract cid from it
-            const {cid} = JSON.parse(matches[2]);
-            req.cid = cid;
-
-            next();
-          } else {
-            forbidden(req,res,'no Visit Cookie Found');
-          }
+        the next is a special route used to load a tracking id.  This call "generates" a javascript file to provide a tracking id
+      */
+      debug('setting up tracking.js response')
+      api.get('/tracking.js', (req,res) => {
+        debugapi('got /api/tracking.js request')
+        const token = req.headers['if-none-match'];
+        const modify = req.headers['if-modified-since'];
+        const ip = req.headers['x-forwarded-for'];  //note this is ip Address Now, it might be different later. Is a useful indication for misuse.
+        function makeResponse(res,sid) {
+          const payload = {
+            sid: sid,
+            ip: ip
+          };
+          debugapi('making response of sid', sid, 'ip', ip);
+          const token = jwt.encode(payload, serverConfig.membershipKey);
+          debugapi('tracking token = ', token);
+          res.writeHead(200, {
+            'ETag': token,
+            'Last-Modified': new Date(0).toUTCString(),
+            'Cache-Control': 'private, max-age=31536000, s-max-age=31536000, must-revalidate',
+            'Content-Type': 'application/javascript'
+          })
+          res.write(`
+             const cid = '${token}';
+             export default cid;
+          `);
         }
+        
+        if (token !== undefined && token.length > 0) {
+          debugapi('tracking token found as ', token);
+          try {
+            const payload = jwt.decode(token, serverConfig.membershipKey);
+            debugapi('Decoded tracking token as payload', payload);
+            res.statusCode = 304;
+          } catch(e) {
+            // someone has been messing with things, lets generate some code that
+            makeResponse(res, 'NoEmail');
+          }
+        } else if (modify !== undefined && modify.length > 0) {
+          debugapi('tracking modify has a date so 304 it');
+          res.StatusCode = 304;
+        } else {
+          makeResponse(res, new Date().getTime().toString()); //unique enough id
+        }
+        res.end();
+        debugapi('/api/tracking.js response complete');
       });
-
       /*
         The next set of routes are from the session directory.  These are routes 
         that occur before the session manager has establised who you are and given you a
@@ -301,11 +338,10 @@
       for (const session in sessions) {
         debugapi(`Setting up /api/session/${session} route`);
         ses.post(`/${session}`, async (req, res) => {
-          debugapi(`Received /api/session/${session} request`);
           try {
             const data = await sessions[session](req.body, req.headers);
-            if(data.usage!== undefined) {
-              res.setHeader('Set-Cookie', generateCookie(data.user,data.usage)); //get ourselves a cookie
+            if(data.user !== undefined && data.state === 'authorised') { //only for a user who is authorised
+              res.setHeader('Set-Cookie', generateCookie(data.user)); //get ourselves a cookie
             }
             res.end(JSON.stringify(data));
           } catch (e) {
@@ -357,8 +393,8 @@
           debugapi(`Received /api/profile/${p} request`);
           try {
             const data = await profs[p](req.user,req.body);
-            if (data.usage !== undefined) {
-              res.setHeader('Set-Cookie', generateCookie(data.user, data.usage)); //get ourselves a cookie
+            if (data.user !== undefined) {
+              res.setHeader('Set-Cookie', generateCookie(data.user)); //get ourselves a cookie
             }
             res.end(JSON.stringify(data));
           } catch(e) {
@@ -366,18 +402,7 @@
           }
         })
       }
-      /*
-        Beyond here we are only allowed if our cookie specified a usage of authorised, so we need some middleware to detect it
-      */
-      debug('Set up to check cookie usage');
-      api.use((req, res, next) => {
-        debugapi('checking cookie usage')
-        if (req.usage === 'authorised') {
-          next();
-        } else {
-          forbidden(req, res, `Incorrect Usage in Cookie of ${req.usage}`);
-        }
-      });
+
       /*
         Beyond here we are going to check for member approval capability in the madmin section only
       */
@@ -437,7 +462,7 @@
       }
 
       debug('Setting Up Competition Administration');
-      api.use('/admin/', admin);
+      api.use('/admin/:cid', admin);
       /*
         Beyond here we are going to check for user us this competitions admin in the cadmin section only
       */
@@ -460,9 +485,9 @@
       });
       const admins = loadServers(__dirname, 'admin');
       for (const a in admins) {
-        debugapi(`setting up /api/admin/${a} route`);
+        debugapi(`setting up /api/admin/:cid/${a} route`);
         admin.post(`/${a}`, (req, res) => {
-          debugapi(`received /api/admin/${a} request for cid = ${req.cid}`);
+          debugapi(`received /api/admin/${req.cid}/${a}`);
           try {
             const responder = new Responder(res);
             cadms[a](req.user,req.cid,req.body, responder);
@@ -475,16 +500,16 @@
       /*
         Finally just the simple user apis
       */
-      api.use('/user/',usr);
+      api.use('/user/:cid',usr);
 
       const users = loadServers(__dirname, 'user');      
       for (const u in users) {
-        debugapi(`Setting up /api/user/${u} route`);
+        debugapi(`Setting up /api/user/:cid/${u} route`);
         usr.post(`/${u}`, (req, res) => {
-          debugapi(`Received /api/user/${u} request, cid= ${req.cid}`);
+          debugapi(`Received /api/user/${req.params.cid}/${u}`);
           try {
             const responder = new Responder(res);
-            users[u](req.user, req.cid, req.body, responder);
+            users[u](req.user, req.params.cid, req.body, responder);
             responder.end(); 
           } catch (e) {
             errored(req,res,e.toString());

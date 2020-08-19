@@ -17,7 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html } from '../libs/lit-element.js';
+import { LitElement, html, css } from '../libs/lit-element.js';
 import {classMap} from '../libs/class-map.js';
 
 
@@ -29,13 +29,30 @@ const dateTimeFormatter = Intl.DateTimeFormat('default', {
   timeStyle: 'short',
   hour12: true,
 });
-import style from '../styles/date-format.js';
+
 /*
      <date-format>
 */
 class DateFormat extends LitElement {
   static get styles() {
-    return [style];
+    return css`
+      :host {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .date {
+        display: flex;
+        flex-direction: row;
+        width: 94px;
+        justify-content: center;
+        padding: 2px;
+      }
+      .date.time {
+        width: 168px;
+      }
+            
+    `;
   }
   static get properties() {
     return {

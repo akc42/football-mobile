@@ -103,7 +103,7 @@ export class CommentRequest extends Event {
 };
 
 export class CommentShow extends Event {
-  static eventType = 'custom-show';
+  static eventType = 'comment-show';
 
   /*
      The following are the fields provided by this event
@@ -113,7 +113,7 @@ export class CommentShow extends Event {
   */
 
   constructor(comment) {
-    super('custom-show',{composed: true, bubbles: true});
+    super('comment-show',{composed: true, bubbles: true});
     this.comment = comment;
   }
 };
@@ -133,19 +133,19 @@ export class CompetitionsChanged extends Event {
   }
 };
 
-export class EmoticonSelected extends Event {
-  static eventType = 'emoticon-selected';
+export class EmojiSelect extends Event {
+  static eventType = 'emoji-select';
 
   /*
      The following are the fields provided by this event
 
-     emoticon: code of emoticon selected (including leading ":")
+     emoji: a single character from the range of emojis available
 
   */
 
-  constructor(emoticon) {
-    super('emoticon-selected',{composed: true, bubbles: true});
-    this.emoticon = emoticon;
+  constructor(emoji) {
+    super('emoji-select',{composed: true, bubbles: true});
+    this.emoji = emoji;
   }
 };
 
@@ -236,37 +236,6 @@ export class LocationAltered extends Event {
   }
 };
 
-export class LogoffRequest extends Event {
-  static eventType = 'logoff-request';
-
-  /*
-     The following are the fields provided by this event
-
-     none:   
-
-  */
-
-  constructor() {
-    super('logoff-request',{composed: true, bubbles: true});
-  }
-};
-
-export class MatchComment extends Event {
-  static eventType = 'match-omment';
-
-  /*
-     The following are the fields provided by this event
-
-     comment: {aid: xxx, comment: comment}
-
-  */
-
-  constructor(comment) {
-    super('match-omment',{composed: true, bubbles: true});
-    this.comment = comment;
-  }
-};
-
 export class MatchPick extends Event {
   static eventType = 'match-pick';
 
@@ -288,17 +257,30 @@ export class MenuAdd extends Event {
   /*
      The following are the fields provided by this event
 
-     menu: name of a menu item to be dynamically added
-
+     none: we are only using this for close
   */
 
-  constructor(menu) {
+  constructor() {
     super('menu-add', { composed: true, bubbles: true });
-    this.menu = menu;
   }
 };
 
 
+export class MenuRemove extends Event {
+  static eventType = 'menu-remove';
+
+  /*
+     The following are the fields provided by this event
+
+     menu: item being removed 
+
+  */
+
+  constructor(menu) {
+    super('menu-remove',{composed: true, bubbles: true});
+    this.menu = menu;
+  }
+};
 export class MenuReset extends Event {
   static eventType = 'menu-reset';
 
@@ -309,8 +291,9 @@ export class MenuReset extends Event {
 
   */
 
-  constructor() {
+  constructor(m) {
     super('menu-reset',{composed: true, bubbles: true});
+    this.menu = m || false;
   }
 };
 
@@ -501,6 +484,7 @@ export class SessionStatus extends Event {
 
   constructor(status) {
     super('session-status',{composed: true, bubbles: true});
+    if (status === 'authorised') console.log('session event', this);
     this.status = status;
   }
 };

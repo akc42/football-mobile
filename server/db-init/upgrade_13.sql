@@ -38,7 +38,7 @@ CREATE TABLE participant (
     uid integer PRIMARY KEY,
     name character varying,
     email character varying COLLATE NOCASE,
-    password character varying, --stores md5 of password to enable login if doing local authentication
+    password character varying, --stores bcrypt hash of password to enable login if doing local authentication
     last_logon bigint DEFAULT (strftime('%s','now')) NOT NULL, --last time user connected
     member_approve boolean DEFAULT 0 NOT NULL,--Set true if user may approve membership
     global_admin boolean DEFAULT 0 NOT NULL, -- Set true if user is global admin (automatically allows approve membership)
@@ -222,13 +222,6 @@ INSERT INTO team (tid,name,confid,divid) SELECT tid, name, confid, divid FROM ol
 
 DROP TABLE old_team;
 
-
---Styles used throughout the application
-CREATE TABLE styles (
-    name character varying PRIMARY KEY, --style variable name without the leading double dashes
-    style character varying DEFAULT NULL --the value of the style.  Note it could refer to another style using 'var(--my-other-style)'
-);
-
 DElETE FROM settings;
 
 INSERT INTO settings (name,value) VALUES('version',14); --version of this configuration
@@ -236,55 +229,37 @@ INSERT INTO settings (name,value) VALUES('version',14); --version of this config
 
 INSERT INTO settings (name,value) VALUES('client_log',''); --if none empty string should specify colon separated function areas client should log or 'all' for every thing.
 INSERT INTO settings (name,value) VALUES('client_log_uid',0); --if non zero limit client logging to that uid.
-INSERT INTO settings (name,value) VALUES('cookie_visit_name','FMVISIT'); --name used for a cookie to record a visit where the user logged on.
 INSERT INTO settings (name,value) VALUES('webmaster','webmaster@example.com'); --site webmaster.
 INSERT INTO settings (name,value) VALUES('site_logo','/appimages/site_logo.png'); --url of the site_logo image to be used on info pages and in mail
 INSERT INTO settings (name,value) VALUES('min_pass_len', 6); --minimum password length
 INSERT INTO settings (name,value) VALUES('dwell_time', 2000); --time to elapse before new urls get to be pushed to the history stack
+INSERT INTO settings (name,value) VALUES('recaptcha_key',''); --standard recaptcha key for the recapcha element
+INSERT INTO settings (name,value) VALUES('organisation_name', 'Football Mobile Organisation'); --Name of Organisation running the site.
+INSERT INTO settings (name,value) VALUES('coming_soon_message','Your new picking competition will be coming soon, get ready to register and join.'); -- First Paragraph of text for a coming soon page
 --values for server config
 INSERT INTO settings (name,value) VALUES('cache_age',0);--cache age before invalid (in hours), 0 is infinite
 INSERT INTO settings (name,value) VALUES('server_port', 2040); --port the api server should listen on.
 INSERT INTO settings (name,value) VALUES('cookie_name', 'MBBall'); --name used for our main cookie
 INSERT INTO settings (name,value) VALUES('cookie_key', 'newCookieKey'); --key used to encrypt/decrypt cookie token
 INSERT INTO settings (name,value) VALUES('cookie_expires', 720); --hours until expire for standard logged on token
+INSERT INTO settings (name,value) VALUES('recaptch_secret','');  -- secret key or verification of recaptcha.
 INSERT INTO settings (name,value) VALUES('verify_expires', 24); --hours until expire for verification tokens.
 INSERT INTO settings (name,value) VALUES('rate_limit', 30); --minutes that must elapse by verification emails
+INSERT INTO settings (name,value) VALUES('membership_rate', 60); --minutes that must elapse between membership requests
+INSERT INTO settings (name,value) VALUES('max_membership', 3); --max membership requests from same computer
+INSERT INTO settings (name,value) VALUES('membership_key','FMMember'); --key for sid generation
 INSERT INTO settings (name,value) VALUES('email_from', 'admin@example.com'); --email address that mail comes from (do not reply)
 INSERT INTO settings (name,value) VALUES('mail_footer','<p>Some footer html</p>'); --mail footer
 INSERT INTO settings (name,value) VALUES('mail_wordwrap',130); --word wrap column in html to text conversion
 INSERT INTO settings (name,value) VALUES('mail_signature', '/appimages/signature.png;Name of Signature'); --email signature if starts with a slash is an image url which maybe followed by a semi-colon and then caption, else html
 INSERT INTO settings (name,value) VALUES('site_baseref','https://example.com'); -- basic site url without trailing slash to be added to hostless image urls to make complete
-INSERT INTO settings (name,value) VALUES('first_time_message','Welcome to the <strong>Football Mobile Results Picking Competition</strong>.  This appears to be your first visit to the site. You will be have to provide your email address and later your password but, with your permission, we can remember you so you won''t have to keep entering it.'); -- First Paragraph of text for First time Users
-INSERT INTO settings (name,value) VALUES('coming_soon_message','Your new picking competition will be coming soon, get ready to register and join.'); -- First Paragraph of text for a coming soon page
 
-
------------------------------------------------------------------------------------------- STYLES
----COLOURS 
-INSERT INTO styles (name,style) VALUES('app-primary-color', '#42d9ff'); --Main colour for use in the application
-INSERT INTO styles (name,style) VALUES('app-accent-color', '#131335'); --Colour to use when something is to stand out - Main Button etc 
-INSERT INTO styles (name,style) VALUES('accent-color-filter', 'invert(9%) sepia(23%) saturate(2922%) hue-rotate(213deg) brightness(92%) contrast(102%)'); --Filter needed to color svg to match app-accent-color NOTE this is done by putting desired color in calcfilter.js 
-INSERT INTO styles (name,style) VALUES('app-primary-text', 'var(--app-accent-color)'); --Main text colour to use on primary colour backgrounds
-INSERT INTO styles (name,style) VALUES('app-accent-text', 'white'); --Text colour to use when writing on accent colour backgrounds
-INSERT INTO styles (name,style) VALUES('app-user-color', '#f3fcff'); --Background used to indicate the particular user
-INSERT INTO styles (name,style) VALUES('app-user-text', 'var(--app-accent-color)'); --text Color for highlighted user
-INSERT INTO styles (name,style) VALUES('app-spinner-color', 'var(--app-accent-color)'); --Spinner Dot Colour
-INSERT INTO styles (name,style) VALUES('app-button-color', 'var(--app-accent-color)'); --Main Button Colour
-INSERT INTO styles (name,style) VALUES('app-cancel-button-color', 'lightsteelblue'); --Cancel Button Colour
-INSERT INTO styles (name,style) VALUES('button-text-color', 'var(--app-accent-text)'); --Color of text on primary buttons
-INSERT INTO styles (name,style) VALUES('cancel-button-text-color', '#212121'); --Color of text on cancel buttons
-INSERT INTO styles (name,style) VALUES('app-form-color', '#fcffc0'); --Background Color of Forms;
-INSERT INTO styles (name,style) VALUES('fm-win-color', 'darkorange'); --Color of icon to indicate a match win or an over/under result.
-INSERT INTO styles (name,style) VALUES('fm-in-playoff','gold'); -- colour of trophy indicating a team in the playoff
-INSERT INTO styles (name,style) VALUES('fm-correct-pick', 'orangered'); --colour of a correct pick
-INSERT INTO styles (name,style) VALUES('fm-incorrect-pick', 'mediumorchid'); --colour of incorrect pick
-INSERT INTO styles (name,style) VALUES('fm-indeterminate-pick', 'lawngreen'); --colour of pick where result not yet available.
-
---- FIELD SIZES
-INSERT INTO styles (name,style) VALUES('email-input-length','240px'); --input field width for e-mail input 
-INSERT INTO styles (name,style) VALUES('name-input-length','120px'); --input field width for display input 
-INSERT INTO styles (name,style) VALUES('pw-input-length','100px'); --input field width for password input 
-
-
-
+CREATE TABLE membership_request (
+    mid INTEGER PRIMATY_KEY ASC,
+    request_time INTEGER DEFAULT  (strftime('%s','now')) NOT NULL, --Time of Request
+    sid CHARACTER VARYING,  -- session id of memebership request
+    email CHARACTER VARYING COLLATE NOCASE, --email used for the request
+    ipaddress CHARACTER VARYING --ip address of requester
+);
 
 

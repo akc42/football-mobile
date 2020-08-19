@@ -68,41 +68,34 @@ project, but I would welcome any input that anyone might have.
 
 ### Database
 
-The previous version used an sqlite3 database. I see no reason to change this,
-its very easy to take a backup of, or to copy and move around to different
-places.  Performance wise it has proved more than adequate to handle the number
-of users, and although in the initial display of a page it had a very complex
-transaction to perform, the old system already had a way of creating a cache of
-the results on the initial page query to speed that initial page display up.
+v3 of this application used an sqlite(3) database named football.db.  This
+application will use the same database. However there are some new requirements
+in this system that means we that it will not be exactly the same.  The
+following principals are important though:-
 
-More importantly is the package to use in *nodejs* to interact with the database
-in the API layer.  After an initial investigation I found three suitable
-packages, namely:-
+- Databases have versions (previous version is version 13), and it is mandatory
+  if the database structure changes to increase the version number and provide a
+  migration between the previous version and the new version.  Once a full
+  release has been made the particular database version it uses is frozen.  Any
+  further updates will require a new version to be allocated
+- The data stored in the git repository should enable a generic migration, but
+  some data is unique to Melinda's Backups (or to any other organisation).  Some
+  of it may be private (private keys for instance) and these are not for posting
+  to a public repository.  The migration mechansism must allow updates to the
+  database during migration in a generic manner, but provide for pre and post
+  migration scripts to run that are private to an organisation and not stored in
+  the repository.  
+- The previous version relied on an external system from checking and providing
+  user sign in credentials.  This version will store user credentials in the
+  database.  Despite this, it is important to realise that the ability to
+  emulate another user does not infer very much advantage and so we should go
+  overboard in protecting ourselves. Nevertheless sign in credentials
+  (specifically users passwords) will be encrypted, just in case the user is
+  using the same credentials elsewhere.  
 
-1.  `sqlite3` is the defacto standard for accessing and sqlite database.
-2.  `sqlite` which is a wrapper around `sqlite3`, but provides promises rather than callbacks, and
-3.  `better-sqlite3` which touts itself as a faster (and therefore better) version than `sqlite3`
+The `Database.md` file in the `docs` directory will expand on these issues further.
 
-I have been bouncing between the technologies.  Initially I thought `better-sqlite3`
-was the way to go, but I thought I would write a comparison benchmark test using
-the actual query the *PHP* version used to to provide the first page.  This
-showed `better-sqlite3` was faster and took about 0.5 seconds on my (fast)
-desktop computer as oppsed to 0.67 seconds using `sqlite`.  But when I ran it on
-a raspberry pi (a possible server for this app) it took 5 seconds, and that was
-unacceptably long to block the event loop.  So I starting work with the second
-option, `sqlite` as a wrapper round `sqlite3`.  
 
-Now that I have done some work on the development, I am now seeing that the new
-api is going to make much shorter queries.  Even with `sqlite` an api query was
-taking less than 20ms (on my desktop).  So I wondered how long `better-sqlite3`
-would take.  Now my api queries were around 1 or 2ms.
-
-So for now I have switched back to `better-sqlite3`.  I does have some
-limitations - you can't use `async` `await` within a transaction and that does
-cause some interesting dynamics between the transaction and `bcrypt` (which
-needs to use callbacks or promises) which I am using to manage passwords.  But
-I've thought through the implications of not using transactions in that fairly
-specialist case and I can get by. 
 
 ### Cookies
 
@@ -263,30 +256,33 @@ with the `${variable}` construct
 
 ```html
 <main-app>
-  <app-error>
-    ${anError? 'Text about the error':''}
-  </app-error>
   <header>Menu Bar, Logo and Sw Version, with copyright notice</header>
-  <app-session>
-    ${anError || authorised ? '' : {
-        verify: <app-email-verify></app-email-verify>
-        ...
-        logon: <app-logon></app-logon>
-      }[state];
-    }
-  </app-session>
-  ${authorised?
-    <fw-pages>
-      ${
-        {
-          home: <fw-summary></fw-summary>
-          profile:<app-profile></app-profile>
-          admin:<fw-admin .route=${subroute}>
+  <section>
+    <error-manager>
+      ${anError? 'Text about the error':''}
+    </error-manager>
+    
+    <session-manager>
+      ${anError || authorised ? '' : {
+          email: <session-email></session-email>
           ...
-        }[page];
+          password: <session-password></session-password>
+        }[state];
       }
-    </fw-pages>
-  }
+    </session-manager>
+    ${authorised?
+      <page-manager>
+        ${
+          {
+            home: <fw-summary></fw-summary>
+            profile:<app-profile></app-profile>
+            admin:<fw-admin .route=${subroute}>
+            ...
+          }[page];
+        }
+      </pages-manager>
+    }
+  </section>
 ```
 This setup is fundementally controlled by 4 variables
 <dl>

@@ -1,0 +1,63 @@
+/**
+@licence
+    Copyright (c) 2020 Alan Chandler, all rights reserved
+
+    This file is part of Football Mobile.
+
+    Football Mobile is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Football Mobile is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+:root {
+  --color:white;
+  --background-color: rgb(5, 5, 5);
+  --accent-color: fuchsia;
+  --accent-constrast-color: white;
+  --secondary-color: navy;
+  --secondary-contrast-color: white;
+  --cancel-color: lavender;
+  --cancel-contrast-color: navy;
+  --shadow-color: rgba(255,255,255,0.7);
+  --link-color: limegreen;
+  --error-color: var(--secondary-contrast-color);
+  --error-text-color: var(--secondary-color);
+  --error-icon-color: red;
+  --disabled-color: grey;
+  --header-icon-background-color: var(--accent-color);
+  --header-icon-color: var(--accent-constrast-color);
+  --overlay-color: var(--secondary-color);
+  --overlay-background-color: var(--secondary-constrast-color);
+  --menu-separator: grey;
+  --comment-panel-background: white;
+  --comment-panel-color: black;
+  /*invert(100%) sepia(0%) saturate(5322%) hue-rotate(84deg) brightness(113%) contrast(102%); */
+  --logo-background: url('/appimages/football-logo.svg');
+
+ 
+  --fm-win-color:darkorange;
+  --fm-in-playoff: gold;
+  --fm-correct-pick:orangered; 
+  --fm-incorrect-pick:mediumorchid; 
+  --fm-indeterminate-pick:lawngreen; 
+
+  --fm-pick-open: blue;
+
+  --email-input-length: 240px;
+  --name-input-length: 120px; 
+  --pw-input-length: 100px; 
+}
+  
+body {
+  color: var(--color);
+  background-color: var(--background-color);
+}

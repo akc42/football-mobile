@@ -19,7 +19,8 @@
 */
 import { LitElement, html } from '../libs/lit-element.js';
 
-import './app-overlay.js';
+import './dialog-box.js';
+
 import domHost from '../modules/host.js';
 import { CommentReply } from '../modules/events.js';
 
@@ -58,6 +59,7 @@ class CommentDialog extends LitElement {
   }
   firstUpdated() {
     this.dialog = this.shadowRoot.querySelector('#diag');
+    this.eventLocked = false;
   }
   updated(changed) {
     super.updated(changed);
@@ -67,12 +69,10 @@ class CommentDialog extends LitElement {
       <style>
       
       </style>
-      <app-overlay id="diag" position="target" @overlay-closed=${this._dialogClosed}>
-        <textarea id="comment" class="emoji">${this.comment}</textarea>
-
+      <dialog-box id="diag" position="target" @overlay-closed=${this._dialogClosed}>
+        <fm-input textarea id="comment" >${this.comment}</fm-input>
         <button @click=${this._replyToCaller}>Save</button>
-
-      </app-overlay>
+      </dialog-box>
 
     `;
   }

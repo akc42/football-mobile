@@ -24,19 +24,19 @@ import { css } from '../libs/lit-element.js';
 
 export default css`
   button {
-    background-color: var(--app-button-color);
+    background-color: var(--accent-color);
     min-width:80px;
     min-height:30px;
-    color: var(--button-text-color);
+    color: var(--accent-constrast-color);
     border: none;
     padding: 5px;
     border-radius:5px;
-    box-shadow: 2px 2px 5px 4px rgba(0,0,0,0.2);
+    box-shadow: 2px 2px 5px 4px var(--shadow-color);
     cursor: pointer;
   }
   button[cancel] {
-    background-color: var(--app-cancel-button-color);
-    color: var(--cancel-button-text-color);
+    background-color: var(--cancel-color);
+    color: var(--cancel-contrast-color);
   }
   button:active {
     box-shadow: none;
