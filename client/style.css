@@ -50,6 +50,8 @@
   --fm-incorrect-pick:mediumorchid; 
   --fm-indeterminate-pick:lawngreen; 
 
+  --fm-pick-open: blue;
+
   --email-input-length: 240px;
   --name-input-length: 120px; 
   --pw-input-length: 100px; 
