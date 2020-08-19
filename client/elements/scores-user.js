@@ -19,7 +19,7 @@
 */
 import { LitElement, html } from '../libs/lit-element.js';
 
-import './fm-page.js';
+import './football-page.js';
 import './list-manager.js';
 import './scores-user-item.js';
 
@@ -57,10 +57,9 @@ class ScoresUser extends LitElement {
       <style>
       
         .container{
-          background-color: var(--app-primary-color);
-          border:2px solid var(--app-accent-color);
+          border:2px solid var(--accent-color);
+          box-shadow: 1px 1px 3px 0px var(--shadow-color);
           border-radius: 5px;
-          box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
           margin:5px 5px 5px 3px;
           display: grid;
           grid-gap:2px;
@@ -72,8 +71,7 @@ class ScoresUser extends LitElement {
         }
         .rn,.mp,.ou, .mt,.bs,.rs {
           padding:2px;
-          background-color: white;
-          color:var(--app-primary-text);
+          background-color: var(--background-color);
           text-align: center;
           vertical-align: center;
         }
@@ -101,7 +99,7 @@ class ScoresUser extends LitElement {
         }
 
       </style>
-      <fm-page id="page" heading="User Scores">
+      <football-page id="page" heading="User Scores">
         <div 
           slot="heading" 
           data-tooltip="click for playoff info" 
@@ -118,7 +116,7 @@ class ScoresUser extends LitElement {
             <div class="rs">Round Score</div>
           </div>
         </list-manager>
-      </fm-page>
+      </football-page>
     `;
   }
   _playoff(e) {

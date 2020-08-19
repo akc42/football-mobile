@@ -18,7 +18,7 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html, css } from '../libs/lit-element.js';
-import {classMap} from '../libs/class-map.js';
+
 
 import global from '../modules/globals.js';
 import { UserSelected } from '../modules/events.js';
@@ -26,13 +26,11 @@ import { UserSelected } from '../modules/events.js';
 /*
      <scores-item>
 */
-class ScoresItem extends LitElement {
+class ScoresHomeItem extends LitElement {
   static get styles() {
     return css`
   
   :host {
-
-    background-color: var(--app-primary-color);
     display: grid;
     grid-gap:2px;
     grid-template-columns: 1fr 1fr 1fr;
@@ -42,8 +40,7 @@ class ScoresItem extends LitElement {
   }
   .un,.rs,.ps,.ts {
     padding:2px;
-    background-color: white;
-    color:var(--app-primary-text);
+    background-color: var(--background-color);
     text-align: center;
     vertical-align: center;
     cursor:pointer;
@@ -61,12 +58,6 @@ class ScoresItem extends LitElement {
   .ts {
     grid-area:ts;
   }
-  .me {
-    background-color: var(--app-user-color);
-    color: var(--app-user-text);
-    font-weight: bold;
-  }
-
 `;
   }
   static get properties() {
@@ -81,10 +72,26 @@ class ScoresItem extends LitElement {
 
   render() {
     return html`
-      <div class="un ${classMap({me: global.user.uid === this.item.uid})}" @click=${this._select}>${this.item.name}</div>
-      <div class="rs ${classMap({ me: global.user.uid === this.item.uid })}" @click=${this._select}>${this.item.rscore}</div>
-      <div class="ps ${classMap({ me: global.user.uid === this.item.uid })}" @click=${this._select}>${this.item.lscore}</div>
-      <div class="ts ${classMap({ me: global.user.uid === this.item.uid })}" @click=${this._select}>${this.item.tscore}</div>
+      ${global.user.uid === this.item.uid ? html`
+        <style>
+          :host {
+            background-color: var(--accent-color); 
+            border: 2px solid var(--accent-color);
+          }
+        </style>
+      `: html`
+        <style>
+          :host {
+            background-color: var(--secondary-color); 
+            border: 2px solid var(--secondary-color);
+          }
+        </style>
+      `}
+
+      <div class="un" @click=${this._select}>${this.item.name}</div>
+      <div class="rs" @click=${this._select}>${this.item.rscore}</div>
+      <div class="ps" @click=${this._select}>${this.item.lscore}</div>
+      <div class="ts" @click=${this._select}>${this.item.tscore}</div>
     `;
   }
   _select(e) {
@@ -92,4 +99,4 @@ class ScoresItem extends LitElement {
     this.dispatchEvent(new UserSelected(this.item.uid));
   }
 }
-customElements.define('scores-item', ScoresItem);
+customElements.define('scores-home-item', ScoresHomeItem);

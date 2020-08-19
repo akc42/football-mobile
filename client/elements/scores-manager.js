@@ -62,14 +62,11 @@ class ScoresManager extends RouteManager {
   }
   update(changed) {
     if (changed.has('route') && this.route.active) {
-        this.dispatchEvent(new MenuReset());
-
         this._newRoute();
     }
     if (changed.has('subRoute') && this.subRoute.active) {
       this.userRoute = this.uRouter.routeChange(this.subRoute);
       if (this.userRoute.active) {
-        this.dispatchEvent(new MenuAdd('close'));
          if (!this.fetchdataInProgress) {
             this.user = this.users.find(user => user.uid === this.userRoute.params.uid);
             debug('no fetch happening, find index for ' + this.userRoute.params.uid);
@@ -136,7 +133,12 @@ class ScoresManager extends RouteManager {
     `;
   }
   loadPage(page) {
-    import (`scores-${page}.js`);
+    import (`./scores-${page}.js`);
+    if (page === this.homePage()) {
+      this.dispatchEvent(new MenuReset())
+    } else {
+      this.dispatchEvent(new MenuAdd());
+    }
   }
   async _newRoute() {
     if (this.lastCid !== global.cid) {  //don't repeat if we don't have to

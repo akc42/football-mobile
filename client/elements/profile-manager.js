@@ -283,9 +283,7 @@ class ProfileManager extends LitElement {
   _formResponse(e) {
     e.stopPropagation();
     this.waiting = false;
-    if (e.response.usage === 'authorised') {
-      global.scope = 'authorised'; //just in case it wasn't before
-    } else {
+    if (e.response.usage !== 'authorised') {
       this.dispatchEvent(new AuthChanged(false)); //authorised so time to leave
     }
     switchPath('/');

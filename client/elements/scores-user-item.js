@@ -29,8 +29,8 @@ class ScoresUserItem extends LitElement {
   static get styles() {
     return css`
       :host {
-
-        background-color: var(--app-primary-color);
+        background-color: var(--accent-color); 
+        border: 2px solid var(--accent-color);
         display: grid;
         grid-gap:2px;
         grid-template-columns: 3fr 2fr 1fr;
@@ -41,8 +41,7 @@ class ScoresUserItem extends LitElement {
       }
       .rn,.mp,.ou, .mt,.bs,.rs {
         padding:2px;
-        background-color: white;
-        color:var(--app-primary-text);
+        background-color: var(--background-color);
         text-align: center;
         vertical-align: center;
         cursor:pointer;

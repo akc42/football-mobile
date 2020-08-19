@@ -18,6 +18,9 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
+import {cache} from '../libs/cache.js';
+import {classMap} from '../libs/class-map.js';
+
 import './user-pick.js';
 import './material-icon.js';
 
@@ -40,6 +43,12 @@ class ConfDiv extends LitElement {
   }
   constructor() {
     super();
+    this.teams = [];
+    this.conf = {name:'', confid:''};
+    this.div = {name:'', divid: ''};
+    this.user = false;
+    this.picks = [];
+    this.deadline = 0;
   }
   connectedCallback() {
     super.connectedCallback();
@@ -62,7 +71,7 @@ class ConfDiv extends LitElement {
         header {
           text-align: center;
           width:100%;
-          border:1px solid var(--app-accent-color);
+          border:1px solid var(--accent-color);
           box-sizing:border-box;
           margin-bottom: 5px;
         }
@@ -73,22 +82,28 @@ class ConfDiv extends LitElement {
           justify-content: space-between;
         }
         .team {
+          background-color: var(--accent-color); 
+          border: 1px solid var(--accent-color);
           --icon-size:20px;
-          border: none;
           margin: 5px;
           padding: 2px;
           border-radius:5px;
-          box-shadow: 2px 2px 5px 4px rgba(0,0,0,0.2);
+          box-shadow: 2px 2px 5px 4px var(--shadow-color);
           display:grid;
           grid-gap: 2px;
           grid-template-columns: 50px 25px 25px;
+          grid-template-rows: 24px 24px 30px;
           grid-template-areas:
             "logo madepo points"
             "logo pick pick"
             "name name name";
-          justify-items: center;
-          align-items: center;
         }
+        .poff, .team img, .points, .pick, .name {
+          background-color: var(--background-color);
+          text-align: center;
+
+        }
+
 
         .poff {
           color:var(--fm-in-playoff);
@@ -108,19 +123,22 @@ class ConfDiv extends LitElement {
           font-weight: bold;
           font-size: 10px;
         }
+        .pickable {
+          cursor: pointer;
+        }
 
       </style>
-      <header>${conf.name} - ${div.name}</header>
+      <header>${this.conf.name} - ${this.div.name}</header>
       <div class="divteam">
-      ${this.teams.filter(team => team.confid === conf.confid && team.divid === div.divid).map(team => {
+      ${this.teams.filter(team => team.confid === this.conf.confid && team.divid === this.div.divid).map(team => {
         let pick ;
-        if (this.user) pick = this.userPicks.find(p => p.tid === team.tid);
+        if (this.user) pick = this.picks.find(p => p.tid === team.tid);
         return html`
           <div 
             class="team ${classMap({pickable:this.user && this.deadline > cutoff})}" 
             @click=${this._makePick}
             data-tid=${team.tid}>
-            <img src="/appimage/teams/${team.tid}.png"/>
+            <img src="/appimages/teams/${team.tid}.png"/>
             <div class="name">${team.name}</div>
             <div class="poff">${cache(team.made_playoff === 1 ? html`<material-icon>emoji_events</material-icon>` : '')}</div>
             <div class="points">${team.points}</div>

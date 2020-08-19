@@ -25,7 +25,7 @@ link.rel = 'stylesheet';
 link.type = 'text/css';
 link.crossOrigin = 'anonymous';
 //eslint-disable-next-line max-len
-link.href =  'https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined';
+link.href =  'https://fonts.googleapis.com/icon?family=Material+Icons';
 document.head.appendChild(link);
 
 class MaterialIcon extends LitElement {
@@ -37,8 +37,7 @@ class MaterialIcon extends LitElement {
         font-style:normal;
         font-size:var(--icon-size, 24px);
         line-height:1;
-        letter-spacing:
-        normal;
+        letter-spacing: normal;
         text-transform:none;
         display:inline-block;
         white-space:nowrap;
@@ -47,20 +46,14 @@ class MaterialIcon extends LitElement {
         font-feature-settings:'liga';
         -webkit-font-smoothing:antialiased;
       }
+      span {
+        cursor: default;
+      }
     `;
-  }
-  static get properties() {
-    return {
-      outlined: {type: Boolean} //force outlined font
-    }
-  }
-  constructor() {
-    super();
-    this.outlined = false;
   }
   render() {
     return html`
-    <span  class="material-icons${this.outlined ? '-outlined' : ''}"><slot></slot></span>
+    <span  class="material-icons"><slot></slot></span>
     `;
   }
 }

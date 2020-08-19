@@ -21,7 +21,6 @@ import { LitElement, html } from '../libs/lit-element.js';
 
 import global from '../modules/globals.js';
 import {switchPath} from '../modules/utils.js';
-import { MenuAdd, MenuReset } from '../modules/events.js';
 import api from '../modules/api.js';
 
 
@@ -46,7 +45,6 @@ class HomeManager extends LitElement {
     `;
   }
   async _reroute() {
-    this.dispatchEvent(new MenuReset());
     if (global.cid !== global.lcid) {
       switchPath('/scores');
     } else {
@@ -55,14 +53,12 @@ class HomeManager extends LitElement {
         if (response.isRegistered) {
           const response = await api(`/user/${global.lcid}/can_pick`);
           if (response.canPick) {
-            this.dispatchEvent(new MenuAdd('scores'));
             if (response.matches) {
               switchPath('/rounds');
             } else {
               switchPath('/teams');
             }
           } else if (response.hasPicked) {
-            this.dispatchEvent(new MenuAdd('scores'));
             switchPath(`/rounds/${global.lrid}`);
           } else {
             switchPath('/scores');

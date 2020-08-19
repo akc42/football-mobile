@@ -26,7 +26,7 @@ import global from '../modules/globals.js';
 import { AuthChanged } from '../modules/events.js';
 import Debug from '../modules/debug.js';
 
-
+import {switchPath} from '../modules/utils.js';
 
 
 const debug = Debug('session');
@@ -85,6 +85,7 @@ class SessionManager extends LitElement {
       this.waiting = true;
       switch(this.state) {
         case 'authorised':
+          global.user = this.user;
           this.authorised = true;
           break;
         case 'error': 
@@ -93,6 +94,8 @@ class SessionManager extends LitElement {
           document.cookie = `${global.cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
           this.authorised = false;
           this.state = 'email';
+          global.user = {uid:0}
+          switchPath('/'); //this makes url hidden if back in session manager
           break;
         case 'reset':
           this.email = '';
@@ -104,7 +107,7 @@ class SessionManager extends LitElement {
                 performance.mark('end_user_validate');
                 performance.measure('user_validate','start_user_validate','end_user_validate');
                 if (response.user.uid !== 0) {
-                  global.user = response.user;
+                  this.user = response.user;
                   this.state = 'authorised';
                 } else {
                   this._readHash();
@@ -117,6 +120,7 @@ class SessionManager extends LitElement {
           break;
         default:
           import(`./session-${this.state}.js`).then(this.waiting = false);
+          switchPath('/'); //this makes url hidden if back in session manager
       }
     }
     super.updated(changed);

@@ -30,6 +30,7 @@ import './waiting-indicator.js';
 import page from '../styles/page.js';
 import './comment-dialog.js';
 import './comment-panel.js';
+import { MenuRemove,MenuReset } from '../modules/events.js';
 
 export class PageManager extends RouteManager {
   static get styles() {
@@ -72,6 +73,9 @@ export class PageManager extends RouteManager {
   loadPage(page) {
     this.waiting = true;
     import(`./${page}-manager.js`).then(this.waiting = false);
+    this.dispatchEvent(new MenuReset(true));
+    this.dispatchEvent(new MenuRemove(page));
+
    }
 
 }

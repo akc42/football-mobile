@@ -81,7 +81,7 @@ class SessionEmail extends LitElement {
       </style>
       <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       <fm-page heading="Welcome">
-        <fm-input id="email" name="email" type="email" required label="Email" message="Valid Email Address Required"></fm-input>
+        <fm-input id="email" name="email" type="email" autofocus required label="Email" message="Valid Email Address Required"></fm-input>
         <button slot="action" @click=${this._continue}>Continue</button>
         <p>By continuing you agree to ${global.organisationName} <a href="#" @click=${this._privacy}>Privacy Policy</a></p>
       </fm-page>

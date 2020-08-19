@@ -22,8 +22,8 @@ import { LitElement, html } from '../libs/lit-element.js';
 import page from '../styles/page.js';
 
 import './list-manager.js';
-import './scores-item.js';
-import './fm-page.js';
+import './scores-home-item.js';
+import './football-page.js';
 
 
 /*
@@ -60,10 +60,10 @@ class ScoresHome extends LitElement {
     return html`
     <style>
       .container {
-        background-color: var(--app-primary-color);
-        border:2px solid var(--app-accent-color);
+        background-color:var(--background-color);
+        border:2px solid var(--accent-color);
         border-radius: 5px;
-        box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
+        box-shadow: 1px 1px 3px 0px var(--shadow-color);
         margin:5px 5px 5px 3px;
         display: grid;
         grid-gap:2px;
@@ -74,8 +74,7 @@ class ScoresHome extends LitElement {
       }
 
       .un,.rs,.ps,.ts {
-        background-color: white;
-        color:var(--app-primary-text);
+        background-color: var(--background-color);
         text-align: center;
         vertical-align: center;
         font-weight: bold;
@@ -94,8 +93,8 @@ class ScoresHome extends LitElement {
         grid-area:ts;
       }
     </style>
-    <fm-page heading="Summary Scores">
-      <list-manager custom="scores-item"  .items=${this.users}>
+    <football-page heading="Summary Scores">
+      <list-manager custom="scores-home-item"  .items=${this.users}>
         <div slot="header" class="container">
           <div class="un">Name</div>
           <div class="rs">Round Score</div>
@@ -103,7 +102,7 @@ class ScoresHome extends LitElement {
           <div class="ts">Total Score</div>
         </div>
       </list-manager>
-    </fm-page>
+    </football-page>
     `;
   }
 }

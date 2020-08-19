@@ -73,14 +73,11 @@ class RoundsManager extends RouteManager {
   }
   update(changed) {
     if (changed.has('route') && this.route.active) {
-        this.dispatchEvent(new MenuReset());
-        this.dispatchEvent(new MenuAdd('scores'));
         this._newRoute();
     }
     if (changed.has('subRoute') && this.subRoute.active) {
       const uidR = this.uRouter.routeChange(this.subRoute);
       if (uidR.active) {
-        this.dispatchEvent(new MenuAdd('close'));
          if (!this.fetchdataInProgress) {
           this._setupUser(uidR.params.uid);
          } else {
@@ -131,12 +128,17 @@ class RoundsManager extends RouteManager {
           .user=${this.user}
           .round=${this.round}
           @option-pick=${this._optionPick}
-          @@match-pick=${this._matchPick}></rounds-user>` 
+          @match-pick=${this._matchPick}></rounds-user>` 
       }[this.page])}
     `;
   }
   loadPage(page) {
     import(`./rounds-${page}.js`);
+    if (page === this.homePage()) {
+      this.dispatchEvent(new MenuReset())
+    } else {
+      this.dispatchEvent(new MenuAdd());
+    }
   }
   async _newRoute() {
     if (typeof this.route.params.rid === 'number' && (this.lastRid !== this.route.params.rid || this.lastcid !== global.cid)) {
@@ -196,6 +198,12 @@ class RoundsManager extends RouteManager {
       }
     }
   }
+  async _matchPick(e) {
+    e.stopPropagation();
+    //todo add into existing data, but also update database.
+    const pick = e.pick;
+    const response = await api(`user/${global.cid}/update_pick`,pick);
+  }
   _selectUser(e) {
     e.stopPropagation();
     this.router
@@ -212,6 +220,7 @@ class RoundsManager extends RouteManager {
       //we merge user picks into the match as its much easier to deal with in elements below this one
       for (const match of this.round.matches) {
         match.ouRound = this.user.ouRound;
+        match.rid = this.round.rid;
         const pick = this.user.picks.find(p => p.aid === match.aid);
         if (pick !== undefined) {
           const {aid, comment, ...pickSubset} = pick;

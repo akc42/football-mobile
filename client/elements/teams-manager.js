@@ -17,12 +17,12 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { html } from '../libs/lit-element.js';
+import { html, css } from '../libs/lit-element.js';
 
 import api from '../modules/api.js';
 import Route from '../modules/route.js';
 import { cache } from '../libs/cache.js';
-import './fm-page.js';
+import './football-page.js';
 
 import './conf-div.js'
 import RouteManager from './route-manager.js';
@@ -35,7 +35,15 @@ import global from '../modules/globals.js';
 */
 class TeamsManager extends RouteManager {
   static get styles() {
-    return [page];
+    return [page, css`
+        header {
+          text-align: center;
+          width:100%;
+          border:1px solid var(--app-accent-color);
+          box-sizing:border-box;
+          margin-bottom: 5px;
+        }
+    `];
   }
   static get properties() {
     return {
@@ -95,60 +103,11 @@ class TeamsManager extends RouteManager {
   render() {
     return html`
       <style>
-        header {
-          text-align: center;
-          width:100%;
-          border:1px solid var(--app-accent-color);
-          box-sizing:border-box;
-          margin-bottom: 5px;
-        }
-        .divteam {
-          display: flex;
-          flex-direction:row;
-          flex-wrap:wrap;
-          justify-content: space-between;
-        }
-        .team {
-          --icon-size:20px;
-          border: none;
-          margin: 5px;
-          padding: 2px;
-          border-radius:5px;
-          box-shadow: 2px 2px 5px 4px rgba(0,0,0,0.2);
-          display:grid;
-          grid-gap: 2px;
-          grid-template-columns: 50px 25px 25px;
-          grid-template-areas:
-            "logo madepo points"
-            "logo pick pick"
-            "name name name";
-          justify-items: center;
-          align-items: center;
-        }
+        
 
-        .poff {
-          color:var(--fm-in-playoff);
-          grid-area: madepo;
-        }
-        .team img {
-          grid-area: logo;
-        }
-        .points {
-          grid-area: points;
-        }
-        .pick {
-          grid-area: pick;
-        }
-        .name {
-          grid-area:name;
-          font-weight: bold;
-          font-size: 10px;
-        }
-
-
-
+ 
       </style>
-      <fm-page heading="Teams">
+      <football-page heading="Teams">
         ${cache(this.userPicks.length > 0 ? html`
           <div slot="heading"><strong>${this.userPicks[0].name}</strong></div>
           <div slot="heading">${this.userPicks[0].score}</div>
@@ -158,15 +117,23 @@ class TeamsManager extends RouteManager {
           ${cache({
             home: html`
               ${this.confs.map(conf => this.divs.map(div => html`
-                <conf-div .teams=${this.teams} .conf=${conf} .div=${div} user .picks=${this.userPicks}></conf-div>
+                <conf-div class="confdiv" .teams=${this.teams} .conf=${conf} .div=${div} user .picks=${this.userPicks}></conf-div>
                 </div>
               `))}`,
             users: html`<p>Still to Implement</p>`
 
           }[this.page])}
         </section>
-      </fm-page>
+      </football-page>
     `;
+  }
+  loadPage(page) {
+    if (page === this.homePage()) {
+      this.dispatchEvent(new MenuReset())
+    } else {
+      this.dispatchEvent(new MenuAdd());
+    }
+
   }
   async _newRoute() {
     const response = await api(`user/${global.cid}/playoff_picks`);
