@@ -59,6 +59,7 @@ class CommentDialog extends LitElement {
   }
   firstUpdated() {
     this.dialog = this.shadowRoot.querySelector('#diag');
+    this.eventLocked = false;
   }
   updated(changed) {
     super.updated(changed);
@@ -69,7 +70,7 @@ class CommentDialog extends LitElement {
       
       </style>
       <dialog-box id="diag" position="target" @overlay-closed=${this._dialogClosed}>
-        <textarea id="comment" class="emoji">${this.comment}</textarea>
+        <fm-input textarea id="comment" >${this.comment}</fm-input>
         <button @click=${this._replyToCaller}>Save</button>
       </dialog-box>
 

@@ -39,6 +39,8 @@ class CommentButton extends LitElement {
   }
   constructor() {
     super();
+    this.comment = '';
+    this.edit = false;
   }
   connectedCallback() {
     super.connectedCallback();
@@ -59,6 +61,10 @@ class CommentButton extends LitElement {
       <style>
         :host {
           --icon-size: 16px;
+          display: flex;
+          height: 16px;
+          width:16px;
+          cursor:pointer;
         }
         .nocomment {
           display: inline-block;
@@ -72,7 +78,7 @@ class CommentButton extends LitElement {
           color: lime-green;
         }
       </style>
-      ${cache(this.edit || (this.comment !== null && this.comment.length > 0) ? html`
+      ${cache((this.edit || (this.comment !== null && this.comment.length > 0)) ? html`
         <material-icon 
           ?outlined=${this.comment === null || this.comment.length === 0} 
           class="${classMap({editable: this.edit})}"
