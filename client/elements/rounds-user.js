@@ -150,7 +150,7 @@ class RoundsUser extends LitElement {
           custom="rounds-user-item"  
           .items=${this.round.matches}
           @comment-changed=${this._commentMatch}>
-          <div slot="header" class="container">
+          <div class="container">
               ${cache(this.round.valid_question === 1 ? html`
                 <div class="option">Option Question</div>
                 <div class="emoji question">${this.round.question}</div>

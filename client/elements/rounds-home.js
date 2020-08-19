@@ -142,7 +142,7 @@ class RoundsHome extends LitElement {
         <div id="canpick" slot="heading" @click=${this._makePicks}>Round Picks</div>
       `:''}
       <list-manager custom="rounds-home-item"  .items=${this.users} style="${this.round.valid_question === 1? '--list-height:700px':''}">
-        <div slot="header" class="container">
+        <div class="container">
           <div class="matches">Matches ${this.round.matches.length}</div>
           <div class="points"><strong>Points ${this.round.value}</strong><br/>per correct pick (excluding underdog)</div>
           ${this.round.ou_round === 1 ? html`<div class="over">Over Under round</div>`: ''}

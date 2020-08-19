@@ -107,7 +107,7 @@ class ScoresUser extends LitElement {
           class="poff"><strong>${this.user.name}</strong></div>
         <div slot="heading">${this.user.rscore}:${this.user.lscore}:${this.user.tscore}</div>
         <list-manager custom="scores-user-item"  .items=${this.rounds}>
-          <div slot="header" class="container">
+          <div class="container">
             <div class="rn">Round Name</div>
             <div class="mp">Match Picks</div>
             <div class="ou">Over Under</div>

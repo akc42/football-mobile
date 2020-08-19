@@ -22,7 +22,7 @@ import { LitElement, html, css } from '../libs/lit-element.js';
 import './fm-page.js';
 import page from '../styles/page.js';
 import './page-manager.js';
-import './list-manager'
+import './list-manager.js';
 
 /*
      <approve-manager>: Competition Approval of Membership Requests
@@ -59,7 +59,9 @@ class ApproveManager extends LitElement{
       <style>
       </style>
       <fm-page id="page" heading="New Member Approval">
-        <list-manager custom="approve-item" .items=${this.members}></list-manager>
+        <list-manager custom="approve-item" .items=${this.members}>
+          <div>Not Implemented Yet</div>
+        </list-manager>
       </fm-page>
     `;
   }

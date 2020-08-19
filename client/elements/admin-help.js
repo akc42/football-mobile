@@ -18,68 +18,47 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html, css } from '../libs/lit-element.js';
-import {cache} from '../libs/cache.js';
 
+import './fm-page.js';
 import page from '../styles/page.js';
 
-
 /*
-     <list-manager>
+     <gadm-manager>: Main Page for all the global admin functions
 */
-class ListManager extends LitElement {
+class AdminHelp extends LitElement {
   static get styles() {
-    return [page, css`
-    :host {
-      height: var(--list-height,100%);
-    }
-
-    #list {
-      height: 100%;
-    }
-
-`];
+    return [page, css``];
   }
   static get properties() {
     return {
-      items: {type: Array},    //at least uid and name fields in each entry
-      custom: {type: String}
+    
     };
   }
   constructor() {
     super();
-    this.items = [];
-    this.custom = '';
   }
-
-
+  connectedCallback() {
+    super.connectedCallback();
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+  }
+  update(changed) {
+    super.update(changed);
+  }
+  firstUpdated() {
+  }
   updated(changed) {
     super.updated(changed);
   }
   render() {
     return html`
       <style>
-        #list > .item {
-          scroll-snap-align:start;
-          border-radius: 5px;
-          box-shadow: 1px 1px 3px 0px var(--shadow-color);
-          margin:0 5px 5px 3px;
-        }
-
       </style>
-     
-      <header>
-        <slot></slot>
-      </header>
-      <section id="list" class="scrollable">
-        ${cache(this.items.map(item =>this._build(item)))}
-      </section>
+      <fm-page id="page" heading="Registered Members">
+        <p>STILL TO BE IMPLEMENTED</p>
+      </fm-page>
     `;
   }
-  _build(item) {
-    if (this.custom.length === 0) return;
-    //This works really well to introduce a templated string which can then later be interpretted as an html templated string
-    const strings = [`<div class="item"><${this.custom} .item=`, `></${this.custom}></div>`];
-    return html(strings,item);
-  } 
 }
-customElements.define('list-manager', ListManager);
+customElements.define('admin-help', AdminHelp);

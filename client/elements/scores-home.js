@@ -95,7 +95,7 @@ class ScoresHome extends LitElement {
     </style>
     <football-page heading="Summary Scores">
       <list-manager custom="scores-home-item"  .items=${this.users}>
-        <div slot="header" class="container">
+        <div class="container">
           <div class="un">Name</div>
           <div class="rs">Round Score</div>
           <div class="ps">Playoff Score</div>

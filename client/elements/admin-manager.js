@@ -18,8 +18,9 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { html, css } from '../libs/lit-element.js';
+import {cache} from '../libs/cache.js';
 
-import './fm-page.js';
+import './football-page.js';
 import page from '../styles/page.js';
 import RouteManager from './route-manager.js';
 
@@ -56,10 +57,16 @@ class AdminManager extends RouteManager {
     return html`
       <style>
       </style>
-      <fm-page id="page" heading="Competition Admin">
-        <p>STILL TO BE IMPLEMENTED</p>
-      </fm-page>
+      ${cache({
+        home: html`<admin-home managed-page></admin-home>`,
+        round: html`<admin-round managed-page></admin-round>`,
+        email: html`<admin-email managed-page></admin-email>`,
+        help: html`<admin-help managed-page></admin-help>`
+      }[this.page])}
     `;
+  }
+  loadPage(page) {
+    import(`./admin-${page}.js`);
   }
 }
 customElements.define('admin-manager', AdminManager);
