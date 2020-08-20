@@ -3,6 +3,7 @@ client/libs
 client/images
 server/db-init/pre-upgrade_*.sql
 server/db-init/post-upgrade_*.sql
+server/db-init/football.db
 docs/**/*.aux
 docs/**/*.fdb_latexmk
 docs/**/*.fls
