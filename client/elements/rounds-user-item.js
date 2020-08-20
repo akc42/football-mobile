@@ -125,11 +125,25 @@ class RoundsUserItem extends LitElement {
       .underdog {
           font-size: 0.5rem;
           background-color: var(--accent-color);
-        }
-        .underdog > span {
-          font-size: 0.6rem;
-          margin-left: 10px;
-        }
+      }
+      .underdog > span {
+        font-size: 0.6rem;
+        margin-left: 10px;
+      }
+      .at, .pscore {
+        position:relative
+      }
+      .at > .match, .pscore > .user {
+        position:absolute;
+        bottom: 2px;
+        right: 2px;
+      }
+      .editable {
+        cursor: pointer;
+      }
+      .at.open {
+        background-color: var(--fm-pick-open);
+      }
     `;
   }
   static get properties() {
@@ -147,20 +161,7 @@ class RoundsUserItem extends LitElement {
     const canPick = this._canPick();  
     return html`
       <style>
-        .at, .pcsore {
-          position:relative
-        }
-        .at > .match, .pscore > .user {
-          position:absolute;
-          bottom: 2px;
-          right: 2px;
-        }
-        .editable {
-          cursor: pointer;
-        }
-        .at.open {
-          background-color: var(--fm-pick-open);
-        }
+
 
       </style>
         
