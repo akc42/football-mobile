@@ -25,21 +25,47 @@ import {cache} from '../libs/cache.js';
 import {connectUrl, disconnectUrl} from '../modules/location.js';
 
 import RouteManager from './route-manager.js';
+import Route from '../modules/route.js';
+
 import './waiting-indicator.js';
+import global from '../modules/globals.js';
 
 import page from '../styles/page.js';
 import './comment-dialog.js';
 import './comment-panel.js';
 import { MenuRemove,MenuReset } from '../modules/events.js';
+import { switchPath } from '../modules/utils.js';
 
 export class PageManager extends RouteManager {
   static get styles() {
     return [page];
   }
+  constructor() {
+    super();
+    this.cidRouter = new Route('/:cid');
+  }
 
   connectedCallback() {
     super.connectedCallback();
-    connectUrl(route => this.route = route);
+    connectUrl(route => {
+      const cidR = this.cidRouter.routeChange(route);
+      if (Number.isInteger(cidR.params.cid) && cidR.params.cid > 0 && cidR.params.cid <= global.lcid) {
+        //seems like a legitimate request
+        global.cid = cidR.params.cid;
+        this.route = cidR;
+      } else {
+        /*
+          some urls, don't need a cid, they are /profile, /navref and /help
+        */
+        if (cidR.params.cid === 'profile' || cidR.params.cid === 'navref' || cidR.params.cid === 'help') {
+          this.route = route; //just pass straight through
+        } else {
+          if (global.cid === 0) global.cid = global.lcid;
+          switchPath(`/${global.cid}${route.path}`); //extend our path to include the cid.
+        }
+      }
+    
+    });
     this.removeAttribute('unresolved');
   }
   disconnectedCallback() {

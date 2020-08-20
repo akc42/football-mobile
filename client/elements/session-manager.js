@@ -87,7 +87,6 @@ class SessionManager extends LitElement {
         case 'authorised':
           global.user = this.user;
           this.authorised = true;
-          global.cid = global.lcid;  //start off on latest
           break;
         case 'error': 
           break;

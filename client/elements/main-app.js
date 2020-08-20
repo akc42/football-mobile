@@ -28,13 +28,12 @@ import './session-manager.js';
 import './material-icon.js';
 
 import tooltip from '../styles/tooltip.js';
-import page from '../styles/page.js';
+
 
 import { SessionStatus, PageClose } from '../modules/events.js';
 import AppKeys from '../modules/keys.js';
 import api from '../modules/api.js';
 import Debug from '../modules/debug.js';
-import { updateCid } from '../modules/visit.js';
 
 const debug = Debug('main');
 
@@ -365,10 +364,10 @@ class MainApp extends LitElement {
   }
   _competitionSelected(e) {
     const cid = parseInt(e.currentTarget.dataset.cid,10);
-    updateCid(cid);
+    global.cid = cid;
     debug('competition cid ' + cid + ' selected');
     this.mainmenu.close();
-    switchPath('/');
+    switchPath(`/${cid}`);
     this.requestUpdate(); //refresh needed in particular competitions menu.
   }
   _competitionsMenu() {
@@ -392,7 +391,7 @@ class MainApp extends LitElement {
       global.luid = this.competitions[0].administrator;
       global.lrid = this.competitions[0].rid;
     }
-    if (global.cid === 0) updateCid(global.lcid);
+    if (global.cid === 0) global.cid = global.lcid;
 
     this.compVersion = 0;
   }
@@ -401,10 +400,8 @@ class MainApp extends LitElement {
   }
 
   _goHome() {
-    if (global.cid !== global.lcid) {
-      updateCid(global.lcid);
-    }
-    switchPath('/');
+    global.cid = global.lcid;
+    switchPath(`/`);
   }
   _keyPressed(e) {
     debug('key press from key ' + e.key);
