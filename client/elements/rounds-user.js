@@ -205,7 +205,7 @@ class RoundsUser extends LitElement {
   }
   _playoff(e) {
     e.stopPropagation();
-    switchPath(`/teams/${this.user.uid}`);
+    switchPath(`/${global.cid}/teams/user/${this.user.uid}`);
   }
 }
 customElements.define('rounds-user', RoundsUser);

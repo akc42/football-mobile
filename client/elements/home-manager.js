@@ -45,8 +45,9 @@ class HomeManager extends LitElement {
     `;
   }
   async _reroute() {
+    if (global.cid === 0) global.cid = global.lcid;
     if (global.cid !== global.lcid) {
-      switchPath('/scores');
+      switchPath(`/${global.cid}/scores`);
     } else {
       const response = await api(`/user/${global.lcid}/can_register`);
       if (response.isOpen) {
@@ -54,25 +55,25 @@ class HomeManager extends LitElement {
           const response = await api(`/user/${global.lcid}/can_pick`);
           if (response.canPick) {
             if (response.matches) {
-              switchPath('/rounds');
+              switchPath(`/${global.cid}/rounds`);
             } else {
-              switchPath('/teams');
+              switchPath(`/${global.cid}/teams`);
             }
           } else if (response.hasPicked) {
-            switchPath(`/rounds/${global.lrid}`);
+            switchPath(`${global.cid}/rounds/${global.lrid}`);
           } else {
-            switchPath('/scores');
+            switchPath(`/${global.cid}/scores`);
           }
         } else if (response.canRegister) {
-          switchPath('/register');
+          switchPath(`${global.cid}/register`);
         } else {
-          switchPath('/scores');
+          switchPath(`/${global.cid}/scores`);
         }
       } else {
         if (global.user.uid === global.luid) {
-          switchPath('/admin');
+          switchPath(`/${global.cid}/admin`);
         } else {
-          switchPath('/soon');
+          switchPath(`/${global.cid}/soon`);
         }
       }
     }

@@ -87,7 +87,7 @@ class MainApp extends LitElement {
         //once authorised, the menu key invokes the main menu
         document.body.addEventListener('key-pressed', this._keyPressed);
         if (this.keys === undefined) {
-          this.keys= new AppKeys(document.body, 'f1 f2, f3, f12');
+          this.keys= new AppKeys(document.body, 'f1 f2, f4, f12');
         } else {
           this.keys.connect();
         }
@@ -268,7 +268,7 @@ class MainApp extends LitElement {
               <div id="scores" role="menuitem" @click=${this._selectPage}><material-icon>people_outline</material-icon><span>Scores</span><span>F2</span></div>
             `:'')}
             ${cache(this.teams ? html`
-              <div id="teams" role="menuitem" @click=${this._selectPage}><material-icon outlined>group_work</material-icon><span>Teams</span><span>F3</span></div>
+              <div id="teams" role="menuitem" @click=${this._selectPage}><material-icon outlined>group_work</material-icon><span>Teams</span><span>F4</span></div>
             `: '')}
             <hr class="sep"/>
             ${cache(this.competitions.length > 0 ?html`
@@ -281,8 +281,8 @@ class MainApp extends LitElement {
               <div id="profile" role="menuitem" @click=${this._selectPage}><material-icon>account_box</material-icon><span>Edit Profile</span> <span>F12</span></div>
             `:'')}
             <hr class="sep"/>
-            <div id="navref" role="menuitem" @click=${this._selectPage}><material-icon>place</material-icon><span>Navigation Help</span></div>
-            <div id="help" role="menuitem" @click=${this._selectPage}><material-icon>help</material-icon><span>How To Play</span><span>F1</span></div>
+            <div id="navref" role="menuitem" @click=${this._selectPage}><material-icon>support</material-icon><span>Navigation Help</span><span>F1</span></div>
+            <div id="icon" role="menuitem" @click=${this._selectPage}><material-icon>image_search</material-icon><span>Icon Meanings</span></div>
             ${cache((admin || global.user.approve) ? html`
               <hr class="sep"/>
               <div id="approve" role="menuitem" @click=${this._selectPage}>
@@ -298,6 +298,7 @@ class MainApp extends LitElement {
           </div>
         </dialog-box>
         <dialog-box id="competitions" closeOnClick @overlay-closed=${this._compClosed} position="right">
+
           <div class="menucontainer">
             ${cache(this.competitions.map(competition => 
               html`<div role="menuitem" data-cid=${competition.cid} @click=${this._competitionSelected}><span>${competition.name}</span>
@@ -401,18 +402,18 @@ class MainApp extends LitElement {
 
   _goHome() {
     global.cid = global.lcid;
-    switchPath(`/`);
+    switchPath(`/${global.cid}`);
   }
   _keyPressed(e) {
     debug('key press from key ' + e.key);
     switch (e.key) {
       case 'f1':
-        switchPath('/help');
+        switchPath('/navref');
         break;
       case 'f2':
         switchPath('/scores');
         break;
-      case 'f3':
+      case 'f4':
         switchPath('/teams');
         break;
       case 'f12':
