@@ -46,11 +46,13 @@
  
   --fm-win-color:darkorange;
   --fm-in-playoff: gold;
-  --fm-correct-pick:orangered; 
-  --fm-incorrect-pick:mediumorchid; 
-  --fm-indeterminate-pick:lawngreen; 
+  --fm-incorrect-pick:orangered; 
+  --fm-indeterminate-pick:mediumorchid; 
+  --fm-correct-pick:lawngreen; 
 
-  --fm-pick-open: blue;
+  --fm-pick-open: blue; 
+  --fm-editable-comment: lawngreen;
+  --fm-fixed-comment: darkorange;
 
   --email-input-length: 240px;
   --name-input-length: 120px; 

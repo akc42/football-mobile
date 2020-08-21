@@ -72,10 +72,10 @@ class CommentButton extends LitElement {
           width: 16px;
         }
         material-icon {
-          color: orange;
+          color: var(--fm-fixed-comment);
         }
         material-icon.editable {
-          color: lime-green;
+          color: var(--fm-editable-comment);
         }
       </style>
       ${cache((this.edit || (this.comment !== null && this.comment.length > 0)) ? html`

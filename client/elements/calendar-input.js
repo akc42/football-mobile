@@ -85,8 +85,8 @@ class CalendarInput extends LitElement {
     flex-direction: row;
     justify-content:space-evenly;
     align-items: center;
-    border: 2px solid var(--app-accent-color);
-    background-color: white;
+    border: 2px solid var(--accent-color);
+
     cursor: pointer;
   }
   .container {

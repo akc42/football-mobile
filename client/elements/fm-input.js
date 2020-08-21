@@ -26,10 +26,11 @@ import {cache} from '../libs/cache.js';
 
 import { ValueChanged } from '../modules/events.js';
 import error from '../styles/error.js';
+import emoji from '../styles/emoji.js';
 
 class FmInput extends LitElement {
   static get styles() {
-    return [error,css`
+    return [error,emoji,css`
       :host {
         display: block;
         margin-bottom: 10px;
@@ -164,6 +165,7 @@ class FmInput extends LitElement {
       </div>   
       ${this.textArea ?  html`
         <textarea
+          class="emoji"
           id="input"
           aria-labelledby="label"
           ?disabled=${this.disabled}
