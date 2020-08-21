@@ -8,7 +8,7 @@
       ],
       "kill_timeout": 15000,
       "watch": [
-        "server"
+        "server\/**"
       ],
       "ignore_watch": ["server\/db-init\/football.db*"],
       "watch_options": {
