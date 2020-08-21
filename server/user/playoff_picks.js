@@ -26,19 +26,25 @@
 
   module.exports = async function(user, cid, params, responder) {
     debug('new request from user', user.uid, 'with cid', cid );
-    
+    const deadline = db.prepare('SELECT pp_deadline FROM competition WHERE cid = ?').pluck();
+    const confs = db.prepare('SELECT confid, name FROM conference');
+    const divs = db.prepare('SELECT divid, name FROM division');
+    const teams = db.prepare(`SELECT t.*, c.made_playoff, c.points 
+        FROM team t JOIN team_in_competition c USING(tid) WHERE c.cid = ?`);
+    const users = db.prepare(`SELECT u.uid, u.name, SUM(p.score) FILTER(WHERE p.confid='AFC') ascore, SUM(p.score) FILTER(where p.confid = 'NFC') nscore, 
+        SUM(p.score) pscore FROM participant u JOIN registration r USING (uid) LEFT JOIN playoff_score p USING (cid,uid) WHERE r.cid = ? 
+        GROUP BY u.uid, u.name`);
+    const picks = db.prepare(`SELECT p.uid, p.tid, p.admin_made, p.submit_time 
+        FROM playoff_picks p WHERE p.cid = ? ORDER BY p.uid`);
     db.transaction(() => {
-      const deadline = db.prepare('SELECT pp_deadline FROM competition WHERE cid = ?').pluck().get(cid);
-      responder.addSection('deadline', deadline);
-      const confs = db.prepare('SELECT confid, name FROM conference').all();
-      responder.addSection('confs', confs);
-      const divs = db.prepare('SELECT divid, name FROM division').all();
-      responder.addSection('divs', divs);
-      const teams = db.prepare(`SELECT t.*, c.made_playoff, c.points 
-        FROM team t JOIN team_in_competition c USING(tid) WHERE c.cid = ?`).all(cid);
-      responder.addSection('teams', teams);
-      const picks = db.prepare(`SELECT u.uid, u.name, s.score, p.tid, p.admin_made, p.submit_time FROM participant u JOIN playoff_picks p USING(uid) JOIN playoff_score s USING(cid,uid) WHERE p.cid = ? ORDER BY uid`).all(cid);
-      responder.addSection('picks', picks);
+      debug('in transaction');
+      responder.addSection('deadline', deadline.get(cid));
+      responder.addSection('confs', confs.all());
+      responder.addSection('divs', divs.all());
+      responder.addSection('teams', teams.all(cid));
+      responder.addSection('users', users.all(cid));
+      responder.addSection('picks', picks.all(cid));
     })();
+    debug('all done');
   };
 })();

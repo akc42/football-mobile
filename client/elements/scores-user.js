@@ -26,6 +26,7 @@ import './scores-user-item.js';
 import page from '../styles/page.js';
 import tooltip from '../styles/tooltip.js';
 import { switchPath } from '../modules/utils.js';
+import global from '../modules/globals.js';
 
 /*
      <scores-user>
@@ -121,7 +122,7 @@ class ScoresUser extends LitElement {
   }
   _playoff(e) {
     e.stopPropagation();
-    switchPath(`/teams/${this.user.uid}`);
+    switchPath(`/${global.cid}/teams/${this.user.uid}`);
   }
 }
 customElements.define('scores-user', ScoresUser);

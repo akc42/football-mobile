@@ -176,7 +176,7 @@ class RoundsHome extends LitElement {
     `;
   }
   _makePicks() {
-    switchPath(`/rounds/${this.round.rid}/user/${global.uid}`)
+    switchPath(`/${global.cid}/rounds/${this.round.rid}/user/${global.uid}`)
   }
 }
 customElements.define('rounds-home', RoundsHome);

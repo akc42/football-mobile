@@ -107,7 +107,7 @@ class FootballPage extends LitElement {
   }
   _makePicks(e) {
     e.stopPropagation();
-    switchPath(`/teams/user/${global.uid}`);
+    switchPath(`/${global.cid}/teams/user/${global.uid}`);
   }
 }
 customElements.define('football-page', FootballPage);

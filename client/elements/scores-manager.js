@@ -72,7 +72,7 @@ class ScoresManager extends RouteManager {
             debug('no fetch happening, find index for ' + this.userRoute.params.uid);
             if (this.user === undefined)  {
               this.user = { uid: 0, name: '', rscore: 0, pscore: 0, rounds: [] }; //reset user to dummy
-              switchPath('/scores');
+              switchPath(`/${global.cid}/scores`);
             } else {
               for (const round of this.rounds) {
                 const scores = this.user.rounds.find(r => r.rid === round.rid);
@@ -89,7 +89,7 @@ class ScoresManager extends RouteManager {
            debug('fetch in progress, delayed index setting');
          }
       } else {
-        switchPath('/scores');
+        switchPath(`/${global.cid}/scores`);
       }
     }
     if(changed.has('users') && this.userRoute.active) {
@@ -97,7 +97,7 @@ class ScoresManager extends RouteManager {
       debug('no fetch happening, find  ' + this.userRoute.params.uid);
       if (this.user === undefined) {
         this.user = { uid: 0, name: '', rscore: 0, pscore: 0, rounds: [] }; //reset user to dummy
-        switchPath('/scores');
+        switchPath(`/${global.cid}/scores`);
       } else {
         for (const round of this.rounds) {
           const scores = this.user.rounds.find(r => r.rid === round.rid);
@@ -158,10 +158,10 @@ class ScoresManager extends RouteManager {
   }
   _selectUser(e) {
     e.stopPropagation();
-    switchPath(`/scores/user/${e.uid}`);
+    switchPath(`/${global.cid}/scores/user/${e.uid}`);
   }
   _selectRound(e) {
-    switchPath(`/rounds/${e.rid}/user/${this.user.uid}`);
+    switchPath(`/${global.cid}/rounds/${e.rid}/user/${this.user.uid}`);
   }
 }
 customElements.define('scores-manager', ScoresManager);

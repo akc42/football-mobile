@@ -207,7 +207,7 @@ class RoundsManager extends RouteManager {
   _selectUser(e) {
     e.stopPropagation();
     this.router
-    switchPath(`/rounds/${this.round.rid}/user/${e.uid}`);
+    switchPath(`/${global.cid}/rounds/${this.round.rid}/user/${e.uid}`);
   }
   _setupUser(uid) {
     this.user = this.users.find(user => user.uid === uid);

@@ -75,11 +75,11 @@ class RoundsUserItem extends LitElement {
       }
       .aresult {
         grid-area: aresult;
-        color: yellow;
+        color: var(-fm-win-color);
       }
       .hresult {
         grid-area: hresult;
-        color: yellow;
+        color: var(fm-win-color);
       }
       .apick {
         grid-area: apick;
