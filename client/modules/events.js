@@ -440,6 +440,23 @@ export class PageTitle extends Event {
   }
 };
 
+
+export class PlayoffPick extends Event {
+  static eventType = 'playoff-pick';
+
+  /*
+     The following are the fields provided by this event
+
+     pick: tid of team being picked.  This is unvalidated
+
+  */
+
+  constructor(pick) {
+    super('playoff-pick',{composed: true, bubbles: true});
+    this.pick = pick;
+  }
+};
+
 export class RoundSelected extends Event {
   static eventType = 'round-selected';
 
