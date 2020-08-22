@@ -449,7 +449,7 @@
       const gadms = loadServers(__dirname, 'gadm');
       for (const g in gadms) {
         debugapi(`setting up /api/gadm/${g} route`);
-        gadmin.post(`/${g}`, (req, res) => {
+        gadm.post(`/${g}`, (req, res) => {
           debugapi(`received /api/gadm/${g} request`);
           try {
             const responder = new Responder(res);
