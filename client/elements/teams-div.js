@@ -78,6 +78,7 @@ class TeamsDiv extends LitElement {
           border-radius: 5px;
           box-shadow: 1px 1px 3px 0px var(--shadow-color);
           margin:0 5px 5px 3px;
+          cursor: pointer;
         }
 
       </style>

@@ -74,7 +74,7 @@ class MainApp extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.removeAttribute('unresolved');
-    this.editingDcid = false;
+    api('session/log', { topic: 'client', message: 'Main App Started', gap: 0 }); //no interest in reply
 
   }
   disconnectedCallback() {
@@ -87,7 +87,7 @@ class MainApp extends LitElement {
         //once authorised, the menu key invokes the main menu
         document.body.addEventListener('key-pressed', this._keyPressed);
         if (this.keys === undefined) {
-          this.keys= new AppKeys(document.body, 'f1 f2, f4, f12');
+          this.keys= new AppKeys(document.body, 'f1 f2 f4 f12');
         } else {
           this.keys.connect();
         }
@@ -349,18 +349,11 @@ class MainApp extends LitElement {
   _authChanged(e) {
     this.authorised = e.changed;
   }
-  
-  _changeDComp(e) {
-    if (this.competitionMenu) {
-      this.editingDcid = true;
-      this.competitionMenu.open();
-    }
-  }
-  _close() {
+    _close() {
     this.close = false;
     this.fmPages.dispatchEvent(new PageClose());
   }
-  _compClosed(e) {
+  _compClosed(e) {foot
     this.mainmenu.close();
   }
   _competitionSelected(e) {

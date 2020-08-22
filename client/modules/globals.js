@@ -17,6 +17,8 @@
     You should have received a copy of the GNU General Public License
     along with football mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
+import {ApiError} from './events.js';
+
 let u = {uid:0};
 
 let clientLog = '';

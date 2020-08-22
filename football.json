@@ -1,16 +1,13 @@
 {
   "apps": [
     {
-      "name": "web-server",
+      "name": "api-server",
       "script": "server/server.js",
       "args": [
         "--color"
       ],
       "kill_timeout": 15000,
-      "watch": [
-        "server\/**"
-      ],
-      "ignore_watch": ["server\/db-init\/football.db*"],
+      "watch": ["server"],
       "watch_options": {
         "followSymlinks": false
       },
@@ -21,7 +18,8 @@
       "env": {
         "DEBUG_COLORS": true,
         "FOOTBALL_EMAIL": "yes",
-        "FOOTBALL_LOGNODATE": "yes"
+        "FOOTBALL_LOGNODATE": "yes",
+        "FOOTBALL_DB_DIR": "/home/melindas/data"
       }
     }
   ]

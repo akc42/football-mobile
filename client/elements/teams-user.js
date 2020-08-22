@@ -80,13 +80,18 @@ class TeamsUser extends LitElement {
 
       </style>
       <football-page id="page" heading="User Playoff Picks">
+        <div slot="heading">${this.user.name}'s Playoff Score</div>
+        <div slot="heading">AFC:${this.user.ascore},NFC:${this.user.nscore},TOT:${this.user.pscore}</div>
         <section id="list" class="scrollable">
           ${cache(this.confs.map(conf => this.divs.map(div => html`
             <conf-div 
               class="item" 
               .teams=${this.teams} 
               .conf=${conf} 
-              .div=${div}></conf-div>
+              .div=${div}
+              .user=${this.user}
+              nome
+              .deadline=${this.deadline}></conf-div>
           `)))}
         </section>
       </football-page>

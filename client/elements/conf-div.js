@@ -39,7 +39,8 @@ class ConfDiv extends LitElement {
       conf: {type: Object},
       div: {type: Object},
       user: {type: Object}, //If set this may include users picks (and will pass back clicks to pick a team)
-      deadline: {type: Number} //deadline for picks
+      deadline: {type: Number}, //deadline for picks
+      nome: {type: Boolean} //If set don't highlight conf-div heading for user = me.
     };
   }
   constructor() {
@@ -49,6 +50,7 @@ class ConfDiv extends LitElement {
     this.div = {name:'', divid: ''};
     this.user = {uid: 0, picks: []};
     this.deadline = 0;
+    this.nome = false;
   }
   connectedCallback() {
     super.connectedCallback();
@@ -69,15 +71,21 @@ class ConfDiv extends LitElement {
     return html`
       <style>
         header {
-          text-align: center;
+          display: flex;
+          flex-direction: row;
           width:100%;
           border:1px solid var(--accent-color);
           box-sizing:border-box;
           margin-bottom: 5px;
           border-radius:5px;
+          padding: 3px;
+          justify-content: space-around;
         }
-        header.notme {
-          border:1px solid var(--secondary-color);
+        .me {
+          border-radius: 2px;
+          border:1px solid var(--accent-color);
+          padding: 2px;
+          margin-right: 5px;
         }
         .divteam {
           display: flex;
@@ -132,17 +140,19 @@ class ConfDiv extends LitElement {
         }
 
       </style>
-      ${cache(this.user.uid === 0 ?
-        html`<header>${this.conf.name} - ${this.div.name}</header>` : 
-        html`<header class=${classMap({notme: global.user.uid !== this.user.uid})}>User: ${this.user.name} Picks</header>`
-      )}
+      <header>
+        ${cache(this.user.uid !== 0 && !this.nome ? 
+          html`<div class="${classMap({ me: this.user.uid === global.user.uid})}">User: ${this.user.name}'s Picks</div>`
+        : '')}
+        <div>${this.conf.name} - ${this.div.name}</div>
+      </header>
       <div class="divteam">
       ${this.teams.filter(team => team.confid === this.conf.confid && team.divid === this.div.divid).map(team => {
         let pick ;
         if (this.user.uid !== 0) pick = this.user.picks.find(p => p.tid === team.tid);
         return html`
           <div 
-            class="team ${classMap({pickable:this.user.uid === global.uid && this.deadline > cutoff})}" 
+            class="team ${classMap({pickable:this.user.uid === global.user.uid && this.deadline > cutoff})}" 
             @click=${this._makePick}
             data-tid=${team.tid}>
             <img src="/appimages/teams/${team.tid}.png"/>
