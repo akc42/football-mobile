@@ -46,9 +46,7 @@ class MaterialIcon extends LitElement {
         font-feature-settings:'liga';
         -webkit-font-smoothing:antialiased;
       }
-      span {
-        cursor: default;
-      }
+
     `;
   }
   render() {

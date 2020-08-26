@@ -33,8 +33,10 @@ import global from '../modules/globals.js';
 import page from '../styles/page.js';
 import './comment-dialog.js';
 import './comment-panel.js';
+import './delete-dialog.js';
 import { MenuRemove,MenuReset } from '../modules/events.js';
 import { switchPath } from '../modules/utils.js';
+import { i } from '../libs/lit-html-f17e05ab.js';
 
 export class PageManager extends RouteManager {
   static get styles() {
@@ -55,9 +57,9 @@ export class PageManager extends RouteManager {
         this.route = cidR;
       } else {
         /*
-          some urls, don't need a cid, they are /profile, /navref and /help
+          some urls, don't need a cid, they are /profile, /navref and /icon plus /gadm and its sub pages
         */
-        if (cidR.params.cid === 'profile' || cidR.params.cid === 'navref' || cidR.params.cid === 'help') {
+        if (cidR.params.cid === 'profile' || cidR.params.cid === 'navref' || cidR.params.cid === 'help' || cidR.params.cid === 'gadm' ) {
           this.route = route; //just pass straight through
         } else {
           if (global.cid === 0) global.cid = global.lcid;
@@ -77,6 +79,7 @@ export class PageManager extends RouteManager {
     return html`
       <comment-dialog></comment-dialog>
       <comment-panel></comment-panel>
+      <delete-dialog ></delete-dialog>
       <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       ${cache({
         approve: html`<approve-manager managed-page></approve-manager>`,

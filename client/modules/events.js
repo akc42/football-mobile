@@ -118,18 +118,87 @@ export class CommentShow extends Event {
   }
 };
 
-export class CompetitionsChanged extends Event {
-  static eventType = 'competitions-changed';
+export class CompetitionChanged extends Event {
+  static eventType = 'competition-changed';
 
   /*
      The following are the fields provided by this event
 
-     none: some aspect of the competitions list has changed, suggesting it is re-read 
+     changed: an object with at least a cid field.  Fields are:
+      cid - id of appropriate competion
+      adm - uid of administration (0 if unassign)
+      name - new name if name changed.
+  */
+
+  constructor(changed) {
+    super('competition-changed',{composed: true, bubbles: true});
+    this.changed = changed;
+  }
+};
+
+
+export class CompetitionCreate extends Event {
+  static eventType = 'competition-create';
+
+  /*
+     The following are the fields provided by this event
+
+     competition: object with name, and administrator fields.
+
+  */
+
+  constructor(competition) {
+    super('competition-create',{composed: true, bubbles: true});
+    this.competition = competition;
+  }
+};
+
+
+export class CompetitionDelete extends Event {
+  static eventType = 'competition-delete';
+
+  /*
+     The following are the fields provided by this event
+
+     cid: cid of competition to be deleted (note this is after confirmation)
+
+  */
+
+  constructor(cid) {
+    super('competition-delete',{composed: true, bubbles: true});
+    this.cid = cid;
+  }
+};
+
+export class DeleteReply extends Event {
+  static eventType = 'delete-reply';
+
+  /*
+     The following are the fields provided by this event
+
+     none: A reply is a confirmation, no reply is a reject  
 
   */
 
   constructor() {
-    super('competitions-changed',{composed: true, bubbles: true});
+    super('delete-reply',{composed: true, bubbles: true});
+  }
+};
+
+
+export class DeleteRequest extends Event {
+  static eventType = 'delete-request';
+
+  /*
+     The following are the fields provided by this event
+
+     item: The name of the item being requested to delete.
+
+  */
+
+  constructor(item) {
+    super('delete-request',{composed: true, bubbles: true});
+    this.item = item;
   }
 };
 
@@ -454,6 +523,23 @@ export class PlayoffPick extends Event {
   constructor(pick) {
     super('playoff-pick',{composed: true, bubbles: true});
     this.pick = pick;
+  }
+};
+
+
+export class PromoteList extends Event {
+  static eventType = 'promote-list';
+
+  /*
+     The following are the fields provided by this event
+
+     list: List of users who may be (or may not be) being promoted
+
+  */
+
+  constructor(list) {
+    super('promote-list',{composed: true, bubbles: true});
+    this.list = list;
   }
 };
 

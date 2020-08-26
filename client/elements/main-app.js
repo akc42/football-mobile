@@ -292,7 +292,7 @@ class MainApp extends LitElement {
                   <div id="gadm" role="menuitem" @click=${this._selectPage}><material-icon>public</material-icon>Global Admin</div>
                 `: '')}
                 <div id="admin" role="menuitem" @click=${this._selectPage}>
-                  <material-icon>admin_panel_settings</material-icon>Competition Admin</div>
+                  <material-icon>font_download</material-icon>Competition Admin</div>
               `: '')}
             `:'')}
           </div>
@@ -353,7 +353,7 @@ class MainApp extends LitElement {
     this.close = false;
     this.fmPages.dispatchEvent(new PageClose());
   }
-  _compClosed(e) {foot
+  _compClosed(e) {
     this.mainmenu.close();
   }
   _competitionSelected(e) {

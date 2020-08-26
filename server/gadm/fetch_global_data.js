@@ -28,10 +28,13 @@
     debug('new request from user', user.uid);
     const comp = db.prepare(`SELECT c.cid, c.name, c.administrator, c.open, c.closed FROM competition c 
       WHERE NOT EXISTS (SELECT cid FROM registration WHERE cid = c.cid) OR c.administrator = 0 
-	    ORDER BY c.cid;`);
-    const users = db.prepare(`SELECT uid, name, email, global_admin, member_approve, (
-      SELECT cid FROM registration WHERE uid = participant.uid ORDER BY cid DESC LIMIT 1
-    ) as cid, last_logon FROM participant ORDER BY global_admin DESC, member_approve DESC, cid DESC, last_logon DESC;`);
+      ORDER BY c.cid;`);
+    //Note: 3 years is approx 94608000 seconds.
+    const users = db.prepare(`SELECT uid, name, email, global_admin, member_approve, 
+      IFNULL((SELECT cid FROM competition WHERE administrator = participant.uid AND 
+        update_date > ((strftime('%s','now')) - 94608000) ORDER BY cid DESC LIMIT 1),0) as previous_admin,
+      IFNULL((SELECT cid FROM registration WHERE uid = participant.uid ORDER BY cid DESC LIMIT 1),0) as cid, last_logon FROM participant 
+      WHERE waiting_approval = 0 ORDER BY previous_admin DESC, global_admin DESC, member_approve DESC, cid DESC, last_logon DESC`);
     debug('prepared ')
     db.transaction(() => {
       responder.addSection('competitions', comp.all());

@@ -42,9 +42,10 @@
   --comment-panel-color: black;
   /*invert(100%) sepia(0%) saturate(5322%) hue-rotate(84deg) brightness(113%) contrast(102%); */
   --logo-background: url('/appimages/football-logo.svg');
-
+  --item-present: lawngreen;
+  --create-item-color: lawngreen;
  
-  --fm-win-color:darkorange;
+  --fm-win-color:gold;
   --fm-in-playoff: gold;
   --fm-incorrect-pick:orangered; 
   --fm-indeterminate-pick:mediumorchid; 
