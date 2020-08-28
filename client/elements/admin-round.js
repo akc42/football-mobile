@@ -20,8 +20,7 @@
 import { html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
-import './football-page.js';
-import page from '../styles/page.js';
+
 import RouteManager from './route-manager.js';
 
 /*
@@ -29,7 +28,11 @@ import RouteManager from './route-manager.js';
 */
 class AdminRound extends RouteManager {
   static get styles() {
-    return [page, css``];
+    return  css`
+      :host {
+        height: 100%;
+      }
+    `;
   }
   static get properties() {
     return {
@@ -59,7 +62,7 @@ class AdminRound extends RouteManager {
       </style>
       ${cache({
         home: html`<admin-round-home managed-page></admin-round-home>`,
-        round: html`<admin-round-manager managed-page .route=${this.subroute}></admin-round-manager>`
+        round: html`<admin-round-round managed-page .route=${this.subroute}></admin-round-round>`
       }[this.page])}
     `;
   }

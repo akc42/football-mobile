@@ -20,16 +20,19 @@
 import { html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
-import './football-page.js';
-import page from '../styles/page.js';
+
 import RouteManager from './route-manager.js';
 
 /*
-     <admin-manager>: Competition Admin Main Page
+     <admin-round-round>: Competition Admin Round Management 2nd Level
 */
-class AdminRoundManager extends RouteManager {
+class AdminRoundRound extends RouteManager {
   static get styles() {
-    return [page, css``];
+    return  css`
+      :host {
+        height: 100%;
+      }
+    `;
   }
   static get properties() {
     return {
@@ -67,4 +70,4 @@ class AdminRoundManager extends RouteManager {
     import(`./admin-round-round-${page}.js`);
   }
 }
-customElements.define('admin-round-manager', AdminRoundManager);
+customElements.define('admin-round-round', AdminRoundRound);

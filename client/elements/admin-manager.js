@@ -80,8 +80,9 @@ class AdminManager extends RouteManager {
           .competition=${this.competition} 
           managed-page
           @competition-changed=${this._competitionChanged}></admin-home>`,
+        teams: html`<admin-teams managed-page ?hasTic=${this.hasTic} .teams=${this.teams} @team-assigned=${this._teamAssign}></admin-teams>`,
         map: html`<admin-map managed-page></admin-map>`,
-        round: html`<admin-round-manager managed-page .route=${this.subroute}></admin-round-manager>`,
+        round: html`<admin-round managed-page .route=${this.subroute}></admin-round>`,
         email: html`<admin-email managed-page></admin-email>`,
         help: html`<admin-help managed-page></admin-help>`
       }[this.page])}

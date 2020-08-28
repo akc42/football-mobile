@@ -23,7 +23,7 @@ import './fm-page.js';
 import page from '../styles/page.js';
 
 /*
-     <gadm-manager>: Main Page for all the global admin functions
+     <admin-help>: Help Page for Admin
 */
 class AdminHelp extends LitElement {
   static get styles() {
@@ -55,7 +55,7 @@ class AdminHelp extends LitElement {
     return html`
       <style>
       </style>
-      <fm-page id="page" heading="Registered Members">
+      <fm-page id="page" heading="Admin Help">
         <p>STILL TO BE IMPLEMENTED</p>
       </fm-page>
     `;

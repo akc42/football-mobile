@@ -18,6 +18,7 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
 (function() {
   'use strict';
 
@@ -34,16 +35,32 @@
         qry.push(params.name);
       }
       if (params.expected_date !== undefined) {
-        sql += ' expected_date = ?,'
+        sql += ' expected_date = ?,';
         qry.push(params.expected_date);
       }
       if (params.condition !== undefined) {
-        sql += ' condition = ?,'
+        sql += ' condition = ?,';
         qry.push(params.condition);
+      }
+      if (params.pp_deadline !== undefined) {
+        sql += ' pp_deadline = ?,';
+        qry.push(params.pp_deadline);
+      }
+      if (params.gap !== undefined) {
+        sql += ' gap = ?,';
+        qry.push(params.gap);
+      }
+      if (params.open !== undefined) {
+        sql += ' open = ?,';
+        qry.push(params.open);
+      }
+      if (params.closed !== undefined) {
+        sql += ' closed = ?,';
+        qry.push(params.closed)
       }
       //if more params more 
       sql = sql.slice(0,-1); //remove last comma
-      sql += ' WHERE cid = ?'
+      sql += ' WHERE cid = ?';
       qry.push(cid);
       debug('SQL =', sql, 'parameters of ', qry);
       if (qry.length > 1) {

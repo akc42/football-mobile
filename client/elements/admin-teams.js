@@ -23,9 +23,9 @@ import './football-page.js';
 import page from '../styles/page.js';
 
 /*
-     <admin-round--round-match>: Allows setup and subsequent editing of matches in a round.
+     <admin-teans>: Maps the teams into the competition
 */
-class AdminRoundRoundMatch extends LitElement {
+class AdminMap extends LitElement {
   static get styles() {
     return [page, css``];
   }
@@ -55,10 +55,10 @@ class AdminRoundRoundMatch extends LitElement {
     return html`
       <style>
       </style>
-      <football-page id="page" heading="Match Management">
+      <football-page id="page" heading="Teams In Competition">
         <p>STILL TO BE IMPLEMENTED</p>
       </football-page>
     `;
   }
 }
-customElements.define('admin-round-round-match', AdminRoundRoundMatch);
+customElements.define('admin-teams', AdminTeams);

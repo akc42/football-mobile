@@ -19,13 +19,13 @@
 */
 import { LitElement, html, css } from '../libs/lit-element.js';
 
-import './fm-page.js';
+import './football-page.js';
 import page from '../styles/page.js';
 
 /*
-     <admin-round-round>: Allows Selection of Other Rounds
+     <admin-round-round-home>: Allows Selection of Other Rounds
 */
-class AdminRoundRound extends LitElement {
+class AdminRoundRoundHome extends LitElement {
   static get styles() {
     return [page, css``];
   }
@@ -55,10 +55,10 @@ class AdminRoundRound extends LitElement {
     return html`
       <style>
       </style>
-      <fm-page id="page" heading="Round Selection">
+      <football-page id="page" heading="Round Selection">
         <p>STILL TO BE IMPLEMENTED</p>
-      </fm-page>
+      </football-page>
     `;
   }
 }
-customElements.define('admin-round-round', AdminRoundRound);
+customElements.define('admin-round-round-home', AdminRoundRoundHome);

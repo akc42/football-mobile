@@ -34,7 +34,8 @@ class FmPage extends LitElement {
         flex-direction:column;
         max-width: 600px;
         justify-content: start;
-        padding:10px;
+        padding:10px 0;
+        margin: 0 10px;
         box-sizing:border-box;
       }
       header {
@@ -74,7 +75,6 @@ class FmPage extends LitElement {
         overflow-y: auto;
         scroll-snap-type: y mandatory;
       }
-
       .action {
         display: flex;
         width:100%;

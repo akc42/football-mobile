@@ -19,7 +19,7 @@
 */
 import { LitElement, html, css } from '../libs/lit-element.js';
 
-import './fm-page.js';
+import './football-page.js';
 import page from '../styles/page.js';
 
 /*
@@ -55,9 +55,9 @@ class AdminEmail extends LitElement {
     return html`
       <style>
       </style>
-      <fm-page id="page" heading="Registered Members">
+      <football-page id="page" heading="Registered Members">
         <p>STILL TO BE IMPLEMENTED</p>
-      </fm-page>
+      </football-page>
     `;
   }
 }

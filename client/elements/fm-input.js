@@ -41,7 +41,7 @@ class FmInput extends LitElement {
         padding: 2px;
         border-radius: 4px;
         font-family: Roboto, sans-serif;
-        width: 100%;
+        width: var(--input-width, 100%);
         box-sizing: border-box;
       }
       input:focus, textarea:focus {
