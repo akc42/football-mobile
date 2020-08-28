@@ -74,7 +74,7 @@ class MainApp extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.removeAttribute('unresolved');
-    api('session/log', { topic: 'client', message: 'Main App Started', gap: 0 }); //no interest in reply
+    api('session/log', { topic: 'client', message: `User ${global.user.uid} Signed In`, gap: 0 }); //no interest in reply
 
   }
   disconnectedCallback() {
@@ -85,6 +85,7 @@ class MainApp extends LitElement {
       debug('authorised changed to ' + this.authorised);
       if (this.authorised) {
         //once authorised, the menu key invokes the main menu
+        api('session/log', { topic: 'client', message: 'Main App Started', gap: 0 }); //no interest in reply
         document.body.addEventListener('key-pressed', this._keyPressed);
         if (this.keys === undefined) {
           this.keys= new AppKeys(document.body, 'f1 f2 f4 f12');
