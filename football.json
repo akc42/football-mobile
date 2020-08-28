@@ -17,7 +17,7 @@
       "log_date_format": "YYYY-MM-DD HH:mm:ss",
       "env": {
         "DEBUG_COLORS": true,
-        "FOOTBALL_EMAIL": "yes",
+        "FOOTBALL_ENABLE_EMAIL": "yes",
         "FOOTBALL_LOGNODATE": "yes",
         "FOOTBALL_DB_DIR": "/home/melindas/data"
       }
