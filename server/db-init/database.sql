@@ -31,6 +31,7 @@ CREATE TABLE competition (
     cid integer PRIMARY KEY ASC, --Competition ID - 
     name character varying,--This is the name that appears in the header for the competition
     administrator integer  NOT NULL DEFAULT 0, --The uid of the administrator
+    team_lock boolean NOT NULL DEFAULT 0, --Says whether we have locked the teams in competition
     open boolean NOT NULL DEFAULT 0 , --Says whether a user may see the competition
     closed boolean NOT NULL DEFAULT 0, --Says where a user may  still register
     expected_date bigint NOT NULL DEFAULT 0, --expected open date (0 if we don't know) only valid if not open

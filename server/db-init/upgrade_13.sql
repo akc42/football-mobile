@@ -100,6 +100,7 @@ CREATE TABLE competition (
     cid integer PRIMARY KEY ASC, --Competition ID - 
     name character varying,--This is the name that appears in the header for the competition
     administrator integer  NOT NULL DEFAULT 0, --The uid of the administrator
+    team_lock boolean NOT NULL DEFAULT 0, --Says whether teams in competition are all set
     open boolean NOT NULL DEFAULT 0 , --Says whether a user may see the competition
     closed boolean NOT NULL DEFAULT 0, --Says where a user may  still register 
     expected_date bigint NOT NULL DEFAULT 0, --expected open date (0 if we don't know) only valid if not open
@@ -116,12 +117,12 @@ CREATE TABLE competition (
     cache_store_date bigint DEFAULT (strftime('%s','now'))
 );
 
-INSERT INTO competition (cid, name, condition, administrator, open, pp_deadline, gap, update_date, closed) 
+INSERT INTO competition (cid, name, condition, administrator, open, pp_deadline, gap, update_date, closed, team_lock) 
     SELECT cid, description, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
 REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(condition,
 ':banana','🍌'),':bow','🙇'),':brickwall','😖'),':bye','👋'),':cheeky', '🐒'),':cheer','🥂'),':cry','😢'),':dunno','🤔') ,':enraged','😠'),':excited','🤩'),
 ':har','🙄'),':help', '🥺'),':hug','👐'),':innocent','😉'),':mad','😠'),':out','🤯'),':pickle','🥒'),':prrr','😾'),':rofl','🤣'),':slap','😈'),
-':sympa','😮'),':thanks','🙏'),':thumbsup','👍'),':wub','❤️'),':yikes','😱'),':zzz','🛌'), administrator, open, pp_deadline, gap, creation_date, 1 As closed FROM old_competition;
+':sympa','😮'),':thanks','🙏'),':thumbsup','👍'),':wub','❤️'),':yikes','😱'),':zzz','🛌'), administrator, open, pp_deadline, gap, creation_date, 1 As closed, 1 As team_lock FROM old_competition;
 
 DROP TABLE old_competition;
 
