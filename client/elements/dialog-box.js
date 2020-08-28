@@ -34,7 +34,7 @@ class DialogBox extends LitElement  {
       }
       #dialog {
         position: fixed;
-        background-color: white;
+        background-color: var(--dialog-color);
         color:  black;
         margin:5px;
         box-sizing: border-box;
