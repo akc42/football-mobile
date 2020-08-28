@@ -17,15 +17,17 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html, css } from '../libs/lit-element.js';
+import { html, css } from '../libs/lit-element.js';
+import {cache} from '../libs/cache.js';
 
-import './fm-page.js';
+import './football-page.js';
 import page from '../styles/page.js';
+import RouteManager from './route-manager.js';
 
 /*
-     <gadm-manager>: Main Page for all the global admin functions
+     <admin-round>: Actually a high level manager for rounds
 */
-class AdminRound extends LitElement {
+class AdminRound extends RouteManager {
   static get styles() {
     return [page, css``];
   }
@@ -55,10 +57,14 @@ class AdminRound extends LitElement {
     return html`
       <style>
       </style>
-      <fm-page id="page" heading="Round Management">
-        <p>STILL TO BE IMPLEMENTED</p>
-      </fm-page>
+      ${cache({
+        home: html`<admin-round-home managed-page></admin-round-home>`,
+        round: html`<admin-round-manager managed-page .route=${this.subroute}></admin-round-manager>`
+      }[this.page])}
     `;
+  }
+  loadPage(page) {
+    import(`./admin-round-${page}.js`);
   }
 }
 customElements.define('admin-round', AdminRound);

@@ -469,17 +469,17 @@
 
       debug('set up to check competition admin capability')
       admin.use((req, res, next) => {
-        debugapi(`checking user ${req.user.uid} is admin of competition ${req.cid}`);
+        debugapi(`checking user ${req.user.uid} is admin of competition ${req.params.cid}`);
         if (req.user.global_admin === 1) {
           debugapi('global admin has access automatically')
           next();
         } else {
-          const admin = db.prepare('SELECT administrator FROM competition WHERE cid = ?').pluck().get(req.cid);
+          const admin = db.prepare('SELECT administrator FROM competition WHERE cid = ?').pluck().get(req.params.cid);
           if (admin === req.user.uid) { 
             debugapi('user is competition admin');
             next();
           } else {
-            forbidden(req, res, `User uid ${req.user.uid} has is not admin of competition ${req.cid}`);
+            forbidden(req, res, `User uid ${req.user.uid} has is not admin of competition ${req.params.cid}`);
           }
         }
       });
@@ -487,10 +487,10 @@
       for (const a in admins) {
         debugapi(`setting up /api/admin/:cid/${a} route`);
         admin.post(`/${a}`, (req, res) => {
-          debugapi(`received /api/admin/${req.cid}/${a}`);
+          debugapi(`received /api/admin/${req.params.cid}/${a}`);
           try {
             const responder = new Responder(res);
-            cadms[a](req.user,req.cid,req.body, responder);
+            admins[a](req.user,parseInt(req.params.cid,10),req.body, responder);
             responder.end();
           } catch (e) {
             errored(req, res, e.toString());
@@ -501,7 +501,7 @@
         Finally just the simple user apis
       */
       api.use('/user/:cid',usr);
-
+      debug('Setting Up Users');
       const users = loadServers(__dirname, 'user');      
       for (const u in users) {
         debugapi(`Setting up /api/user/:cid/${u} route`);
@@ -509,7 +509,7 @@
           debugapi(`Received /api/user/${req.params.cid}/${u}`);
           try {
             const responder = new Responder(res);
-            users[u](req.user, req.params.cid, req.body, responder);
+            users[u](req.user, parseInt(req.params.cid,10), req.body, responder);
             responder.end(); 
           } catch (e) {
             errored(req,res,e.toString());

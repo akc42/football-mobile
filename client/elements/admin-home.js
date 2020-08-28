@@ -18,9 +18,14 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html, css } from '../libs/lit-element.js';
+import {cache} from '../libs/cache.js';
 
 import './fm-page.js';
 import page from '../styles/page.js';
+import {CompetitionChanged} from '../modules/events.js';
+import './fm-input.js';
+import './calendar-input.js';
+
 
 /*
      <gadm-manager>: Main Page for all the global admin functions
@@ -31,11 +36,12 @@ class AdminHome extends LitElement {
   }
   static get properties() {
     return {
-    
+      competition: {type: Object}
     };
   }
   constructor() {
     super();
+    this.competition = {cid: 0, name: '', expected_date: 0}
   }
   connectedCallback() {
     super.connectedCallback();
@@ -54,11 +60,63 @@ class AdminHome extends LitElement {
   render() {
     return html`
       <style>
+        fm-input {
+          width: 98%;
+        }
       </style>
       <fm-page id="page" heading="Competition Setup">
-        <p>STILL TO BE IMPLEMENTED</p>
+        <div class="container">
+          <fm-input label="Competition Name", .value=${this.competition.name} required @blur=${this._nameChange}></fm-input>
+          ${cache(this.competition.open ? '':html`
+            <label for="opendate">Expected Opening Date</label>
+            <calendar-input id="opendatate" name="opendate" .value=${this.competition.expected_date} @value-changed=${this._newExpected}></calendar-input>
+          `)}
+          ${cache(this.competition.closed ? html`
+            <label for="condition">Registration Condition</label>
+            <div id="condition" class="panel">${this.competition.condition}</div>
+          `:html`
+            <fm-input label="Registration Condition" textarea .value=${this.competition.condition} @blur=${this._conditionChange} rows="5"></fm-input>
+          `)}
+          <label for="pp_deadline">Playoff Picks Deadline</label>
+          <calendar-input id="pp_deadline" name="ppdead" .value=${this.competition.pp_deadline} @value-changed=${this._newPPDeadline} withTime></calendar-input>
+          <fm-input 
+            id="gap" 
+            label="Deadline (in Seconds) before Match Time for Match Picks" 
+            message="Must be between 0 and 600 seconds"
+            .value=${this.competition.gap} 
+            type="Number"
+            min="0"
+            step="1"
+            max="600"
+            @blur
+
+        </div>
       </fm-page>
     `;
+  }
+  _conditionChange(e) {
+    e.stopPropagation();
+    if (this.competition.condition !== e.currentTarget.value) {
+      this.competition.condition = e.currentTarget.value;
+      this.dispatchEvent(new CompetitionChanged({cid: this.competition.cid, condition: this.competition.condition}));
+    }
+  }
+
+  _nameChange(e) {
+    e.stopPropagation();
+    if (e.currentTarget.validate()) {
+      if (e.currentTarget.value !== this.competition.name) {
+        this.competition.name = e.currentTarget.value;
+        this.dispatchEvent(new CompetitionChanged({cid: this.competition.cid, name: this.competition.name}));
+      }
+    }
+  }
+  _newExpected(e) {
+    e.stopPropagation();
+    if (this.competition.expected_date !== e.changed) {
+      this.competition.expected_date = e.changed;
+      this.dispatchEvent(new CompetitionChanged({cid: this.competition.cid, expected_date: this.competition.expected_date}));
+    }
   }
 }
 customElements.define('admin-home', AdminHome);

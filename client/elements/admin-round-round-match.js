@@ -17,17 +17,17 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html } from '../libs/lit-element.js';
+import { LitElement, html, css } from '../libs/lit-element.js';
 
-import './football-page.js';
+import './fm-page.js';
 import page from '../styles/page.js';
 
 /*
-     <fm-register>
+     <admin-round-match>: Allows setup and subsequent editing of matches in a round.
 */
-class RegisterManager extends LitElement {
+class AdminRoundMatch extends LitElement {
   static get styles() {
-    return [page];
+    return [page, css``];
   }
   static get properties() {
     return {
@@ -53,10 +53,12 @@ class RegisterManager extends LitElement {
   }
   render() {
     return html`
-        <football-page id="page" heading="Registration">
-          <p>NOT YET IMPLEMENTED</p>
-        </football-page>
+      <style>
+      </style>
+      <fm-page id="page" heading="Match Management">
+        <p>STILL TO BE IMPLEMENTED</p>
+      </fm-page>
     `;
   }
 }
-customElements.define('register-manager', RegisterManager);
+customElements.define('admin-round-match', AdminRoundMatch);

@@ -234,15 +234,16 @@ class FmInput extends LitElement {
     }
     return !this.invalid;
   }
-  _blur() {
+  _blur(e) {
     this._required = this.required;
   }
   _emoji(e) {
     e.stopPropagation();
+    console.log('emoji occured');
     if (this.input !== undefined) {
-      this.input.setRangeText(e.emoji);
-      this.value += e.emoji;
-
+      this.input.setRangeText(e.emoji,this.input.selectionStart,this.input.selectionEnd,'end');
+      this.value =this.input.value;
+      this.input.focus();
     }
   }
   _inputChanged(e) {

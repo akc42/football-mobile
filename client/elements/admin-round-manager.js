@@ -17,14 +17,19 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html } from '../libs/lit-element.js';
+import { html, css } from '../libs/lit-element.js';
+import {cache} from '../libs/cache.js';
+
+import './football-page.js';
+import page from '../styles/page.js';
+import RouteManager from './route-manager.js';
 
 /*
-     <fm-bonus>
+     <admin-manager>: Competition Admin Main Page
 */
-class FmBonus extends LitElement {
+class AdminRoundManager extends RouteManager {
   static get styles() {
-    return [];
+    return [page, css``];
   }
   static get properties() {
     return {
@@ -50,8 +55,16 @@ class FmBonus extends LitElement {
   }
   render() {
     return html`
-    <p>Not implemented Yet</p>
+      <style>
+      </style>
+      ${cache({
+        home: html`<admin-round-round-home managed-page></admin-round-round-home>`,
+        match: html`<admin-round-round-match managed-page></admin-round-round-match>`
+      }[this.page])}
     `;
   }
+  loadPage(page) {
+    import(`./admin-round-round-${page}.js`);
+  }
 }
-customElements.define('fm-bonus', FmBonus);
+customElements.define('admin-round-manager', AdminRoundManager);

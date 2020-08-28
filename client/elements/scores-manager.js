@@ -17,7 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { html } from '../libs/lit-element.js';
+import { html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
 import RouteManager from './route-manager.js';
@@ -33,6 +33,14 @@ const debug = new Debug('scores');
      <scores-manager>
 */
 class ScoresManager extends RouteManager {
+
+  static get styles() {
+    return css`        
+      :host {
+        height: 100%;
+      }
+    `;
+  }
   static get properties() {
     return {
       users: {type: Array}, //to hold full competitions cache result
@@ -114,9 +122,7 @@ class ScoresManager extends RouteManager {
   render() {
     return html`
       <style>
-        :host {
-          height: 100%;
-        }
+
       </style>
       ${cache({
         home: html`<scores-home 
