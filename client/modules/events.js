@@ -70,6 +70,37 @@ export class AuthChanged extends Event {
   }
 };
 
+export class CalendarReply extends Event {
+  static eventType = 'calendar-reply';
+
+  /*
+     The following are the fields provided by this event
+
+     date: Resultant Date/Time after editing in seconds since 1970
+
+  */
+
+  constructor(date) {
+    super('calendar-reply',{composed: true, bubbles: true});
+    this.date = date;
+  }
+};
+
+export class CalendarRequest extends Event {
+  static eventType = 'calendar-request';
+
+  /*
+     The following are the fields provided by this event
+
+     date: Starting Date Time in Seconds since 1970
+
+  */
+
+  constructor(date) {
+    super('calendar-request',{composed: true, bubbles: true});
+    this.date = date;
+  }
+};
 export class CommentReply extends Event {
   static eventType = 'comment-reply';
 

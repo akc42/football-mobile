@@ -27,6 +27,7 @@ import global from '../modules/globals.js';
 import { switchPath } from '../modules/utils.js';
 import Debug from '../modules/debug.js';
 const debug = new Debug('admin');
+import './calendar-dialog.js';
 
 
 /*
@@ -75,6 +76,7 @@ class AdminManager extends RouteManager {
     return html`
       <style>
       </style>
+      <calendar-dialog></calendar-dialog>
       ${cache({
         home: html`<admin-home 
           .competition=${this.competition} 
