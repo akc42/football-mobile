@@ -19,7 +19,7 @@
 */
 import { html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
-
+import {WaitRequest} '../modules/events.js';
 
 import RouteManager from './route-manager.js';
 
@@ -67,7 +67,8 @@ class AdminRoundRound extends RouteManager {
     `;
   }
   loadPage(page) {
-    import(`./admin-round-round-${page}.js`);
+    this.dispatchEvent(new WaitRequest(true));
+    import(`./admin-round-round-${page}.js`).then(() => this.dispatchEvent(new WaitRequest(false)));
   }
 }
 customElements.define('admin-round-round', AdminRoundRound);

@@ -21,8 +21,8 @@ import { LitElement, html, css } from '../libs/lit-element.js';
 
 import './fm-page.js';
 import page from '../styles/page.js';
-import './page-manager.js';
 import './list-manager.js';
+
 
 /*
      <approve-manager>: Competition Approval of Membership Requests

@@ -23,10 +23,9 @@ import {cache} from '../libs/cache.js';
 import button from '../styles/button.js';
 import page from '../styles/page.js';
 
-import { SessionStatus } from '../modules/events.js';
+import { SessionStatus, WaitRequest } from '../modules/events.js';
 import global from '../modules/globals.js';
 
-import './waiting-indicator.js';
 import './fm-page.js';
 import './form-manager.js';
 import './fm-input.js';
@@ -48,7 +47,6 @@ class SessionPassword extends LitElement {
   static get properties () {
     return {
       user: {type: Object},
-      waiting: {type: Boolean},
       showpass: {type: Boolean},
       password: {type: String}
     };
@@ -56,7 +54,6 @@ class SessionPassword extends LitElement {
   constructor() {
     super();
     this.user={uid: 0, remember: 0};
-    this.waiting = false;
     this.showpass = false;
     this.password = '';
     this._keyPressed = this._keyPressed.bind(this);
@@ -119,7 +116,6 @@ class SessionPassword extends LitElement {
         }
 
       </style>
-      <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       <fm-page heading="Sign In">
         <form-manager id="makereq" action="session/logon" @form-response=${this._formResponse}>     
           <input type="hidden" name="uid" value="${this.user.uid}" /> 
@@ -161,7 +157,7 @@ class SessionPassword extends LitElement {
   }
   _formResponse(e) {
     e.stopPropagation();
-    this.waiting = false;
+    this.dispatchEvent(new WaitRequest(false));
     this.dispatchEvent(new SessionStatus({ state: e.response.state, user: e.response.user }));
   }
   _keyPressed(e) {
@@ -174,12 +170,10 @@ class SessionPassword extends LitElement {
   }
   async _proceed(e) {
     e.stopPropagation();
-    if (!this.waiting) {
-      const result = this.request.submit();
-      if (result) {
-        this.waiting = true;
-        this.pinput.invalid = false;
-      }
+    const result = this.request.submit();
+    if (result) {
+      this.dispatchEvent(new WaitRequest(true));
+      this.pinput.invalid = false;
     }
   }
   _pwChanged(e) {

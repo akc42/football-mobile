@@ -27,14 +27,14 @@ import {connectUrl, disconnectUrl} from '../modules/location.js';
 import RouteManager from './route-manager.js';
 import Route from '../modules/route.js';
 
-import './waiting-indicator.js';
+
 import global from '../modules/globals.js';
 
 import page from '../styles/page.js';
 import './comment-dialog.js';
 import './comment-panel.js';
 import './delete-dialog.js';
-import { MenuRemove,MenuReset } from '../modules/events.js';
+import { MenuRemove,MenuReset, WaitRequest } from '../modules/events.js';
 import { switchPath } from '../modules/utils.js';
 import { i } from '../libs/lit-html-f17e05ab.js';
 
@@ -80,7 +80,7 @@ export class PageManager extends RouteManager {
       <comment-dialog></comment-dialog>
       <comment-panel></comment-panel>
       <delete-dialog ></delete-dialog>
-      <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
+
       ${cache({
         approve: html`<approve-manager managed-page></approve-manager>`,
         admin: html`<admin-manager managed-page .route=${this.subRoute}></admin-manager>`,
@@ -100,8 +100,8 @@ export class PageManager extends RouteManager {
   }
 
   loadPage(page) {
-    this.waiting = true;
-    import(`./${page}-manager.js`).then(this.waiting = false);
+    this.dispatchEvent(new WaitRequest(true));
+    import(`./${page}-manager.js`).then(() => this.dispatchEvent(new WaitRequest(false)));
     this.dispatchEvent(new MenuReset(true));
     this.dispatchEvent(new MenuRemove(page));
 

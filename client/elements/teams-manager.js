@@ -25,7 +25,7 @@ import Route from '../modules/route.js';
 
 import RouteManager from './route-manager.js';
 
-import {MenuReset, MenuAdd, PageClosed} from '../modules/events.js';
+import {MenuReset, MenuAdd, PageClosed, WaitRequest} from '../modules/events.js';
 import global from '../modules/globals.js';
 import Debug from '../modules/debug.js';
 const debug = Debug('teams');
@@ -158,7 +158,8 @@ class TeamsManager extends RouteManager {
     } else {
       this.dispatchEvent(new MenuAdd());
     }
-    import(`./teams-${page}.js`);
+    this.dispatchEvent(new WaitRequest(true));
+    import(`./teams-${page}.js`).then(() => this.dispatchEvent(new WaitRequest(false)));
 
   }
   async _newRoute() {

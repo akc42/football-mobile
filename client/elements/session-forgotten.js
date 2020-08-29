@@ -24,10 +24,10 @@ import { LitElement, html } from '../libs/lit-element.js';
 import './fm-input.js';
 import './fm-page.js';
 import './re-captcha.js';
-import './waiting-indicator.js';
+
 import button from '../styles/button.js';
 import page from '../styles/page.js';
-import { SessionStatus } from '../modules/events.js';
+import { SessionStatus, WaitRequest } from '../modules/events.js';
 import api from '../modules/api.js';
 import AppKeys from '../modules/keys.js';
 import global from '../modules/globals.js';
@@ -43,14 +43,12 @@ class SessionForgotten extends LitElement {
   }
   static get properties() {
     return {
-      user: {type: Object},
-      waiting: {type: Boolean}
+      user: {type: Object}
     };
   }
   constructor() {
     super();
     this.user = {uid:0, email:''}
-    this.waiting = false;
     this._keyPressed = this._keyPressed.bind(this);
   }
   connectedCallback() {
@@ -83,7 +81,6 @@ class SessionForgotten extends LitElement {
       <style>
 
       </style>
-      <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       <fm-page heading="Forgotten">
           <re-captcha></re-captcha>
           <p>You have indicated that you have forgotton your password.  Please prove you a not a robot, and then we
@@ -105,9 +102,9 @@ class SessionForgotten extends LitElement {
   }
   async _update(e) {
     if (this.recaptcha !== undefined && this.recaptcha.validate()) {
-      this.waiting = true;
+      this.dispatchEvent(new WaitRequest(true));
       await api('session/request_pin',{uid: this.user.uid });
-      this.waiting = false;
+      this.dispatchEvent(new WaitRequest(false));
       this.dispatchEvent(new SessionStatus({state: 'pin'}));
     }
   }

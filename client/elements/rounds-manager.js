@@ -21,7 +21,7 @@ import { html , css} from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
 import RouteManager from './route-manager.js';
-import { MenuReset, MenuAdd, PageClose } from '../modules/events.js';
+import { MenuReset, MenuAdd, PageClose, WaitRequest } from '../modules/events.js';
 import Route from '../modules/route.js';
 import api from '../modules/api.js';
 import global from '../modules/globals.js';
@@ -133,7 +133,8 @@ class RoundsManager extends RouteManager {
     `;
   }
   loadPage(page) {
-    import(`./rounds-${page}.js`);
+    this.dispatchEvent(new WaitRequest(true));
+    import(`./rounds-${page}.js`).then(() => this.dispatchEvent(new WaitRequest(false)));
     if (page === this.homePage()) {
       this.dispatchEvent(new MenuReset())
     } else {

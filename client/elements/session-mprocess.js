@@ -26,9 +26,8 @@ import './fm-input.js';
 import button from '../styles/button.js';
 import page from '../styles/page.js';
 
-import { SessionStatus } from '../modules/events.js';
+import { SessionStatus} from '../modules/events.js';
 import global from '../modules/globals.js';
-import './waiting-indicator.js';
 import './fm-page.js';
 import AppKeys from '../modules/keys.js';
 

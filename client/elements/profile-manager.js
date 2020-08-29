@@ -26,14 +26,14 @@ import './fm-checkbox.js';
 import './fm-page.js';
 import './form-manager.js';
 import './material-icon.js';
-import './waiting-indicator.js';
+
 
 import button from '../styles/button.js';
 import page from '../styles/page.js';
 import api from '../modules/api.js';
 import AppKeys from '../modules/keys.js';
 import global from '../modules/globals.js';
-import { AuthChanged } from '../modules/events.js';
+import { AuthChanged,WaitRequest } from '../modules/events.js';
 import { switchPath } from '../modules/utils.js';
 
 /*
@@ -51,7 +51,6 @@ class ProfileManager extends LitElement {
       password: {type: String},
       replica: {type: String},
       remember: {type: Boolean},
-      waiting:{type: Boolean},
       showpass: {type:Boolean}
     };
   }
@@ -62,7 +61,6 @@ class ProfileManager extends LitElement {
     this.password = '';
     this.replica = '';
     this.remember = false;
-    this.waiting = false;
     this.showpass = false;
     this._keyPressed = this._keyPressed.bind(this);
     this.keyTarget = document.querySelector('body');
@@ -168,7 +166,6 @@ class ProfileManager extends LitElement {
           align-self: center;
         }
       </style>
-      <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       <fm-page @key-pressed=${this._keyPressed} id="page" heading="Your Profile">
      
         <form-manager
@@ -249,22 +246,22 @@ class ProfileManager extends LitElement {
     switchPath('/');
   }
   _changeProfile() {
-    if (!this.waiting) {
-      const result = this.doProfile.submit();
-      if (result) {
-        this.waiting = true;
-        this.dinput.invalid = false;
-        this.einput.invalid = false;
-        this.pinput.invalid = false;
-        this.rinput.invalid = false;
-      }
+  
+    const result = this.doProfile.submit();
+    if (result) {
+      this.dispatchEvent(new WaitRequest(true));
+      this.dinput.invalid = false;
+      this.einput.invalid = false;
+      this.pinput.invalid = false;
+      this.rinput.invalid = false;
     }
+  
   }
   async _checkDisplayName() {
     if (this.name.length > 0 && this.name !== global.user.name) {
-      this.waiting = true;
+      this.dispatchEvent(new WaitRequest(true));
       const found = await api('profile/check_names', {name: this.name });
-      this.waiting = false;
+      this.dispatchEvent(new WaitRequest(false));
       this.dinput.invalid = found;
     }
   }
@@ -282,7 +279,7 @@ class ProfileManager extends LitElement {
   }
   _formResponse(e) {
     e.stopPropagation();
-    this.waiting = false;
+    this.dispatchEvent(new WaitRequest(false));
     if (e.response.usage !== 'authorised') {
       this.dispatchEvent(new AuthChanged(false)); //authorised so time to leave
     }

@@ -21,7 +21,7 @@ import { html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
 import RouteManager from './route-manager.js';
-import { MenuReset, MenuAdd } from '../modules/events.js';
+import { MenuAdd, MenuReset, WaitRequest } from '../modules/events.js';
 import api from '../modules/api.js';
 import global from '../modules/globals.js';
 import { switchPath } from '../modules/utils.js';
@@ -84,14 +84,15 @@ class AdminManager extends RouteManager {
           @competition-changed=${this._competitionChanged}></admin-home>`,
         teams: html`<admin-teams managed-page ?hasTic=${this.hasTic} .teams=${this.teams} @team-assigned=${this._teamAssign}></admin-teams>`,
         map: html`<admin-map managed-page></admin-map>`,
-        round: html`<admin-round managed-page .route=${this.subroute}></admin-round>`,
+        round: html`<admin-round managed-page .rounds=${this.rounds} .teams=${this.teams} .route=${this.subRoute}></admin-round>`,
         email: html`<admin-email managed-page></admin-email>`,
         help: html`<admin-help managed-page></admin-help>`
       }[this.page])}
     `;
   }
   loadPage(page) {
-    import(`./admin-${page}.js`);
+    this.dispatchEvent(new WaitRequest(true));
+    import(`./admin-${page}.js`).then(() => this.dispatchEvent(new WaitRequest(false)));
     if (page === this.homePage()) {
       this.dispatchEvent(new MenuReset())
     } else {

@@ -24,12 +24,12 @@ import { LitElement, html } from '../libs/lit-element.js';
 import './fm-input.js';
 import './fm-page.js';
 import './re-captcha.js';
-import './waiting-indicator.js';
+
 
 
 import button from '../styles/button.js';
 import page from '../styles/page.js';
-import { SessionStatus } from '../modules/events.js';
+import { WaitRequest} from '../modules/events.js';
 import api from '../modules/api.js';
 import AppKeys from '../modules/keys.js';
 import global from '../modules/globals.js';
@@ -46,14 +46,12 @@ class SessionApprove extends LitElement {
   static get properties() {
     return {
       user: {type: Object},
-      reason: {type: String},
-      waiting: {type: Boolean}
+      reason: {type: String}
     };
   }
   constructor() {
     super();
     this.user = {uid:0};
-    this.waiting = false;
     this.reason = '';
     this._keyPressed = this._keyPressed.bind(this);
   }
@@ -74,7 +72,11 @@ class SessionApprove extends LitElement {
   }
   firstUpdated() {
     this.doneFirstCall = true;
-    api('session/read_reason', { uid: this.user.uid }).then(response => this.reason = response.reason);
+    this.dispatchEvent(new WaitRequest(true));
+    api('session/read_reason', { uid: this.user.uid }).then(response => {
+      this.reason = response.reason;
+      this.dispatchEvent(new WaitRequest(false));
+    });
   }
 
   render() {
@@ -82,7 +84,6 @@ class SessionApprove extends LitElement {
       <style>
 
       </style>
-      <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       <fm-page heading="Application">
         <fm-input 
           id="reason" 
@@ -110,9 +111,9 @@ class SessionApprove extends LitElement {
     return false;
   }
   async _update(e) {
-    this.waiting = true;
+    this.dispatchEvent(new WaitRequest(true));
     const result =  await api('session/update_reason',{uid: this.user.uid, reason: this.reason});
-    this.waiting = false;
+    this.dispatchEvent(new WaitRequest(false));
     if (result.state === 'error') {
       throw new Error ('Reason Update Failed');
     }

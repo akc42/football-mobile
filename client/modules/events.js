@@ -655,3 +655,19 @@ export class ValueChanged extends Event {
   }
 };
 
+export class WaitRequest extends Event {
+  static eventType = 'wait-request';
+
+  /*
+     The following are the fields provided by this event
+
+     wait: true or false, depending with wait on or off.
+
+  */
+
+  constructor(wait) {
+    super('wait-request',{composed: true, bubbles: true});
+    this.wait = wait;
+  }
+};
+

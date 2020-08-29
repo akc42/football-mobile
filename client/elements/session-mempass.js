@@ -24,11 +24,10 @@ import page from '../styles/page.js';
 
 import sid from '/api/tracking.js';
 
-import { SessionStatus } from '../modules/events.js';
+import { SessionStatus, WaitRequest } from '../modules/events.js';
 import api from '../modules/api.js';
 import global from '../modules/globals.js';
 
-import './waiting-indicator.js';
 import './fm-page.js';
 import './re-captcha.js';
 import './form-manager.js';
@@ -50,7 +49,6 @@ class SessionMempass extends LitElement {
   static get properties () {
     return {
       user: {type: Object},
-      waiting: {type: Boolean},
       showpass: {type: Boolean},
       password: {type: String},
       replica: {type: String},
@@ -59,7 +57,6 @@ class SessionMempass extends LitElement {
   constructor() {
     super();
     this.user = {uid:0};
-    this.waiting = false;
     this.showpass = false;
     this.password = '';
     this.replica = '';
@@ -127,7 +124,6 @@ class SessionMempass extends LitElement {
         }
 
       </style>
-      <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       <fm-page heading="Membership">
         <form-manager id="makereq" action="session/update_password" @form-response=${this._formResponse}>
           <input type="hidden" name="uid" value="${this.user.uid}" /> 
@@ -165,7 +161,7 @@ class SessionMempass extends LitElement {
 
   _formResponse(e) {
     e.stopPropagation();
-    this.waiting = false;
+    this.dispatchEvent(new WaitRequest(false));
     
     this.dispatchEvent(new SessionStatus({ state: e.response.state}));
   }
@@ -185,13 +181,11 @@ class SessionMempass extends LitElement {
   }
   async _proceed(e) {
     e.stopPropagation();
-    if (!this.waiting) {
-      const result = this.request.submit();
-      if (result) {
-        this.waiting = true;
-        this.pinput.invalid = false;
-        this.rinput.invalid = false;
-      }
+    const result = this.request.submit();
+    if (result) {
+      this.dispatchEvent(new WaitRequest(true));
+      this.pinput.invalid = false;
+      this.rinput.invalid = false;
     }
   }
   _pwChanged(e) {

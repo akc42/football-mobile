@@ -26,6 +26,7 @@ import './dialog-box.js';
 import './page-manager.js';
 import './session-manager.js';
 import './material-icon.js';
+import './waiting-indicator.js';
 
 import tooltip from '../styles/tooltip.js';
 
@@ -261,6 +262,7 @@ class MainApp extends LitElement {
         }
 
       </style>
+      <waiting-indicator></waiting-indicator>
       ${cache(this.authorised ? html`
         <dialog-box id="mainmenu">
           <div class="menucontainer">

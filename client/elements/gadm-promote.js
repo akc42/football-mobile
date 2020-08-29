@@ -24,8 +24,7 @@ import {cache} from '../libs/cache.js';
 import './fm-page.js';
 import page from '../styles/page.js';
 import button from '../styles/button.js';
-import './waiting-indicator.js';
-import { PromoteList } from '../modules/events.js';
+import { PromoteList, WaitRequest } from '../modules/events.js';
 
 
 /*
@@ -39,8 +38,7 @@ class GadmPromote extends LitElement {
     return {
       promoteables: {type: Array}, //Can't promote global_admins so this is the list without them (although will contain promoted until until saved)
       users: {type: Array},
-      selectedUser: {type: Number},
-      waiting: {type: Boolean}
+      selectedUser: {type: Number}
     };
   }
   constructor() {
@@ -48,7 +46,7 @@ class GadmPromote extends LitElement {
     this.promotables = [];
     this.users = [];
     this.selectedUser = 0;
-    this.waiting = false;
+
 
   }
   connectedCallback() {
@@ -60,7 +58,7 @@ class GadmPromote extends LitElement {
   }
   update(changed) {
     if (changed.has('users')) {
-      this.waiting = false;
+      this.dispatchEvent(new WaitRequest(false));
       //we need to clone the user objects so that there are no references
       this.promoteables = JSON.parse(JSON.stringify(this.users.filter(u => u.global_admin === 0))); //we cannot promote global admins any more.
     }
@@ -111,7 +109,6 @@ class GadmPromote extends LitElement {
           scroll-snap-align: start;
         }
       </style>
-      <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       <fm-page id="page" heading="Global Admin">
         <div slot="subheading">Promote Users</div>
         <div id="container">
@@ -172,7 +169,7 @@ class GadmPromote extends LitElement {
   }
   _doSave(e) {
     e.stopPropagation();
-    this.waiting = true;
+    this.dispatchEvent(new WaitRequest(true));
     this.dispatchEvent(new PromoteList(this.premoteables));
   }
   _doSelect(e) {

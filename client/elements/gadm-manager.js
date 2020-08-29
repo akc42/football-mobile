@@ -19,7 +19,7 @@
 */
 import {  html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
-import {MenuReset, MenuAdd} from '../modules/events.js';
+import {MenuAdd, MenuReset,WaitRequest} from '../modules/events.js';
 import RouteManager from './route-manager.js';
 import api from '../modules/api.js';
 
@@ -57,7 +57,6 @@ class GadmManager extends RouteManager {
   }
   update(changed) {
     if (changed.has('route') && this.route.active) {
-      this.dispatchEvent(new MenuReset());
       this._newRoute();
     } 
     super.update(changed);
@@ -85,12 +84,13 @@ class GadmManager extends RouteManager {
     `;
   }
   loadPage(page) {
+    this.dispatchEvent(new WaitRequest(true));
+    import(`./gadm-${page}.js`).then(() => this.dispatchEvent(new WaitRequest(false)));
     if (page === this.homePage()) {
-      this.dispatchEvent(new MenuReset());
+      this.dispatchEvent(new MenuReset())
     } else {
       this.dispatchEvent(new MenuAdd());
     }
-    import(`./gadm-${page}.js`);
   }
   async _competitionChanged(e) {
     e.stopPropagation(e);

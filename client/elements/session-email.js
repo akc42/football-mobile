@@ -23,9 +23,8 @@ import { LitElement, html } from '../libs/lit-element.js';
 import './fm-input.js';
 import button from '../styles/button.js';
 import page from '../styles/page.js';
-import { SessionStatus } from '../modules/events.js';
+import { SessionStatus, WaitRequest } from '../modules/events.js';
 import global from '../modules/globals.js';
-import './waiting-indicator.js';
 import './fm-page.js';
 import AppKeys from '../modules/keys.js';
 import api from '../modules/api.js';
@@ -43,8 +42,7 @@ class SessionEmail extends LitElement {
   }
   static get properties() {
     return {
-      email: {type: String},
-      waiting: {type: Boolean}
+      email: {type: String}
     };
   }
   constructor() {
@@ -79,7 +77,6 @@ class SessionEmail extends LitElement {
           width: var(--email-input-length);
         }
       </style>
-      <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       <fm-page heading="Welcome">
         <fm-input id="email" name="email" type="email" autofocus required label="Email" message="Valid Email Address Required"></fm-input>
         <button slot="action" @click=${this._continue}>Continue</button>
@@ -91,9 +88,9 @@ class SessionEmail extends LitElement {
     e.stopPropagation();
     if (this.input !== undefined && this.input.validate()) {
       this.email = this.input.value;
-      this.waiting = true;
+      this.dispatchEvent(new WaitRequest(true));
       const response = await api('session/email_verify',{email: this.email});
-      this.waiting = false;
+      this.dispatchEvent(new WaitRequest(false));
       if (response.state !== 'error') {
         if (response.user !== undefined) {
           this.dispatchEvent(new SessionStatus({ state: response.state, user: response.user }));

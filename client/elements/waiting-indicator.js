@@ -19,13 +19,13 @@
 */
 
 
-import { LitElement, html } from '../libs/lit-element.js';
+import { LitElement, html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
+import domHost from '../modules/host.js';
 
 class WaitingIndicator extends LitElement {
-  render() {
-    return html`
-      <style>
+  static get styles () {
+    return css`
         :host {
           position:fixed;
           top: calc(50% - 32px);
@@ -116,6 +116,32 @@ class WaitingIndicator extends LitElement {
             transform: rotate(360deg);
           }
         }
+    
+    `;
+  }
+  static get properties() {
+    return {
+      waiting: { type: Boolean }
+    };
+  }
+  constructor() {
+    super();
+    this.waiting = false;
+    this._gotRequest = this._gotRequest.bind(this);
+  }
+  connectedCallback() {
+    super.connectedCallback();
+    this.domHost = domHost(this);
+    this.domHost.addEventListener('wait-request', this._gotRequest);
+
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.domHost.removeEventListener('wait-request', this._gotRequest);
+  }
+  render() {
+    return html`
+      <style>
       </style>
       ${cache(this.waiting ? html`
         <div class="spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
@@ -123,14 +149,10 @@ class WaitingIndicator extends LitElement {
 
     `;
   }
-  static get properties() {
-    return {
-      waiting: {type: Boolean}
-    };
-  }
-  constructor() {
-    super();
-    this.waiting = false;
+  _gotRequest(e) {
+    e.stopPropagation(e); 
+    this.waiting = e.wait;
+    
   }
 }
 customElements.define('waiting-indicator', WaitingIndicator);

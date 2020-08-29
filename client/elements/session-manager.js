@@ -23,7 +23,7 @@ import { cache } from '../libs/cache.js';
 import page from '../styles/page.js';
 import api from '../modules/api.js';
 import global from '../modules/globals.js';
-import { AuthChanged } from '../modules/events.js';
+import { AuthChanged, WaitRequest } from '../modules/events.js';
 import Debug from '../modules/debug.js';
 
 import {switchPath} from '../modules/utils.js';
@@ -31,7 +31,7 @@ import {switchPath} from '../modules/utils.js';
 
 const debug = Debug('session');
 
-import './waiting-indicator.js';
+
 
 
 /*
@@ -46,7 +46,6 @@ class SessionManager extends LitElement {
     return {
       state: {type: String},
       authorised: {type: Boolean},
-      waiting: {type: Boolean},
       email: {type: String},
       user: {type:Object},
     };
@@ -55,7 +54,6 @@ class SessionManager extends LitElement {
     super();
     this.state = ''
     this.authorised = false;
-    this.waiting = false;
     this.user = {uid: 0};
     this.email = '';
     this._setState = this._setState.bind(this);
@@ -82,7 +80,7 @@ class SessionManager extends LitElement {
   updated(changed) {
     if (changed.has('state')) {
       debug(`state-changed to ${this.state}`);
-      this.waiting = true;
+      this.dispatchEvent(new WaitRequest(true));
       switch(this.state) {
         case 'authorised':
           global.user = this.user;
@@ -119,7 +117,7 @@ class SessionManager extends LitElement {
           });
           break;
         default:
-          import(`./session-${this.state}.js`).then(this.waiting = false);
+          import(`./session-${this.state}.js`).then(() => this.dispatchEvent(new WaitRequest(false)));
           switchPath('/'); //this makes url hidden if back in session manager
       }
     }
@@ -128,7 +126,6 @@ class SessionManager extends LitElement {
 
   render() {
     return html`
-      <waiting-indicator ?waiting=${this.waiting}></waiting-indicator>
       ${cache(this.authorised? '' : html`
           ${cache({
             approve: html`<session-approve .user=${this.user}></session-approve>`,

@@ -29,7 +29,6 @@ import { LitElement, html , css} from '../libs/lit-element.js';
 import api from '../modules/api.js';
 import walk from '../modules/walk.js';
 import {FormResponse } from '../modules/events.js';
-import { s } from '../libs/lit-html-f17e05ab.js';
 
 class FormManager extends LitElement  {
   static get styles () {
@@ -43,6 +42,7 @@ class FormManager extends LitElement  {
   constructor() {
     super();
     this.action = '';
+    this.inProgress = false;
   }
   connectedCallback() {
     super.connectedCallback();
@@ -97,16 +97,25 @@ class FormManager extends LitElement  {
    submit() {
     const result = this.validate();
     if (result) {
-      this._params = {};
-      const slot = this.shadowRoot.querySelector('#mychildren');
-      walk(slot, node => {
-        if (node.value !== undefined && node.name !== undefined) {
-          this._params[node.name] = node.value;
-          return true;
-        }
+
+      if (!this.inProgress) {
+        this._params = {};
+        const slot = this.shadowRoot.querySelector('#mychildren');
+        walk(slot, node => {
+          if (node.value !== undefined && node.name !== undefined) {
+            this._params[node.name] = node.value;
+            return true;
+          }
+          return false;
+        });
+        this.inProgress = true
+        api(this.action, this.params).then(response => {
+          this.inProgress = false;
+          this.dispatchEvent(new FormResponse(response))
+        });
+      } else {
         return false;
-      });
-      api(this.action, this.params).then(response => this.dispatchEvent(new FormResponse(response)));
+      }
     }
     return result;
   }

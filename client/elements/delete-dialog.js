@@ -33,7 +33,26 @@ import button from '../styles/button.js';
 */
 class DeleteDialog extends LitElement {
   static get styles() {
-    return [button,css``];
+    return [button, css`        
+      .container {
+        background-color: var(--background-color);
+        color: var(--color);
+        display: flex;
+        flex-direction: column;
+        border: none;
+        padding: 5px;
+        border-radius:5px;
+        box-shadow: 2px 2px 5px 4px var(--shadow-color);
+      }
+      .explain {
+        margin: 10px;
+      }
+      .buttons {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-evenly;
+      }
+    `];
   }
   static get properties() {
     return {
@@ -68,26 +87,7 @@ class DeleteDialog extends LitElement {
   }
   render() {
     return html`
-      <style>
-        .container {
-          background-color: var(--background-color);
-          color: var(--color);
-          display: flex;
-          flex-direction: column;
-          border: none;
-          padding: 5px;
-          border-radius:5px;
-          box-shadow: 2px 2px 5px 4px var(--shadow-color);
-        }
-        .explain {
-          margin: 10px;
-        }
-        .buttons {
-          display: flex;
-          flex-direction: row;
-          justify-content: space-evenly;
-        }
-      </style>
+
       <dialog-box id="diag" position="top" @overlay-closed=${this._dialogClosed}>
         <div class="container">
           <div class="explain">Please confirm that you wish to delete ${this.item}</div>
