@@ -47,7 +47,7 @@ class FootballPage extends LitElement {
     align-items: center;     
   }
   ::slotted(*) {
-/*    flex: 1 0 0; */
+    flex: 1 0 0; 
     margin: 0 5px;
   } 
   .competition>div#compname {

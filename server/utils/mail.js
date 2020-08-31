@@ -75,7 +75,6 @@
   const createMailer = function () {
     debug('Constructing a Mailer');
     let mailFooter;
-    let mailSiteUrl;
     let mailWordwrap;
     let siteLogo;
     let mailSignature;
@@ -84,7 +83,6 @@
     const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
     db.transaction(() =>{
       mailFooter = s.get('mail_footer');
-      mailSiteUrl = s.get('site_baseref');
       mailWordwrap = s.get('mail_wordwrap');
       siteLogo = s.get('site_logo');
       mailSignature = s.get('mail_signature');
@@ -96,7 +94,7 @@
       return { attachments: [], from: mailFrom };
     }
 
-    const header2 = `</title><link rel="dns-prefetch" href="${mailSiteUrl}"><meta name="description" content="`;
+    
     const footer = `<p></p><div style="font-size: 100%;">${mailFooter}</div></div></body></html>`;
     let maildata = resetMaildata();
     let sendInProgress = false;
@@ -136,9 +134,10 @@
         debug('set text body');
         maildata.text = text;
       },
-      setHtmlBody: function (title, html, tables) {
+      setHtmlBody: function (mailSiteUrl,title, html, tables) {
         if (sendInProgress) throw Error('Send In Progress');
         debug('set html body');
+        const header2 = `</title><link rel="dns-prefetch" href="${mailSiteUrl}"><meta name="description" content="`;
         const headerImg = this.getImageHtml(siteLogo.substring(1), 'Site Logo Image');
         let signature = '<p>';
         if (mailSignature.charAt(0) === '/') {

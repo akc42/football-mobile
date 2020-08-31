@@ -28,7 +28,7 @@
   const jwt = require('jwt-simple');
   const db = require('../utils/database');
 
-  module.exports = async function(params) {
+  module.exports = async function(params,headers) {
     debug('got new request');
     const mail = await mailPromise;
 
@@ -81,8 +81,8 @@
                 //so we haven it any limits so lets record this one
                 newRequest.run(sid, params.email, ip);
                 debug('created the request entry, so now build and send email');
+                const siteBaseref = 'https://' + headers['host']; //not from database
                 const webmaster = s.get('webmaster');
-                const siteBaseref = s.get('site_baseref');
                 const verifyExpires = s.get('verify_expires');
                 const cookieKey = s.get('cookie_key');
                 //not doing this too fast since last time
@@ -104,7 +104,7 @@
                 <p>This link will only work <strong>once</strong>, and it will <strong>not</strong> work after <strong>${verifyExpires} hours</strong> from
                 the time you requested it.</p>
                 <p>Regards</p>`;
-                mail.setHtmlBody('Membership Verification', html);
+                mail.setHtmlBody(siteBaseref, 'Membership Verification', html);
               } else {
                 returnValue = 'toomany';
               }

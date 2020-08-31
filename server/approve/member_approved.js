@@ -28,7 +28,7 @@
   const jwt = require('jwt-simple');
   const db = require('../utils/database');
 
-  module.exports = async function(params) {
+  module.exports = async function(params,headers) {
     const mail = await mailPromise;
     const pin = ('000000' + (Math.floor(Math.random() * 999999)).toString()).slice(-6); //make a new pin 
     debug('going to use pin', pin);
@@ -42,11 +42,11 @@
     db.transaction(()=>{
       const result = checkParticipant.get(params.uid);
       if (result !== undefined) {
+        const siteBaseref = 'https://' + headers['host']; //no longer from database, but from the request
         debug('found user as uid = ', result.uid);
         const cookieKey = s.get('cookie_key');
         const webmaster = s.get('webmaster');
         const verifyExpires = s.get('verify_expires');
-        const siteBaseref = s.get('site_baseref');
         const rateLimit = s.get('rate_limit');
         debug('read the config values');
         const now = Math.floor((new Date().getTime() / 1000));
@@ -77,7 +77,7 @@
           <p>This link will only work <strong>once</strong>, and it will <strong>not</strong> work after <strong>${verifyExpires} hours</strong> from
           the time it was first sent to you.</p>
           <p>Regards</p>`;
-          mail.setHtmlBody('Membership Approval', html);
+          mail.setHtmlBody(siteBaseref,'Membership Approval', html);
           debug('built the e-mail');
           updateParticipant.run(hashedPin, result.uid); //update user with new hashed pin we just sent
           debug('upated user ', result.uid, 'with new pin we just made')

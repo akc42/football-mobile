@@ -21,7 +21,7 @@ import { html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
 import RouteManager from './route-manager.js';
-import { MenuAdd, MenuReset, WaitRequest } from '../modules/events.js';
+import { MenuAdd, MenuReset, WaitRequest, CompetitionsReread } from '../modules/events.js';
 import api from '../modules/api.js';
 import global from '../modules/globals.js';
 import { switchPath } from '../modules/utils.js';
@@ -123,9 +123,11 @@ class AdminManager extends RouteManager {
   async _competitionChanged(e) {
     e.stopPropagation();
     if (e.changed.cid === this.competition.cid) {
+      const nameChanged = e.changed.name !== undefined;
       this.competition = {...this.competition, ...e.changed};
       const response = await api(`admin/${global.cid}/competition_update`, e.changed);
       if (response.competition !== undefined) this.competition = response.competition;
+      if (nameChanged) this.dispatchEvent(new CompetitionsReread());
     }
   }
   async _newRoute() {

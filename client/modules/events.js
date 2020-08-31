@@ -201,6 +201,22 @@ export class CompetitionDelete extends Event {
   }
 };
 
+
+export class CompetitionsReread extends Event {
+  static eventType = 'competitions-reread';
+
+  /*
+     The following are the fields provided by this event
+
+     none: no fields, this is just an r
+
+  */
+
+  constructor() {
+    super('competitions-reread',{composed: true, bubbles: true});
+  }
+};
+
 export class DeleteReply extends Event {
   static eventType = 'delete-reply';
 

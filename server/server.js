@@ -392,7 +392,7 @@
         prof.post(`/${p}`, async (req,res) => {
           debugapi(`Received /api/profile/${p} request`);
           try {
-            const data = await profs[p](req.user,req.body);
+            const data = await profs[p](req.user,req.body,req.headers);
             if (data.user !== undefined) {
               res.setHeader('Set-Cookie', generateCookie(data.user)); //get ourselves a cookie
             }
@@ -424,7 +424,7 @@
           debugapi(`received /api/approve/${m} request`);
           try {
             const responder = new Responder(res);
-            maps[m](req.user,req.body, responder);
+            maps[m](req.user,req.body, req.headers,responder);
             responder.end();
           } catch(e) {
             errored(req, res, e.toString());

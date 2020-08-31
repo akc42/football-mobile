@@ -29,7 +29,7 @@
   const jwt = require('jwt-simple');
   const db = require('../utils/database');
 
-  module.exports = async function(olduser, params) {
+  module.exports = async function(olduser, params, headers) {
     const mail = await mailPromise;
     debug('calculate a pin for  user',olduser.uid,' to potentially have changed their email to',params.email);
     const pin = ('000000' + (Math.floor(Math.random() * 999999)).toString()).slice(-6); //make a new pin 
@@ -67,10 +67,10 @@
       debug('found user', result.uid);
       if (params.email !== undefined  && params.email !== user.email) {
         sql += `, verification_sent = (strftime(' % s','now'))`; //we are changing e-mail, so going at least mark a verification sent time
+        const siteBaseref = 'https://' + headers['host']; //not from database
         const cookieKey = s.get('cookie_key');
         const webmaster = s.get('webmaster');
         const verifyExpires = s.get('verify_expires');
-        const siteBaseref = s.get('site_baseref');
         const rateLimit = s.get('rate_limit');
         debug('read the config values');
         const now = Math.floor((new Date().getTime() / 1000));
@@ -105,7 +105,7 @@
           <p>This link will only work <strong>once</strong>, and it will <strong>not</strong> work after <strong>${verifyExpires} hours</strong> from
           the time you changed your email in your profile.</p>
           <p>Regards</p>`;        
-          mail.setHtmlBody('Change of Email', html);
+          mail.setHtmlBody(siteBaseref, 'Change of Email', html);
           needEmail = true;
         }
       }

@@ -41,7 +41,6 @@ CREATE TABLE competition (
     update_date bigint NOT NULL DEFAULT (strftime('%s','now')), --Date Competition Created or data other than results_cache updated
     default_points INTEGER NOT NULL DEFAULT 1, -- default picks value used when creating a new round
     default_bonus INTEGER NOT NULL DEFAULT 2, --default value of question bonus (bvalue) when new round created
-    default_underdog INTEGER NOT NULL DEFAULT 1, --default additional points if a match is designated underdog
     default_playoff INTEGER NOT NULL DEFAULT 1,  --default points allocated to a team in competition if they make the playoff. 
     results_cache text DEFAULT NULL, -- JSON String cache of latest state of competition.
     cache_store_date bigint DEFAULT (strftime('%s','now'))
@@ -418,12 +417,10 @@ INSERT INTO settings (name,value) VALUES('email_from', 'admin@example.com'); --e
 INSERT INTO settings (name,value) VALUES('mail_footer','<p>Some footer html</p>'); --mail footer
 INSERT INTO settings (name,value) VALUES('mail_wordwrap',130); --word wrap column in html to text conversion
 INSERT INTO settings (name,value) VALUES('mail_signature', '/appimages/signature.png;Name of Signature'); --email signature if starts with a slash is an image url which maybe followed by a semi-colon and then caption, else html
-INSERT INTO settings (name,value) VALUES('site_baseref','https://example.com'); -- basic site url without trailing slash to be added to hostless image urls to make complete
 
 
 -- Configuration Settings That are just examples and MUST be changed.  There are others that you might want to change so review them all.
 -- 
--- UPDATE settings SET value = 'https://example.com' WHERE name = 'site_baseref'
 -- UPDATE settings SET value = 'webmaster@example.com' WHERE name = 'webmaster';
 -- UPDATE settings SET value = 'admin@example.com' WHERE name = 'email_from';
 -- UPDATE settings SET valie = '<p>mail footer</p>' WHERE name = 'mail_footer';

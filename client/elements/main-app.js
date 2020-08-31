@@ -64,7 +64,7 @@ class MainApp extends LitElement {
     this.serverError = false;
     this.authorised = false;
     this.competitions=[];
-    this.compVersion=0;
+    this.compversion=0;
     this.scores = false;
     this.teams = false;
     this.profile = false;
@@ -339,7 +339,7 @@ class MainApp extends LitElement {
           <page-manager
             id="pages"
             ?hidden=${this.serverError}
-            @competitions-changed=${this._refreshComp}
+            @competitions-reread=${this._refreshComp}
             @menu-reset=${this._menuReset}
             @menu-remove=${this._menuRemove}
             @menu-add=${this._menuAdd}
@@ -390,7 +390,7 @@ class MainApp extends LitElement {
     }
     if (global.cid === 0) global.cid = global.lcid;
 
-    this.compVersion = 0;
+    this.compversion = 0;
   }
   _globalChanged() {
     this.requestUpdate();
@@ -459,7 +459,7 @@ class MainApp extends LitElement {
 
   _refreshComp() {
     debug('refresh competition data received');
-    this.compVersion++
+    this.compversion++
   }
   async _reset(e) {
     this.serverError = false;

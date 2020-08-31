@@ -64,10 +64,13 @@ class AdminHome extends LitElement {
   render() {
     return html`
       <style>
+      .container {
+        width: 100%;
+      }
         fm-input {
           --input-width: 98%;
         }
-        fm-input#gap, fm-input#dbonus, fm-input#dpick, fm-input#playoff, fm-input#dunder {
+        fm-input#gap, fm-input#dbonus, fm-input#dpick, fm-input#dplayoff, fm-input#dunder {
           --input-width: 30px;
         }
         .timeline {
@@ -118,89 +121,80 @@ class AdminHome extends LitElement {
           `:html`
             <fm-input label="Registration Condition" textarea .value=${this.competition.condition} @blur=${this._conditionChange} rows="5"></fm-input>
           `)}
-          <div class="timeline">
-            <div class="deadline">
-              <label for="pp_deadline">Playoff Picks Deadline</label>
-              <calendar-input 
-                id="pp_deadline" 
-                name="ppdead" 
-                .value=${this.competition.pp_deadline} 
-                @value-changed=${this._newPPDeadline} 
-                withTime></calendar-input>
-            </div>
-            <fm-input
-              id="gap"
-              name="gap"
-              label="Deadline (in Minutes) before Match Time for Match Picks"
-              message="Must be between 0 and 10 minutes"
-              .value=${this.competition.gap.toString()} 
-              type="Number"
-              required
-              min="0"
-              step="1"
-              max="10"
-              @blur=${this._newGap}></fm-input>
-            <div class="step">
-              <fm-checkbox
-                name="team_lock" 
-                .value=${this.competition.team_lock} 
-                @value-changed=${this._teamLock}
-                ?disabled=${this.competition.open === 1}>Teams Fixed</fm-checkbox>
-              <fm-checkbox 
-                name="open"
-                .value=${this.competition.open} 
-                @value-changed=${this._competitionOpen}
-                ?disabled=${this.competition.team_lock === 0 || this.competition.closed === 1}>Registration Open</fm-checkbox>
-              <fm-checkbox
-                name="closed" 
-                .value=${this.competition.closed} 
-                @value-changed=${this._competitionClose}
-                ?disabled=${this.competition.open === 0}>Registration Closed</fm-checkbox>
-            </div>
-            <fm-input
-              id="dbonus"
-              name="dbonus"
-              label="Default Bonus Points"
-              message="Between 1 and 8"
-              required
-              min="1"
-              step="1"
-              max="8"
-              .value=${this.competition.default_bonus.toString()}
-              blur=${this._newDBonus}></fm-input>
-            <fm-input
-              id="dpick"
-              name="dpick"
-              label="Default Match Pick Points"
-              message="Between 1 and 8"
-              required
-              min="1"
-              step="1"
-              max="8"
-              .value=${this.competition.default_points.toString()}
-              blur=${this._newDPick}></fm-input>              
-            <fm-input
-              id="dplayoff"
-              name="dplayoff"
-              label="Default Playoff Points"
-              message="Between 1 and 8"
-              required
-              min="1"
-              step="1"
-              max="8"
-              .value=${this.competition.default_playoff.toString()}
-              blur=${this._newDPlayoff}></fm-input>              
-            <fm-input
-              id="dunder"
-              name="dunder"
-              label="Default Underdog Points"
-              message="Between 1 and 8"
-              required
-              min="1"
-              step="1"
-              max="8"
-              .value=${this.competition.default_underdog.toString()}
-              blur=${this._newDUnder}></fm-input>              
+          <div class="deadline">
+            <label for="pp_deadline">Playoff Picks Deadline</label>
+            <calendar-input 
+              id="pp_deadline" 
+              name="ppdead" 
+              .value=${this.competition.pp_deadline} 
+              @value-changed=${this._newPPDeadline} 
+              withTime></calendar-input>
+          </div>
+          <fm-input
+            id="gap"
+            name="gap"
+            label="Deadline (in Minutes) before Match Time for Match Picks"
+            message="Must be between 0 and 10 minutes"
+            .value=${this.competition.gap.toString()} 
+            type="Number"
+            required
+            min="0"
+            step="1"
+            max="10"
+            @blur=${this._newGap}></fm-input>
+          <fm-input
+            id="dbonus"
+            name="dbonus"
+            label="Default Bonus Points"
+            message="Between 1 and 8"
+            type="number"
+            required
+            min="1"
+            step="1"
+            max="8"
+            .value=${this.competition.default_bonus.toString()}
+            @blur=${this._newDBonus}></fm-input>
+          <fm-input
+            id="dpick"
+            name="dpick"
+            label="Default Match Pick Points"
+            message="Between 1 and 8"
+            type="number"
+            required
+            min="1"
+            step="1"
+            max="8"
+            .value=${this.competition.default_points.toString()}
+            @blur=${this._newDPick}></fm-input>              
+          <fm-input
+            id="dplayoff"
+            name="dplayoff"
+            label="Default Playoff Points"
+            message="Between 1 and 8"
+            type="number"
+            required
+            min="1"
+            step="1"
+            max="8"
+            .value=${this.competition.default_playoff.toString()}
+            @blur=${this._newDPlayoff}></fm-input>                       
+      
+          <div class="step">
+            <fm-checkbox
+              name="team_lock"
+              .value=${this.competition.team_lock} 
+              @value-changed=${this._teamLock}
+              ?disabled=${this.competition.open === 1}>Teams Fixed</fm-checkbox>
+            <fm-checkbox 
+              name="open"
+              .value=${this.competition.open} 
+              @value-changed=${this._competitionOpen}
+              ?disabled=${this.competition.team_lock === 0 || this.competition.closed === 1}>Registration Open</fm-checkbox>
+            <fm-checkbox
+              name="closed" 
+              .value=${this.competition.closed} 
+              @value-changed=${this._competitionClose}
+              ?disabled=${this.competition.open === 0}>Registration Closed</fm-checkbox>
           </div>
 
 
@@ -280,16 +274,7 @@ class AdminHome extends LitElement {
       }
     }
   }
-  _newDUnder(e) {
-    if (e.currentTarget.validate()) {
-      const under = parseInt(e.currentTarget.value, 10);
-      if (under !== this.competition.default_underdog) {
-        this.competition.default_underdog = under;
-        this.dispatchEvent(new CompetitionChanged({ cid: this.competition.cid, default_underdog: under }));
-        this.requestUpdate();
-      }
-    }
-  }
+
   _newExpected(e) {
     e.stopPropagation();
     if (this.competition.expected_date !== e.changed) {

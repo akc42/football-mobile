@@ -60,9 +60,11 @@ class FmInput extends LitElement {
       }
       label {
         font-size: 10pt;
+        flex: 1 0 0;
       }
       .error {
         white-space: nowrap;
+        flex: 2 0 0;
       }
     `];
   }

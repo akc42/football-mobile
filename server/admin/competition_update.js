@@ -74,11 +74,7 @@
         sql += ' default_playoff = ?,';
         qry.push(params.default_playoff);
       }
-      if (params.default_underdog !== undefined) {
-        sql += ' default_underdog = ?,';
-        qry.push(params.default_underdog);
-      }
-     //if more params more 
+      //if more params - add here
       sql = sql.slice(0,-1); //remove last comma
       sql += ' WHERE cid = ?';
       qry.push(cid);

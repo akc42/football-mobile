@@ -19,9 +19,10 @@
 */
 import {  html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
-import {MenuAdd, MenuReset,WaitRequest} from '../modules/events.js';
+import {MenuAdd, MenuReset,WaitRequest, CompetitionsReread} from '../modules/events.js';
 import RouteManager from './route-manager.js';
 import api from '../modules/api.js';
+import global from '../modules/globals.js';
 
 
 /*
@@ -100,6 +101,7 @@ class GadmManager extends RouteManager {
     if (index >= 0 ) {
       this.competitions.splice(index,1,response.competition);
       this.competitions = this.competitions.slice(0);
+      this.dispatchEvent(new CompetitionsReread());
     }
   } 
   async _deleteCompetition(e) {
@@ -113,6 +115,8 @@ class GadmManager extends RouteManager {
         this.competitions.splice(index);
         this.competitions = this.competitions.slice(0);  //update competitions so it causes and update.
       }
+      if (global.cid === cid) global.cid = 0;  //if we deleted the competition we are connected to 
+      this.dispatchEvent(new CompetitionsReread());
     }
   } 
   async _newCompetition(e) {
@@ -122,6 +126,9 @@ class GadmManager extends RouteManager {
     competition.cid = response.cid;
     this.competitions.push(competition);
     this.competitions = this.competitions.slice(0);
+    if (global.cid === global.lcid) global.cid = 0; //we were looking at latest competition, so now we had better reset to the new latest
+    this.dispatchEvent(new CompetitionsReread());
+
 
   }
   async _newRoute() {
