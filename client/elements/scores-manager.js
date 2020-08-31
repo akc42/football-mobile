@@ -21,7 +21,7 @@ import { html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
 import RouteManager from './route-manager.js';
-import { MenuReset, MenuAdd, Waitrequest } from '../modules/events.js';
+import { MenuReset, MenuAdd, WaitRequest } from '../modules/events.js';
 import Route from '../modules/route.js';
 import api from '../modules/api.js';
 import global from '../modules/globals.js';

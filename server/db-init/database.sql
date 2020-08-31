@@ -31,19 +31,18 @@ CREATE TABLE competition (
     cid integer PRIMARY KEY ASC, --Competition ID - 
     name character varying,--This is the name that appears in the header for the competition
     administrator integer  NOT NULL DEFAULT 0, --The uid of the administrator
-    team_lock boolean NOT NULL DEFAULT 0, --Says whether we have locked the teams in competition
+    team_lock boolean NOT NULL DEFAULT 0, --Says whether teams in competition are all set
     open boolean NOT NULL DEFAULT 0 , --Says whether a user may see the competition
-    closed boolean NOT NULL DEFAULT 0, --Says where a user may  still register
+    closed boolean NOT NULL DEFAULT 0, --Says where a user may  still register 
     expected_date bigint NOT NULL DEFAULT 0, --expected open date (0 if we don't know) only valid if not open
     condition text DEFAULT NULL,	--This is the text that a user has to agree to in order to register himself for the competition
     pp_deadline bigint DEFAULT 0 NOT NULL, --Playoff Selection Deadline 0 if no selection
-    gap integer DEFAULT 0 NOT NULL, --Seconds to go before match to make pick deadline
+    gap integer DEFAULT 5 NOT NULL, --Minutes to go before match to make pick deadline
     update_date bigint NOT NULL DEFAULT (strftime('%s','now')), --Date Competition Created or data other than results_cache updated
-    pointsmap text NOT NULL DEFAULT '[1,2,4,6,8,12,16]', -- map of slider position to output result (JSON stringified value)
-    underdogmap text NOT NULL DEFAULT '[0,1,2,4,6,8]', --map of absolute slider positions to underdog points
-    playoffmap text NOT NULL DEFAULT '[1,2,4,6,8]',  --map of playoff points slider position to points allocated
-    bonusmap text NOT NULL DEFAULT '[1,2,4,6,8,12,16]', --map of bonus question points slider position to points allocated
-    defaultbonus integer NOT NULL DEFAULT 2, --default value of question bonus (bvalue) when new round created
+    default_points INTEGER NOT NULL DEFAULT 1, -- default picks value used when creating a new round
+    default_bonus INTEGER NOT NULL DEFAULT 2, --default value of question bonus (bvalue) when new round created
+    default_underdog INTEGER NOT NULL DEFAULT 1, --default additional points if a match is designated underdog
+    default_playoff INTEGER NOT NULL DEFAULT 1,  --default points allocated to a team in competition if they make the playoff. 
     results_cache text DEFAULT NULL, -- JSON String cache of latest state of competition.
     cache_store_date bigint DEFAULT (strftime('%s','now'))
 );

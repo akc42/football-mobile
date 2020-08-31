@@ -153,7 +153,7 @@ class RoundsManager extends RouteManager {
       this.round = response.round;
       this.round.matches = response.cache.matches;
       for (const match of this.round.matches) {
-        if (global.cid === global.lcid) match.deadline = match.match_time - global.lgap;
+        if (global.cid === global.lcid) match.deadline = match.match_time - (global.lgap * 60);
         const {aid, ...teamData} = response.teams.find(t => t.aid === match.aid);
         if (aid === undefined) {
           Object.assign(match, {aname:'',alogo:'',hname:'',hlogo:''});
@@ -183,7 +183,7 @@ class RoundsManager extends RouteManager {
           if (global.cid === global.lcid || pick.submit_time !== null) {
             const match = this.round.matches.find(m => m.aid === pick.aid);
             if (global.cid === global.lcid && match.deadline > cutoff) user.canPick = true; //can still make  pick so mark as such
-            if (pick.submit_time !== null && match.match_time - global.lgap < pick.submit_time) user.wasLatePick = true;
+            if (pick.submit_time !== null && match.match_time - global.lgap * 60 < pick.submit_time) user.wasLatePick = true;
           }
           if (pick.submit_time === null) {
             user.doneAllPicks = false;

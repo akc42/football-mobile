@@ -623,6 +623,38 @@ export class SessionStatus extends Event {
   }
 };
 
+export class TeamAssign extends Event {
+  static eventType = 'team-assign';
+
+  /*
+     The following are the fields provided by this event
+
+     assign: An object consiting of tid (String) and assign Boolean fields
+
+  */
+
+  constructor(assign) {
+    super('team-assign',{composed: true, bubbles: true});
+    this.assign = assign;
+  }
+};
+
+export class TeamLock extends Event {
+  static eventType = 'team-lock';
+
+  /*
+     The following are the fields provided by this event
+
+     lock: True or false dependant on new state.
+
+  */
+
+  constructor(lock) {
+    super('team-lock',{composed: true, bubbles: true});
+    this.lock = lock;
+  }
+};
+
 export class UserSelected extends Event {
   static eventType = 'user-selected';
 

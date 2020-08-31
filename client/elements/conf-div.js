@@ -23,7 +23,7 @@ import {classMap} from '../libs/class-map.js';
 
 import './user-pick.js';
 import './material-icon.js';
-import {PlayoffPick} from '../modules/events.js';
+import {PlayoffPick, TeamAssign} from '../modules/events.js';
 import global from '../modules/globals.js';
 
 /*
@@ -40,7 +40,9 @@ class ConfDiv extends LitElement {
       div: {type: Object},
       user: {type: Object}, //If set this may include users picks (and will pass back clicks to pick a team)
       deadline: {type: Number}, //deadline for picks
-      nome: {type: Boolean} //If set don't highlight conf-div heading for user = me.
+      nome: {type: Boolean}, //If set don't highlight conf-div heading for user = me.
+      tic: {type: Boolean}, //set if this usage is in team in competition - so its about if team is selected
+      lock: {type: Boolean} //set if we can no longer edit tic
     };
   }
   constructor() {
@@ -51,6 +53,7 @@ class ConfDiv extends LitElement {
     this.user = {uid: 0, picks: []};
     this.deadline = 0;
     this.nome = false;
+    this.tic = false;
   }
   connectedCallback() {
     super.connectedCallback();
@@ -110,6 +113,19 @@ class ConfDiv extends LitElement {
             "logo pick pick"
             "name name name";
         }
+        .team.tic {
+          grid-template-areas:
+            "logo in in"
+            "logo in in"
+            "name name name"
+        }
+        .cbx {
+          grid-area: in;
+          background-color: var(--background-color);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
         .poff, .team img, .points, .pick, .name {
           background-color: var(--background-color);
           text-align: center;
@@ -152,20 +168,30 @@ class ConfDiv extends LitElement {
         if (this.user.uid !== 0) pick = this.user.picks.find(p => p.tid === team.tid);
         return html`
           <div 
-            class="team ${classMap({pickable:this.user.uid === global.user.uid && this.deadline > cutoff})}" 
+            class="team ${classMap({
+              pickable:this.user.uid === global.user.uid && this.deadline > cutoff,
+              tic: this.tic})}" 
             @click=${this._makePick}
             data-tid=${team.tid}>
             <img src="/appimages/teams/${team.tid}.png"/>
             <div class="name">${team.name}</div>
-            <div class="poff">${cache(team.made_playoff === 1 ? html`<material-icon>emoji_events</material-icon>` : '')}</div>
-            <div class="points">${team.points}</div>
-            <div class="pick">${cache(pick !== undefined ? html`<user-pick 
-              result 
-              ?correct=${team.made_playoff === 1} 
-              ?admin=${pick.admin_made === 1}
-              .deadline=${this.deadline}
-              .made=${pick.submit_time}></user-pick>` : '')}</div>
-            <div class="name">${team.name}</div>
+            ${cache(this.tic ? html`
+              <div class="cbx">
+                <fm-checkbox .value=${team.points !==null } @value-changed=${this._ticChanged} data-tid=${team.tid} ?disabled=${this.lock}></fm-checkbox>
+              </div>
+              <div class="inp">
+                <fm-input .value=${team.points === null ? 1: team.points} required min="1" max></fm-input>
+              </div>
+            ` :html`
+              <div class="poff">${cache(team.made_playoff === 1 ? html`<material-icon>emoji_events</material-icon>` : '')}</div>
+              <div class="points">${team.points}</div>
+              <div class="pick">${cache(pick !== undefined ? html`<user-pick 
+                result 
+                ?correct=${team.made_playoff === 1} 
+                ?admin=${pick.admin_made === 1}
+                .deadline=${this.deadline}
+                .made=${pick.submit_time}></user-pick>` : '')}</div>
+            `)}
           </div>
       `;
       })}
@@ -177,7 +203,18 @@ class ConfDiv extends LitElement {
     const cutoff = Math.floor(new Date().getTime() / 1000);
     if(this.user.uid === global.uid && this.deadline > cutoff) {
       e.stopPropagation();
-      this.dispatchEvent(new PlayoffPick(e.target.dataset.tid)); 
+      this.dispatchEvent(new PlayoffPick(e.currentTarget.dataset.tid)); 
+    }
+  }
+  _ticChanged(e) {
+    e.stopPropagation();
+    const tid = e.currentTarget.dataset.tid;
+    this.dispatchEvent(new TeamAssign({tid: tid,assign: e.changed}));
+    
+    const team = this.teams.find(t => t.tid === tid);
+    if (team !== undefined) {
+      team.inComp = e.changed ? 1:0;
+      this.requestUpdate();
     }
   }
 }

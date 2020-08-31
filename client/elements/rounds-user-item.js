@@ -228,7 +228,7 @@ class RoundsUserItem extends LitElement {
               <user-pick
                   ?admin=${this.item.admin_made === 1}
                   ?correct=${(this.item.ascore + this.item.hscore) > this.item.combined_score + 0.5}
-                  .deadline=${this.item.match_time - (global.lcid === global.cid ? global.lgap : 0)}
+                  .deadline=${this.item.match_time - (global.lcid === global.cid ? global.lgap * 60 : 0)}
                   .made=${this.item.submit_time}
                   ?result=${this.item.ascore !== null && this.item.hscore !== null}></user-pick>
             `: html`<div class="fill"></div>`)}

@@ -31,7 +31,7 @@
         EXISTS ( 
  	        SELECT r.rid FROM round r WHERE r.cid = c.cid AND r.open = 1 AND (
             EXISTS (
-              SELECT m.aid FROM match m WHERE m.cid = r.cid and m.rid = r.rid AND m.open = 1 AND (strftime('%s','now') + c.gap) < m.match_time 
+              SELECT m.aid FROM match m WHERE m.cid = r.cid and m.rid = r.rid AND m.open = 1 AND (strftime('%s','now') + 60 * c.gap) < m.match_time 
               AND NOT EXISTS (
                   SELECT 1 FROM pick pk WHERE pk.cid = m.cid AND pk.rid = m.rid AND pk.uid = ? AND pk.aid = m.aid
               )

@@ -27,7 +27,7 @@
 
   module.exports = async function(user, cid, params, responder) {
     debug('new request from user', user.uid, 'with cid', cid, 'and parameter cid', params.cid );
-    let sql = 'UPDATE Competition SET';
+    let sql = `UPDATE Competition SET update_date = (strftime('%s','now')),`;
     let qry = [];
     if (params.cid === cid) {
       if (params.name !== undefined) {
@@ -58,7 +58,27 @@
         sql += ' closed = ?,';
         qry.push(params.closed)
       }
-      //if more params more 
+      if (params.team_lock !== undefined) {
+        sql += ' team_lock = ?,'
+        qry.push(params.team_lock);
+      }
+      if (params.default_bonus !== undefined) {
+        sql += ' default_bonus = ?,';
+        qry.push(params.default_bonus);
+      }
+      if (params.default_pick !== undefined) {
+        sql += ' default_pick = ?,';
+        qry.push(params.default_pick);
+      }
+      if (params.default_playoff !== undefined) {
+        sql += ' default_playoff = ?,';
+        qry.push(params.default_playoff);
+      }
+      if (params.default_underdog !== undefined) {
+        sql += ' default_underdog = ?,';
+        qry.push(params.default_underdog);
+      }
+     //if more params more 
       sql = sql.slice(0,-1); //remove last comma
       sql += ' WHERE cid = ?';
       qry.push(cid);

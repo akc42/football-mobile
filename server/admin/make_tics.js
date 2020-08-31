@@ -21,33 +21,24 @@
 (function() {
   'use strict';
 
-  const debug = require('debug')('football:api:compdata');
+  const debug = require('debug')('football:api:maketic');
   const db = require('../utils/database');
 
   module.exports = async function(user, cid, params, responder) {
     debug('new request from user', user.uid, 'with cid', cid );
-    const competition = db.prepare('SELECT * FROM competition WHERE cid = ?');
-    const confs = db.prepare('SELECT confid, name FROM conference');
-    const divs = db.prepare('SELECT divid, name FROM division');
+    const points = db.prepare('SELECT default_playoff FROM competition WHERE cid = ?').pluck();
     const tic = db.prepare('SELECT MAX(cid) FROM team_in_competition;').pluck();
-    
-    const rounds = db.prepare('SELECT * FROM round WHERE cid = ?');
-    const teams = db.prepare('SELECT t.*, i.points FROM team t LEFT JOIN team_in_condition i USING(tid) WHERE i.cid = ?');
-    const registrations =db.prepare('SELECT u.* FROM registration r JOIN participant u USING (uid) WHERE r.cid = ?');
+    const maketic = db.prepare('INSERT INTO team_in_competition (cid, tid, points) SELECT ? as cid, tid , ? AS points FROM team_in_competition WHERE cid= ?'); 
     db.transaction(() => {
-      responder.addSection('competition', competition.get(cid));
-      responder.addSection('confs', confs.all());
-      responder.addSection('divs', divs.all());
       const maxtic = tic.get();
-      debug('highest cid from teams in competition', maxtic);
-      responder.addSection('maxtic', maxtic);
-      if (maxtic === cid) {
-        //We have the correct teams now, so return
-        responder.addSection('teams', teams.all(cid));
+      if (maxtic < cid) {
+        //only do this if  we haven't done it already
+        const poffp = points.get(cid);
+        maketic.run(cid, poffp, maxtic);
+        responder.addSection('status', true);
+      } else {
+        responder.addSection('status', false);
       }
-      responder.addSection('rounds', rounds.all(cid));
-      responder.addSection('users', registrations.all(cid));
     })();
-    debug('all done');
   };
 })();

@@ -25,6 +25,7 @@ import page from '../styles/page.js';
 import button from '../styles/button.js';
 import {CompetitionChanged} from '../modules/events.js';
 import './fm-input.js';
+import './fm-checkbox.js';
 import './calendar-input.js';
 import { switchPath } from '../modules/utils.js';
 import global from '../modules/globals.js';
@@ -66,16 +67,42 @@ class AdminHome extends LitElement {
         fm-input {
           --input-width: 98%;
         }
-        fm-input#gap {
-          --input-width: 50px;
+        fm-input#gap, fm-input#dbonus, fm-input#dpick, fm-input#playoff, fm-input#dunder {
+          --input-width: 30px;
         }
         .timeline {
-          display: flex;
-          flex-direction: row;
-          justify-content: space-between;
+          padding: 5px;
+          display: grid;
+          grid-gap: 5px;
+          grid-template-columns: 1fr 1fr;
+          grid-template-areas:
+             "deadline step"
+             "gap step"
+             "dbonus dpick"
+             "dplayoff dunder"
+        }
+        .deadline {
+          grid-area: deadline;
+        }
+        #gap {
+          grid-area: gap;
         }
         .step {
-          padding: 5px;
+          grid-area: step;
+          display:flex;
+          flex-direction: column;
+        }
+        #dbonus {
+          grid-area: dbonus;
+        }
+        #dpick {
+          grid-area: dpick;
+        }
+        #dplayoff {
+          grid-area: dplayoff;
+        }
+        #dunder {
+          grid-area: dunder;
         }
       </style>
       <fm-page id="page" heading="Competition Setup">
@@ -101,43 +128,108 @@ class AdminHome extends LitElement {
                 @value-changed=${this._newPPDeadline} 
                 withTime></calendar-input>
             </div>
+            <fm-input
+              id="gap"
+              name="gap"
+              label="Deadline (in Minutes) before Match Time for Match Picks"
+              message="Must be between 0 and 10 minutes"
+              .value=${this.competition.gap.toString()} 
+              type="Number"
+              required
+              min="0"
+              step="1"
+              max="10"
+              @blur=${this._newGap}></fm-input>
             <div class="step">
-              ${cache(this.competition.team_lock === 0 ? html`<button @click=${this._teams}>Teams</button>` :
-                this.competition.open === 0 ? html`<button @click=${this._open}>Open Registration</button>` :
-                this.competition.closed ? html`<button @click=${this._close}>Close Registrations</button>` : '')}
+              <fm-checkbox
+                name="team_lock" 
+                .value=${this.competition.team_lock} 
+                @value-changed=${this._teamLock}
+                ?disabled=${this.competition.open === 1}>Teams Fixed</fm-checkbox>
+              <fm-checkbox 
+                name="open"
+                .value=${this.competition.open} 
+                @value-changed=${this._competitionOpen}
+                ?disabled=${this.competition.team_lock === 0 || this.competition.closed === 1}>Registration Open</fm-checkbox>
+              <fm-checkbox
+                name="closed" 
+                .value=${this.competition.closed} 
+                @value-changed=${this._competitionClose}
+                ?disabled=${this.competition.open === 0}>Registration Closed</fm-checkbox>
             </div>
+            <fm-input
+              id="dbonus"
+              name="dbonus"
+              label="Default Bonus Points"
+              message="Between 1 and 8"
+              required
+              min="1"
+              step="1"
+              max="8"
+              .value=${this.competition.default_bonus.toString()}
+              blur=${this._newDBonus}></fm-input>
+            <fm-input
+              id="dpick"
+              name="dpick"
+              label="Default Match Pick Points"
+              message="Between 1 and 8"
+              required
+              min="1"
+              step="1"
+              max="8"
+              .value=${this.competition.default_points.toString()}
+              blur=${this._newDPick}></fm-input>              
+            <fm-input
+              id="dplayoff"
+              name="dplayoff"
+              label="Default Playoff Points"
+              message="Between 1 and 8"
+              required
+              min="1"
+              step="1"
+              max="8"
+              .value=${this.competition.default_playoff.toString()}
+              blur=${this._newDPlayoff}></fm-input>              
+            <fm-input
+              id="dunder"
+              name="dunder"
+              label="Default Underdog Points"
+              message="Between 1 and 8"
+              required
+              min="1"
+              step="1"
+              max="8"
+              .value=${this.competition.default_underdog.toString()}
+              blur=${this._newDUnder}></fm-input>              
           </div>
-          <fm-input 
-            id="gap" 
-            label="Deadline (in Seconds) before Match Time for Match Picks" 
-            message="Must be between 0 and 600 seconds"
-            .value=${this.competition.gap.toString()} 
-            type="Number"
-            required
-            min="0"
-            step="1"
-            max="600"
-            @blur=${this._newGap}></fm-input>
+
 
         </div>
-        <button slot="action" @click=${this._rounds}>Rounds</button>
-        <button slot="action" @click=${this._maps}>Slider Maps</button>
+        ${cache(this.competition.team_lock === 1 ? 
+          html`<button slot="action" @click=${this._rounds}>Rounds</button>`: 
+          html`<button slot="action" @click=${this._teams}>Teams</button>`
+        )}
         <button slot="action" @click=${this._email}>Email Users</button>    
       </fm-page>
     `;
   }
-  _close(e) {
-    e.stopPropagation();
-    if (this.competition.closed === 0) {
-      this.competition.closed = 1;
-      this.dispatchEvent(new CompetitionChanged({ cid: this.competition.cid, closed: this.competition.closed }));
-    }
+
+  _competitionClose(e) {
+    this.competition.closed = e.changed ? 1 : 0;
+    this.dispatchEvent(new CompetitionChanged({ cid: this.competition.cid, closed: this.competition.closed }));
+    this.requestUpdate();
+  }
+  _competitionOpen(e) {
+    this.competition.open = e.changed ? 1 : 0;
+    this.dispatchEvent(new CompetitionChanged({ cid: this.competition.cid, open: this.competition.open }));
+    this.requestUpdate();
   }
   _conditionChange(e) {
     e.stopPropagation();
     if (this.competition.condition !== e.currentTarget.value) {
       this.competition.condition = e.currentTarget.value;
-      this.dispatchEvent(new CompetitionChanged({cid: this.competition.cid, condition: this.competition.condition}));
+      this.dispatchEvent(new CompetitionChanged({ cid: this.competition.cid, condition: this.competition.condition }));
+      this.requestUpdate();
     }
   }
   _email(e) {
@@ -153,7 +245,48 @@ class AdminHome extends LitElement {
     if (e.currentTarget.validate()) {
       if (e.currentTarget.value !== this.competition.name) {
         this.competition.name = e.currentTarget.value;
-        this.dispatchEvent(new CompetitionChanged({cid: this.competition.cid, name: this.competition.name}));
+        this.dispatchEvent(new CompetitionChanged({ cid: this.competition.cid, name: this.competition.name }));
+        this.requestUpdate();
+      }
+    }
+  }
+  _newDBonus(e) {
+    if (e.currentTarget.validate()) {
+      const bonus = parseInt(e.currentTarget.value, 10);
+      if (bonus !== this.competition.default_bonus) {
+        this.competition.default_bonus = bonus;
+        this.dispatchEvent(new CompetitionChanged({ cid: this.competition.cid, default_bonus: bonus }));
+        this.requestUpdate();
+      }
+    }
+  }
+  _newDPick(e) {
+    if (e.currentTarget.validate()) {
+      const points = parseInt(e.currentTarget.value, 10);
+      if (points !== this.competition.default_points) {
+        this.competition.default_points = points;
+        this.dispatchEvent(new CompetitionChanged({ cid: this.competition.cid, default_points: points }));
+        this.requestUpdate();
+      }
+    }
+  }
+  _newDPlayoff(e) {
+    if (e.currentTarget.validate()) {
+      const poff = parseInt(e.currentTarget.value, 10);
+      if (poff !== this.competition.default_playoff) {
+        this.competition.default_playoff = poff;
+        this.dispatchEvent(new CompetitionChanged({ cid: this.competition.cid, default_playoff: poff }));
+        this.requestUpdate();
+      }
+    }
+  }
+  _newDUnder(e) {
+    if (e.currentTarget.validate()) {
+      const under = parseInt(e.currentTarget.value, 10);
+      if (under !== this.competition.default_underdog) {
+        this.competition.default_underdog = under;
+        this.dispatchEvent(new CompetitionChanged({ cid: this.competition.cid, default_underdog: under }));
+        this.requestUpdate();
       }
     }
   }
@@ -161,7 +294,8 @@ class AdminHome extends LitElement {
     e.stopPropagation();
     if (this.competition.expected_date !== e.changed) {
       this.competition.expected_date = e.changed;
-      this.dispatchEvent(new CompetitionChanged({cid: this.competition.cid, expected_date: this.competition.expected_date}));
+      this.dispatchEvent(new CompetitionChanged({ cid: this.competition.cid, expected_date: this.competition.expected_date }));
+      this.requestUpdate();
     }
   }
   _newGap(e) {
@@ -169,7 +303,8 @@ class AdminHome extends LitElement {
       const gap = parseInt(e.currentTarget.value, 10);
       if (gap !== this.competition.gap) {
         this.competition.gap = gap;
-        this.dispatchEvent(new CompetitionChanged({ cid: this.competition.cid, gap: this.competition.gap }));
+        this.dispatchEvent(new CompetitionChanged({ cid: this.competition.cid, gap: gap }));
+        this.requestUpdate();
       }
     }
 
@@ -179,19 +314,19 @@ class AdminHome extends LitElement {
     if (this.competition.pp_deadline !== e.changed) {
       this.competition.pp_deadline = e.changed;
       this.dispatchEvent(new CompetitionChanged({ cid: this.competition.cid, pp_deadline: this.competition.pp_deadline }));
-    }
-  }
-  _open(e) {
-    e.stopPropagation();
-    if (this.competition.open === 0) {
-      this.competition.open = 1;
-      this.dispatchEvent(new CompetitionChanged({cid: this.competition.cid, open: this.competition.open}));
+      this.requestUpdate();
     }
   }
   _rounds(e) {
     e.stopPropagation();
     switchPath(`${global.cid}/admin/round`);
   }
+  _teamLock(e) {
+    this.competition.team_lock = e.changed ? 1 : 0;
+    this.dispatchEvent(new CompetitionChanged({ cid: this.competition.cid, team_lock: this.competition.team_lock }));
+    this.requestUpdate();
+  }
+
   _teams(e) {
     e.stopPropagation();
     switchPath(`${global.cid}/admin/teams`);

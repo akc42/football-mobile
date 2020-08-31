@@ -47,12 +47,21 @@ class AdminManager extends RouteManager {
       rounds: {type: Array},
       teams: {type: Array},
       users: {type: Array},
-      hasTic: {type: Boolean}
+      confs: { type: Array },
+      divs: { type: Array },
+      maxtic: {type: Number} //largest cid in team_in_competition
+
     };
   }
   constructor() {
     super();
     this.competition = {cid:0, name:'', expected_date: 0}
+    this.rounds = [];
+    this.teams = [];
+    this.users = [];
+    this.confs = [];
+    this.divs = [];
+    this.maxtic = 0;
   }
   connectedCallback() {
     super.connectedCallback();
@@ -82,9 +91,21 @@ class AdminManager extends RouteManager {
           .competition=${this.competition} 
           managed-page
           @competition-changed=${this._competitionChanged}></admin-home>`,
-        teams: html`<admin-teams managed-page ?hasTic=${this.hasTic} .teams=${this.teams} @team-assigned=${this._teamAssign}></admin-teams>`,
-        map: html`<admin-map managed-page></admin-map>`,
-        round: html`<admin-round managed-page .rounds=${this.rounds} .teams=${this.teams} .route=${this.subRoute}></admin-round>`,
+        teams: html`<admin-teams 
+          managed-page
+          .confs=${this.confs}
+          .divs=${this.divs}
+          .maxtic=${this.maxtic} 
+          .points=${this.competition.default_playoff}
+          ?lock=${this.competition.team_lock === 1}
+          @team-assig=${this._teamAssign}
+          @teams-lock=${this._teamLocked}></admin-teams>`,
+        round: html`<admin-round 
+          managed-page
+           
+          .rounds=${this.rounds} 
+          .teams=${this.teams} 
+          .route=${this.subRoute}></admin-round>`,
         email: html`<admin-email managed-page></admin-email>`,
         help: html`<admin-help managed-page></admin-help>`
       }[this.page])}
@@ -119,7 +140,8 @@ class AdminManager extends RouteManager {
       this.rounds = response.rounds;
       this.teams = response.teams;
       this.users = response.users; 
-      this.hasTic = response.maxtc === global.cid;
+      this.confs = response.confs;
+      this.divs = response.divs;
       if (this.rounds.length > 0) {
         let rid = 0;
         for(const round of this.rounds) {
@@ -128,6 +150,14 @@ class AdminManager extends RouteManager {
         switchPath(`/${global.cid}/admin/round/${rid}`);
       }
     }
+  }
+  async _teamAssign(e) {
+    e.stopPropagation();
+    const response = await api(`admin/${global.cid}/team_assign`, e.assign);
+  }
+  _teamLocked(e) {
+    e.changed = {cid: this.competition.cid, team_lock: e.lock ? 1: 0}
+    this._competitionChanged(e);
   }
 }
 customElements.define('admin-manager', AdminManager);
