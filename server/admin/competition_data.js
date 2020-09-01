@@ -32,7 +32,7 @@
     const tic = db.prepare('SELECT MAX(cid) FROM team_in_competition;').pluck();
     
     const rounds = db.prepare('SELECT * FROM round WHERE cid = ?');
-    const teams = db.prepare('SELECT t.*, i.points FROM team t LEFT JOIN team_in_competition i USING(tid) WHERE i.cid = ?');
+    const teams = db.prepare('SELECT t.*, i.points FROM team t LEFT JOIN team_in_competition i ON i.tid = t.tid AND i.cid = ?');
     const registrations =db.prepare('SELECT u.* FROM registration r JOIN participant u USING (uid) WHERE r.cid = ?');
     db.transaction(() => {
       responder.addSection('competition', competition.get(cid));
@@ -41,7 +41,7 @@
       const maxtic = tic.get();
       debug('highest cid from teams in competition', maxtic);
       responder.addSection('maxtic', maxtic);
-      if (maxtic === cid) {
+      if (maxtic >= cid) {
         //We have the correct teams now, so return
         responder.addSection('teams', teams.all(cid));
       }

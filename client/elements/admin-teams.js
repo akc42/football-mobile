@@ -23,8 +23,10 @@ import {cache} from '../libs/cache.js';
 import './football-page.js';
 import './conf-div.js';
 import './fm-checkbox.js';
+import './material-icon.js';
 import page from '../styles/page.js';
-import {TeamLock} from '../modules/events.js';
+
+import {TeamLock, TeamsReset} from '../modules/events.js';
 
 
 /*
@@ -39,6 +41,7 @@ class AdminTeams extends LitElement {
       teams: {type: Array},
       confs: {type: Array},
       divs: {type: Array}, 
+      points: {type: Number}, //default playoff points
       lock: {type: Boolean} //Changing selection is Locked
     };
   }
@@ -47,6 +50,7 @@ class AdminTeams extends LitElement {
     this.teams = [];
     this.confs = [];
     this.divs = [];
+    this.points = 0;
     this.lock = false;
   }
   connectedCallback() {
@@ -66,6 +70,14 @@ class AdminTeams extends LitElement {
   render() {
     return html`
       <style>
+        #toprow {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+        }
+        #toprow > div {
+          cursor: pointer;
+        }
         #list {
           height: 100%;
         }
@@ -80,7 +92,10 @@ class AdminTeams extends LitElement {
 
       </style>
       <football-page id="page" heading="Teams">
-        <fm-checkbox ?value=${this.lock} @value-changed=${this._lockChanged}>Teams In Competition Locked</fm-checkbox>
+        <div id="toprow">
+          ${cache(this.lock ? '' : html`<div @click=${this._reset}><material-icon>autorenew</material-icon>Reset Points</div>`)}
+          <fm-checkbox ?value=${this.lock} @value-changed=${this._lockChanged}>Teams In Competition Locked</fm-checkbox>
+        </div>
         <section id="list" class="scrollable">
           ${cache(this.confs.map(conf => this.divs.map(div => 
             html`<conf-div 
@@ -90,6 +105,7 @@ class AdminTeams extends LitElement {
               .teams=${this.teams}
               .conf=${conf} 
               .div=${div} 
+              .points=${this.points}
               tic
               ?lock=${this.lock}></conf-div>`)))}
         </section>
@@ -101,6 +117,10 @@ class AdminTeams extends LitElement {
     this.lock=e.changed;
     this.dispatchEvent(new TeamLock(this.lock));
     this.requestUpdate();
+  }
+  _reset(e) {
+    e.stopPropagation()
+    this.dispatchEvent(new TeamsReset());
   }
 
 }

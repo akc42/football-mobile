@@ -90,16 +90,20 @@ class AdminManager extends RouteManager {
         home: html`<admin-home 
           .competition=${this.competition} 
           managed-page
+          .maxtic=${this.maxtic} 
+          @teams-set=${this._teamsSet}
           @competition-changed=${this._competitionChanged}></admin-home>`,
         teams: html`<admin-teams 
           managed-page
           .confs=${this.confs}
           .divs=${this.divs}
-          .maxtic=${this.maxtic} 
+          .teams=${this.teams}
           .points=${this.competition.default_playoff}
           ?lock=${this.competition.team_lock === 1}
-          @team-assig=${this._teamAssign}
-          @teams-lock=${this._teamLocked}></admin-teams>`,
+          @teams-reset=${this._teamsReset}
+          @team-assign=${this._teamAssign}
+          @team-lock=${this._teamLocked}
+          @team-point=${this._teamPoint}></admin-teams>`,
         round: html`<admin-round 
           managed-page
            
@@ -125,7 +129,9 @@ class AdminManager extends RouteManager {
     if (e.changed.cid === this.competition.cid) {
       const nameChanged = e.changed.name !== undefined;
       this.competition = {...this.competition, ...e.changed};
+      this.dispatchEvent(new WaitRequest(true));
       const response = await api(`admin/${global.cid}/competition_update`, e.changed);
+      this.dispatchEvent(new WaitRequest(false));
       if (response.competition !== undefined) this.competition = response.competition;
       if (nameChanged) this.dispatchEvent(new CompetitionsReread());
     }
@@ -133,14 +139,19 @@ class AdminManager extends RouteManager {
   async _newRoute() {
     if (this.lastCid !== global.cid) {  //don't repeat if we don't have to
       this.lastCid = global.cid;
+      this.dispatchEvent(new WaitRequest(true));
       this.fetchdataInProgress = true;
       debug('about to fetch compeition data');
       const response = await api(`admin/${global.cid}/competition_data`);
       debug('got competition_data');
       this.fetchdataInProgress = false;
+      this.dispatchEvent(new WaitRequest(false));
       this.competition = response.competition;
       this.rounds = response.rounds;
-      this.teams = response.teams;
+      this.maxtic = response.maxtic;
+      if (this.maxtic >= this.competition.cid) {
+        this.teams = response.teams;
+      }
       this.users = response.users; 
       this.confs = response.confs;
       this.divs = response.divs;
@@ -155,11 +166,41 @@ class AdminManager extends RouteManager {
   }
   async _teamAssign(e) {
     e.stopPropagation();
+    this.dispatchEvent(new WaitRequest(true));
     const response = await api(`admin/${global.cid}/team_assign`, e.assign);
+    this.dispatchEvent(new WaitRequest(false));
+    this.teams = response.teams
   }
   _teamLocked(e) {
+    e.stopPropagation();
     e.changed = {cid: this.competition.cid, team_lock: e.lock ? 1: 0}
     this._competitionChanged(e);
+  }
+  async _teamPoint(e) {
+    e.stopPropagation();
+    const points = e.point;
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api(`admin/${global.cid}/team_point`, points);
+    this.dispatchEvent(new WaitRequest(false));
+    this.teams = response.teams;  //we return all the teams just to ensure we are still synchronised
+  }
+  async _teamsReset(e) {
+    e.stopPropagation();
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api(`admin/${global.cid}/teams_reset`);
+    this.dispatchEvent(new WaitRequest(false));
+    for (const team of this.teams) {
+      if (team.points !== null) team.points = response.points;
+    }
+    this.teams = this.teams.slice(0); //make a copy to force an update
+  }
+  async _teamsSet(e) {
+    e.stopPropagation();
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api(`admin/${global.cid}/make_tics`);
+    this.dispatchEvent(new WaitRequest(false));
+    this.teams = response.teams;
+
   }
 }
 customElements.define('admin-manager', AdminManager);

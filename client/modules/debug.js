@@ -35,12 +35,16 @@ export default function(t) {
         (global.clientLog === 'ALL' || global.clientLog.indexOf(`:${topic}:`) >= 0); //always the same
     }
   }); 
-  return function(message) {
-    if (using) {
+  return function(message, force) { //we allow the force parameter so we can send warnings
+    if (using || force) {
       const now = new Date().getTime();
       const gap = now - timestamp;
       timestamp = now;
-      console.log(`+${gap}ms`,topic, message);
+      if (force) {
+        console.warn(`+${gap}ms`, topic, message);
+      } else {
+        console.log(`+${gap}ms`,topic, message);
+      }
       api('session/log',{topic:topic, message: message, gap: gap}); //no interest in reply
     }
   }

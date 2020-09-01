@@ -21,10 +21,14 @@ import { LitElement, html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 import {SessionStatus, AuthChanged, LocationAltered } from "../modules/events.js";
 import './fm-page.js';
-import api from '../modules/api.js';
 import button from '../styles/button.js';
 import page from '../styles/page.js';
 import global from '../modules/globals.js';
+
+import Debug from '../modules/debug.js';
+
+const logger = Debug('error');
+
 
 /*
      <error-manager>: a page which handles errors.
@@ -91,7 +95,7 @@ class ErrorManager extends LitElement {
     const message = `Client Error:
 ${e.error.stack}
 has occured`;
-    api('session/log', {type:'Error', message: message});
+    logger(message, true);
     this.dispatchEvent(new SessionStatus({state:'error'}));
     this.anError = true;
   }
@@ -104,7 +108,7 @@ has occured`;
       this._serverError(possibleError)
     } else {
       const message = `Client Error: Uncaught Promise Rejection with reason ${e.reason} has occured`;
-      api('session/log', { type: 'Error', message: message });
+      logger(message, true);
       this.dispatchEvent(new SessionStatus({ state: 'error' }));
       this.anError = true;
     }

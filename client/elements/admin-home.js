@@ -23,7 +23,7 @@ import {cache} from '../libs/cache.js';
 import './fm-page.js';
 import page from '../styles/page.js';
 import button from '../styles/button.js';
-import {CompetitionChanged} from '../modules/events.js';
+import {CompetitionChanged, TeamsSet} from '../modules/events.js';
 import './fm-input.js';
 import './fm-checkbox.js';
 import './calendar-input.js';
@@ -40,7 +40,8 @@ class AdminHome extends LitElement {
   }
   static get properties() {
     return {
-      competition: {type: Object}
+      competition: {type: Object},
+      maxtic: {type: Number}  //maximum cid for teams in competition
     };
   }
   constructor() {
@@ -71,7 +72,7 @@ class AdminHome extends LitElement {
           --input-width: 98%;
         }
         fm-input#gap, fm-input#dbonus, fm-input#dpick, fm-input#dplayoff, fm-input#dunder {
-          --input-width: 30px;
+          --input-width: 35px;
         }
         .timeline {
           padding: 5px;
@@ -131,6 +132,18 @@ class AdminHome extends LitElement {
               withTime></calendar-input>
           </div>
           <fm-input
+            id="dplayoff"
+            name="dplayoff"
+            label="Default Playoff Points (Set before selecting teams)"
+            message="Between 1 and 8"
+            type="number"
+            required
+            min="1"
+            step="1"
+            max="8"
+            .value=${this.competition.default_playoff.toString()}
+            @blur=${this._newDPlayoff}></fm-input>                       
+          <fm-input
             id="gap"
             name="gap"
             label="Deadline (in Minutes) before Match Time for Match Picks"
@@ -142,18 +155,6 @@ class AdminHome extends LitElement {
             step="1"
             max="10"
             @blur=${this._newGap}></fm-input>
-          <fm-input
-            id="dbonus"
-            name="dbonus"
-            label="Default Bonus Points"
-            message="Between 1 and 8"
-            type="number"
-            required
-            min="1"
-            step="1"
-            max="8"
-            .value=${this.competition.default_bonus.toString()}
-            @blur=${this._newDBonus}></fm-input>
           <fm-input
             id="dpick"
             name="dpick"
@@ -167,24 +168,24 @@ class AdminHome extends LitElement {
             .value=${this.competition.default_points.toString()}
             @blur=${this._newDPick}></fm-input>              
           <fm-input
-            id="dplayoff"
-            name="dplayoff"
-            label="Default Playoff Points"
+            id="dbonus"
+            name="dbonus"
+            label="Default Bonus Points"
             message="Between 1 and 8"
             type="number"
             required
             min="1"
             step="1"
             max="8"
-            .value=${this.competition.default_playoff.toString()}
-            @blur=${this._newDPlayoff}></fm-input>                       
+            .value=${this.competition.default_bonus.toString()}
+            @blur=${this._newDBonus}></fm-input>
       
           <div class="step">
             <fm-checkbox
               name="team_lock"
               .value=${this.competition.team_lock} 
               @value-changed=${this._teamLock}
-              ?disabled=${this.competition.open === 1}>Teams Fixed</fm-checkbox>
+              ?disabled=${this.competition.open === 1 || this.maxtic < this.competition.cid}>Teams Fixed</fm-checkbox>
             <fm-checkbox 
               name="open"
               .value=${this.competition.open} 
@@ -199,10 +200,8 @@ class AdminHome extends LitElement {
 
 
         </div>
-        ${cache(this.competition.team_lock === 1 ? 
-          html`<button slot="action" @click=${this._rounds}>Rounds</button>`: 
-          html`<button slot="action" @click=${this._teams}>Teams</button>`
-        )}
+        ${cache(this.competition.team_lock === 1 ? html`<button slot="action" @click=${this._rounds}>Rounds</button>`: '')}
+        <button slot="action" @click=${this._teams}>Teams</button>
         <button slot="action" @click=${this._email}>Email Users</button>    
       </fm-page>
     `;
@@ -314,6 +313,7 @@ class AdminHome extends LitElement {
 
   _teams(e) {
     e.stopPropagation();
+    if (this.maxtic < this.competition.cid) this.dispatchEvent(new TeamsSet()); //Tells the manager to get set up teams in competition now
     switchPath(`${global.cid}/admin/teams`);
   }
 }

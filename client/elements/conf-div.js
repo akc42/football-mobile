@@ -23,7 +23,9 @@ import {classMap} from '../libs/class-map.js';
 
 import './user-pick.js';
 import './material-icon.js';
-import {PlayoffPick, TeamAssign} from '../modules/events.js';
+import './fm-input.js';
+
+import {PlayoffPick, TeamAssign, TeamPoint} from '../modules/events.js';
 import global from '../modules/globals.js';
 
 /*
@@ -42,7 +44,8 @@ class ConfDiv extends LitElement {
       deadline: {type: Number}, //deadline for picks
       nome: {type: Boolean}, //If set don't highlight conf-div heading for user = me.
       tic: {type: Boolean}, //set if this usage is in team in competition - so its about if team is selected
-      lock: {type: Boolean} //set if we can no longer edit tic
+      lock: {type: Boolean}, //set if we can no longer edit tic
+      points: {type:Number} //default points to allocate to a new tic.
     };
   }
   constructor() {
@@ -54,6 +57,8 @@ class ConfDiv extends LitElement {
     this.deadline = 0;
     this.nome = false;
     this.tic = false;
+    this.lock = false;
+    this.points = 0;
   }
   connectedCallback() {
     super.connectedCallback();
@@ -114,17 +119,26 @@ class ConfDiv extends LitElement {
             "name name name";
         }
         .team.tic {
+          --input-width: 35px;
           grid-template-areas:
-            "logo in in"
-            "logo in in"
+            "logo cbx cbx"
+            "logo inp inp"
             "name name name"
         }
         .cbx {
-          grid-area: in;
+          grid-area: cbx;
           background-color: var(--background-color);
           display: flex;
           justify-content: center;
           align-items: center;
+        }
+        .inp {
+          grid-area: inp;
+          background-color: var(--background-color);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+
         }
         .poff, .team img, .points, .pick, .name {
           background-color: var(--background-color);
@@ -180,7 +194,18 @@ class ConfDiv extends LitElement {
                 <fm-checkbox .value=${team.points !==null } @value-changed=${this._ticChanged} data-tid=${team.tid} ?disabled=${this.lock}></fm-checkbox>
               </div>
               <div class="inp">
-                <fm-input .value=${team.points === null ? 1: team.points} required min="1" max></fm-input>
+                <fm-input 
+                  message=""
+                  preventInvalid
+                  type="number" 
+                  .value=${team.points === null ? '': team.points.toString()} 
+                  ?required=${team.points !== null} 
+                  ?disabled=${team.points === null}
+                  min="1" 
+                  max="8" 
+                  step="1"
+                  data-tid=${team.tid}
+                  @blur=${this._updatePoints}></fm-input>
               </div>
             ` :html`
               <div class="poff">${cache(team.made_playoff === 1 ? html`<material-icon>emoji_events</material-icon>` : '')}</div>
@@ -208,14 +233,31 @@ class ConfDiv extends LitElement {
   }
   _ticChanged(e) {
     e.stopPropagation();
-    const tid = e.currentTarget.dataset.tid;
-    this.dispatchEvent(new TeamAssign({tid: tid,assign: e.changed}));
-    
+    const tid = e.currentTarget.dataset.tid; 
     const team = this.teams.find(t => t.tid === tid);
     if (team !== undefined) {
-      team.inComp = e.changed ? 1:0;
+      team.points = e.changed ? this.points:null;
       this.requestUpdate();
     }
+    this.dispatchEvent(new TeamAssign({ tid: tid, assign: e.changed }));
+
+  }
+  _updatePoints(e) {
+    e.stopPropagation();
+    const tid = e.currentTarget.dataset.tid; 
+    const team = this.teams.find(t => t.tid === tid);
+    if (team !== undefined) {
+      const points = parseInt(e.currentTarget.value,10)
+      if (points !== team.points) {
+        //has changes so 
+        team.points = points
+        this.requestUpdate();
+        this.dispatchEvent(new TeamPoint({tid: team.tid, points: points}))
+      }
+    }
+
+
+
   }
 }
 customElements.define('conf-div', ConfDiv);

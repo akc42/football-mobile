@@ -671,6 +671,51 @@ export class TeamLock extends Event {
   }
 };
 
+export class TeamPoint extends Event {
+  static eventType = 'team-point';
+
+  /*
+     The following are the fields provided by this event
+
+     point: An object consisting of tid (String) and points (Number);
+
+  */
+
+  constructor(point) {
+    super('team-point',{composed: true, bubbles: true});
+    this.point = point;
+  }
+};
+
+export class TeamsReset extends Event {
+  static eventType = 'teams-reset';
+
+  /*
+     The following are the fields provided by this event
+
+     none: 
+
+  */
+
+  constructor() {
+    super('teams-reset',{composed: true, bubbles: true});
+  }
+};
+export class TeamsSet extends Event {
+  static eventType = 'teams-set';
+
+  /*
+     The following are the fields provided by this event
+
+     none:
+
+  */
+
+  constructor() {
+    super('teams-set',{composed: true, bubbles: true});
+  }
+};
+
 export class UserSelected extends Event {
   static eventType = 'user-selected';
 

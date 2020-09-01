@@ -46,7 +46,7 @@ class FootballPage extends LitElement {
     justify-content: space-around;  
     align-items: center;     
   }
-  ::slotted(*) {
+  slot[name=heading]::slotted(*) {
     flex: 1 0 0; 
     margin: 0 5px;
   } 
