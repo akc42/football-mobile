@@ -24,11 +24,14 @@ import {WaitRequest} from '../modules/events.js';
 
 import RouteManager from './route-manager.js';
 
+import Debug from '../modules/debug.js';
+const debug = new Debug('admin-round');
+
 
 /*
      <admin-round>: Actually a high level manager for rounds
 */
-class AdminRound extends RouteManager {
+class AdminRounds extends RouteManager {
   static get styles() {
     return  css`
       :host {
@@ -38,41 +41,38 @@ class AdminRound extends RouteManager {
   }
   static get properties() {
     return {
-      ridPage: {type: String}, //substitute for page which holds the rid.
       rounds: {type: Array},
       teams: {type: Array},
-      round: {type: Object}
+      confs: {type: Array},
+      divs: {type: Array}
     };
   }
   constructor() {
     super();
-    this.ridPage = 'home';
     this.rounds = [];
     this.teams = [];
-    this.round = {rid: 0, name:''}
-  }
-  connectedCallback() {
-    super.connectedCallback();
-    this.ridPage = 'home';
-  }
+    this.confs = [];
+    this.divs = [];
 
+  }
   render() {
     return html`
       ${cache({
         home: html`<admin-round-home managed-page .rounds=${this.rounds}></admin-round-home>`,
-        round: html`<admin-round-round managed-page .route=${this.subroute} .round=${this.round} .teams=${this.teams}></admin-round-round>`
-      }[this.ridPage])}
+        round: html`<admin-round-round 
+          managed-page 
+          .ridRoute=${this.subRoute} 
+          .rounds=${this.rounds} 
+          .teams=${this.teams}
+          .confs=${this.confs}
+          .divs=${this.divs}></admin-round-round>`
+      }[this.page])}
     `;
   }
   loadPage(page) {
-    let ip = './admin-round-round.js';
-    this.ridPage = 'round';
-    if (page === 'home') {
-      ip = './admin-round-home.js';
-      this.ridPage = 'home';
-    }
+    debug(`loading ${page}`);
     this.dispatchEvent(new WaitRequest(true));
-    import(ip).then(() => this.dispatchEvent(new WaitRequest(false)));
+    import(`./admin-round-${page}.js`).then(() => this.dispatchEvent(new WaitRequest(false)));
   }
 }
-customElements.define('admin-round', AdminRound);
+customElements.define('admin-rounds', AdminRounds);

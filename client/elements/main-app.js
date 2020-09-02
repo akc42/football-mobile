@@ -358,8 +358,7 @@ class MainApp extends LitElement {
   _authChanged(e) {
     this.authorised = e.changed;
   }
-    _close() {
-    this.close = false;
+  _close() {
     this.fmPages.dispatchEvent(new PageClose());
   }
   _compClosed(e) {
@@ -439,7 +438,7 @@ class MainApp extends LitElement {
     this.close = true;
   }
   _menuRemove(e) {
-    debug(e.menu + ' being removed to menu');
+    debug(e.menu + ' being removed from menu');
     switch(e.menu) {
       case 'scores':
         this.scores = false;

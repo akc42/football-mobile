@@ -19,9 +19,17 @@
 */
 import { html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
-import {WaitRequest} '../modules/events.js';
+
+import global from '../modules/globals.js';
+import api from '../modules/api.js';
+
+import{WaitRequest} from '../modules/events.js';
 
 import RouteManager from './route-manager.js';
+import Router from '../modules/route.js';
+
+import Debug from '../modules/debug.js'
+const debug = new Debug('admin-round-round');
 
 /*
      <admin-round-round>: Competition Admin Round Management 2nd Level
@@ -36,24 +44,57 @@ class AdminRoundRound extends RouteManager {
   }
   static get properties() {
     return {
-    
+      ridRoute: {type: Object} ,
+      rid: {type: Number},
+      rounds: {type: Array},
+      teams: {type: Array},
+      round: {type: Object},
+      matches: {type: Array},
+      confs: {type: Array},
+      divs: {type: Array}
     };
   }
   constructor() {
     super();
+    this.ridRoute = {active: false};
+    this.rid = 0;
+    this.rrouter = new Router(':rid', 'page:round');
+    this.rounds = [];
+    this.teams = [];
+    this.matches = [];
+    this.confs = [];
+    this.divs = [];
+    this.round = {rid: 0}
+    this.lastRid = 0;
   }
   connectedCallback() {
     super.connectedCallback();
+    this.lastRid = 0;
   }
   disconnectedCallback() {
     super.disconnectedCallback();
   }
   update(changed) {
+    if (changed.has('ridRoute')) {
+      this.route = this.rrouter.routeChange(this.ridRoute);
+      if (this.route.active) {
+        this.rid = this.route.params.rid;
+      }
+    }
     super.update(changed);
   }
   firstUpdated() {
   }
   updated(changed) {
+    if (changed.has('rid') || changed.has('rounds')) {
+      const round = this.rounds.find(r => r.rid === this.rid);
+      if (round !== undefined) {
+        this.round = round;
+        this._newRound();
+      } else {
+        throw new Error('invalid round id' + this.rid);
+      }
+    }
     super.updated(changed);
   }
   render() {
@@ -61,14 +102,55 @@ class AdminRoundRound extends RouteManager {
       <style>
       </style>
       ${cache({
-        home: html`<admin-round-round-home managed-page></admin-round-round-home>`,
-        match: html`<admin-round-round-match managed-page></admin-round-round-match>`
+        home: html`<admin-round-round-home 
+          managed-page
+          .round=${this.round}></admin-round-round-home>`,
+        bonus: html`<admin-round-round-bonus
+          managed-page
+          .round=${this.round}
+          .options=${this.options}></admin-round-round-bonus>`,
+        match: html`<admin-round-round-match
+          managed-page
+          .round=${this.round}
+          .teams=${this.teams}
+          .confs=${this.confs}
+          .divs=${this.divs}
+          .matches=${this.matches}
+         @match-create=${this._matchCreate}
+         @match-delete=${this._matchDelete}
+         @match-update=${this._matchUpdate}></admin-round-round-match>`
       }[this.page])}
     `;
   }
   loadPage(page) {
+    debug(`loading ${page}`);
     this.dispatchEvent(new WaitRequest(true));
     import(`./admin-round-round-${page}.js`).then(() => this.dispatchEvent(new WaitRequest(false)));
+  }
+
+  _matchCreate(e) {
+    e.stopPropagation();
+  }
+  _matchDelete(e) {
+    e.stopPropagation();
+  }
+  _matchUpdate(e) {
+    e.stopPropagation();
+  } 
+
+  async _newRound() {
+    if (this.lastRid !== this.rid) {
+      this.lastRid = this.rid;
+      this.dispatchEvent(new WaitRequest(true));
+      const response = await api(`admin/${global.cid}/fetch_matches_options`,{rid: this.rid});
+      this.dispatchEvent(new WaitRequest(false));
+      this.matches = response.matches;
+      this.options = response.options
+    }
+  }
+  _roundChanged(e) {
+    e.stopPropagation();
+
   }
 }
 customElements.define('admin-round-round', AdminRoundRound);

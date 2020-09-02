@@ -281,8 +281,8 @@ class AdminHome extends LitElement {
   }
   _rounds(e) {
     e.stopPropagation();
-    let path = `${global.cid}/admin/round`;
-    if (this.rid > 0) path += `/${this.rid}`
+    let path = `${global.cid}/admin/rounds`;
+    if (this.rid > 0) path += `/round/${this.rid}`
     switchPath(path);
   }
   _teamLock(e) {

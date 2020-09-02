@@ -102,6 +102,7 @@ class FootballPage extends LitElement {
           <slot name="heading"></slot><div id="compname">${this.name}</div>
         </div>
         <slot></slot>
+        <slot name="action" slot="action"></slot>
       </fm-page>
     `;
   }

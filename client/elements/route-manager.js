@@ -138,10 +138,8 @@ export default class RouteManager extends  LitElement {
     e.stopPropagation();
     //see comment above to see why this works
     window.dispatchEvent(new RouteChanged({
-      detail: {
-        segment: this.route.segment,
-        path: '/'
-      }
+      segment: this.route.segment,
+      path: '/'      
     }));
   }
   // abstract (or not if we are happy with what they do)

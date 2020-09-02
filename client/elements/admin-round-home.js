@@ -25,6 +25,8 @@ import './material-icon.js'
 import './fm-input.js';
 import page from '../styles/page.js';
 import { RoundCreate, DeleteRequest, RoundDelete } from '../modules/events.js';
+import global from '../modules/globals.js';
+import {switchPath} from '../modules/utils.js';
 
 /*
      <admin-round-home>: Allows Editing of Round Details
@@ -107,10 +109,12 @@ class AdminRoundHome extends LitElement {
         .name {
           flex: 0 0 var(--admin-name-length);
           padding-bottom: 7px;
+          cursor: pointer;
         }
         .no {
           flex: 0 0 40px;
           padding-bottom: 7px;
+          cursor:pointer;
         }
         .round {
           border-bottom: 1px dotted var(--accent-color);
@@ -120,7 +124,7 @@ class AdminRoundHome extends LitElement {
           width: 100%;
         }
       </style>
-      <football-page id="page" heading="Rounds">
+      <football-page id="page" heading="Round Selection">
         
           <div class="container">
             <fm-input
@@ -147,8 +151,8 @@ class AdminRoundHome extends LitElement {
           <section class="scrollable">
           ${cache(this.rounds.map(round => html`
             <div class="container round">
-              <div class="no">${round.rid}</div>
-              <div class="name">${round.name}</div>
+              <div class="no" @click=${this._loadRound} data-rid="${round.rid}">${round.rid}</div>
+              <div class="name" @click=${this._loadRound} data-rid="${round.rid}">${round.name}</div>
               <material-icon class="del" @click=${this._maybeDelete} data-rid="${round.rid}">close</material-icon>
             </div>    
           `))}
@@ -170,6 +174,11 @@ class AdminRoundHome extends LitElement {
       this.dispatchEvent(new RoundDelete(this.deleterid));
       this.deleterid = null;
     }
+  }
+  _loadRound(e) {
+    e.stopPropagation();
+    const rid = e.currentTarget.dataset.rid; //can leave as string
+    switchPath(`${global.cid}/admin/rounds/round/${rid}`);
   }
 
   _maybeDelete(e) {

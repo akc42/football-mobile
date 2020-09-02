@@ -18,6 +18,8 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import {LocationAltered} from './events.js';
+import Debug from './debug.js'
+const debug = new Debug('utils');
 
 export function generateUri(path, params) {
   var str = [];
@@ -41,6 +43,7 @@ export function openPdf(path, params) {
     'chrome=yes,centerscreen,resizable,scrollbars,status,height=800,width=800');
 }
 export function switchPath(path, params) {
+  debug(`switchpath to ${path}`);
   history.pushState({}, null, generateUri(path,params));
   window.dispatchEvent(new LocationAltered());
 }

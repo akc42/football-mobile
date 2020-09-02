@@ -31,11 +31,21 @@ class AdminRoundRoundMatch extends LitElement {
   }
   static get properties() {
     return {
-    
+      round: {type: Object},
+      teams: {type: Array},
+      matches: {type:Array},
+      unmatched: {type: Array}, //teams not yet in a competition
+      confs: {type: Array},
+      divs: {type:Array}
     };
   }
   constructor() {
     super();
+    this.matches = [];
+    this.unmatched = [];
+    this.teams = [];
+    this.confs = [];
+    this.divs = [];
   }
   connectedCallback() {
     super.connectedCallback();
@@ -56,6 +66,7 @@ class AdminRoundRoundMatch extends LitElement {
       <style>
       </style>
       <football-page id="page" heading="Match Management">
+        <div slot="heading">${this.round.name}</div>
         <p>STILL TO BE IMPLEMENTED</p>
       </football-page>
     `;

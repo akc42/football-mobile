@@ -21,27 +21,21 @@ import { LitElement, html, css } from '../libs/lit-element.js';
 
 import './football-page.js';
 import page from '../styles/page.js';
-import button from '../styles/button.js';
-
-import {switchPath} from '../modules/utils.js';
-import global from '../modules/globals.js';
-
 
 /*
-     <admin-round-round-home>: Allows Selection of Other Rounds
+     <admin-round--round-bonus>: Allows setup and subsequent editing of bonus question in a round.
 */
-class AdminRoundRoundHome extends LitElement {
+class AdminRoundRoundBonus extends LitElement {
   static get styles() {
-    return [page, button, css``];
+    return [page, css``];
   }
   static get properties() {
     return {
-      round: {type: Object}
+    
     };
   }
   constructor() {
     super();
-    this.round = {rid: 0, name: ''}
   }
   connectedCallback() {
     super.connectedCallback();
@@ -61,21 +55,11 @@ class AdminRoundRoundHome extends LitElement {
     return html`
       <style>
       </style>
-      <football-page id="page" heading="Round Details">
+      <football-page id="page" heading="Bonus Question">
         <div slot="heading">${this.round.name}</div>
         <p>STILL TO BE IMPLEMENTED</p>
-        <button slot="action" @click=${this._options}>Bonus Question</button>
-        <button slot="action" @click=${this._matches}>Matches</button>
       </football-page>
     `;
   }
-  _matches(e) {
-    e.stopPropagation();
-    switchPath(`${global.cid}/admin/rounds/round/${this.round.rid}/match`);
-  }
-  _options(e) {
-    e.stopPropagation();
-    switchPath(`${global.cid}/admin/rounds/round/${this.round.rid}/bonus`);
-  }
 }
-customElements.define('admin-round-round-home', AdminRoundRoundHome);
+customElements.define('admin-round-round-bonus', AdminRoundRoundBonus);

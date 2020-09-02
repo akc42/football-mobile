@@ -109,23 +109,26 @@ class AdminManager extends RouteManager {
           @team-assign=${this._teamAssign}
           @team-lock=${this._teamLocked}
           @team-point=${this._teamPoint}></admin-teams>`,
-        round: html`<admin-round 
+        rounds: html`<admin-rounds 
           managed-page
+          .confs=${this.confs}
+          .divs=${this.divs}
           .rounds=${this.rounds} 
           .teams=${this.tics} 
           .route=${this.subRoute}
           @round-create=${this._roundCreate}
-          @round-delete=${this._roundDelete}></admin-round>`,
+          @round-delete=${this._roundDelete}></admin-rounds>`,
         email: html`<admin-email .users=${this.users} managed-page></admin-email>`,
         help: html`<admin-help managed-page></admin-help>`
       }[this.page])}
     `;
   }
   loadPage(page) {
+    debug(`loading ${page}`);
     this.dispatchEvent(new WaitRequest(true));
     import(`./admin-${page}.js`).then(() => this.dispatchEvent(new WaitRequest(false)));
     if (page === this.homePage()) {
-      this.dispatchEvent(new MenuReset())
+      this.dispatchEvent(new MenuReset());
     } else {
       this.dispatchEvent(new MenuAdd());
     }
@@ -166,7 +169,7 @@ class AdminManager extends RouteManager {
         this.rid = this.rounds.reduce((ac, cur) => {
           return Math.max(ac, cur.rid);
         }, 0);
-        switchPath(`/${global.cid}/admin/round/${this.rid}`);
+        switchPath(`/${global.cid}/admin/rounds/round/${this.rid}`);
       } else {
         this.rid = 0;
       }
