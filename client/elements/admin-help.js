@@ -56,7 +56,22 @@ class AdminHelp extends LitElement {
       <style>
       </style>
       <fm-page id="page" heading="Admin Help">
-        <p>STILL TO BE IMPLEMENTED</p>
+        <p>Just some brief notes prior to a proper implementation of this page. Also read icon meanings page</p>
+        <ul>
+          <li>Global Admin has created the competition and assigned you as Administrator</li>
+          <li>The main page is the basics of the competition. Some new concepts this year
+            <ul>
+              <li>Expected soon is an approximate date you think you will 'open' the competition. This will disappear when you open the competition.</li>
+              <li>You can close a competition - this stops further registrations.  It should be closed when the season is over if not already.</li>
+              <li>The registration text will become an un-editable panel when the competition is closed.</li>
+              <li>You can set default values for Playoff picks, Match Picks and Round Bonus.  The actual values are initialised from these but you can change them.</li>
+              <li>Locking the teams in the competition is remembered and has to be done before you can start constructing rounds</li>
+            </ul>
+          <li>Teams allows you to set teams in the competition and the score a user gets for a correct playoff Pick.  This initial setting is a copy of last years teams with your new default values. This is setup when you press the "Teams" button, so set the default first.</li>
+          <li>Rounds lets you manage rounds.  If there are rounds, it will default to taking you to the last round, but you can back up (using the <material-icon>reply</material-icon> button). To the page which lists the rounds and allows you to create a new one.</li>
+          <li>Match Management is a button on the Round Management Page. More info here when implemented</li>
+          <li>You can send e-mails to users.  More info when implemented.</li>
+        </ul>
       </fm-page>
     `;
   }

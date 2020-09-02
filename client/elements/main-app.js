@@ -296,6 +296,7 @@ class MainApp extends LitElement {
                 `: '')}
                 <div id="admin" role="menuitem" @click=${this._selectPage}>
                   <material-icon>font_download</material-icon>Competition Admin</div>
+                <div id="ahelp" role="menuitem" @click=${this._adminHelp}><material-icon>support</material-icon><span>Admin Help</span></div>
               `: '')}
             `:'')}
           </div>
@@ -348,6 +349,11 @@ class MainApp extends LitElement {
         `:'')}
       </section>
     `;
+  }
+  _adminHelp(e) {
+    e.stopPropagation();
+    this.mainmenu.close();
+    switchPath(`${global.cid}/admin/help`);
   }
   _authChanged(e) {
     this.authorised = e.changed;
@@ -448,7 +454,7 @@ class MainApp extends LitElement {
     }
   }
   _menuReset(e) {
-    debug('menu reset received menu=', e.menu);
+    debug('menu reset received menu=' + e.menu);
     this.close = false;
     if (e.menu) {
       this.profile = true;

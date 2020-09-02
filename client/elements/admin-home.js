@@ -41,6 +41,7 @@ class AdminHome extends LitElement {
   static get properties() {
     return {
       competition: {type: Object},
+      rid: {type: Number}, //largest round in competition (or 0 if none)
       maxtic: {type: Number}  //maximum cid for teams in competition
     };
   }
@@ -67,51 +68,28 @@ class AdminHome extends LitElement {
       <style>
       .container {
         width: 100%;
+        overflow-x: hidden;
       }
-        fm-input {
-          --input-width: 98%;
+        fm-input#compname {
+          --input-width: var(--admin-name-length);
         }
         fm-input#gap, fm-input#dbonus, fm-input#dpick, fm-input#dplayoff, fm-input#dunder {
           --input-width: 35px;
         }
-        .timeline {
-          padding: 5px;
-          display: grid;
-          grid-gap: 5px;
-          grid-template-columns: 1fr 1fr;
-          grid-template-areas:
-             "deadline step"
-             "gap step"
-             "dbonus dpick"
-             "dplayoff dunder"
+        #condition {
+          --input-width: var(--text-input-width);
+          width: var(--text-input-width);
         }
-        .deadline {
-          grid-area: deadline;
-        }
-        #gap {
-          grid-area: gap;
-        }
+
         .step {
-          grid-area: step;
           display:flex;
           flex-direction: column;
         }
-        #dbonus {
-          grid-area: dbonus;
-        }
-        #dpick {
-          grid-area: dpick;
-        }
-        #dplayoff {
-          grid-area: dplayoff;
-        }
-        #dunder {
-          grid-area: dunder;
-        }
+   
       </style>
       <fm-page id="page" heading="Competition Setup">
         <div class="container">
-          <fm-input label="Competition Name", .value=${this.competition.name} required @blur=${this._nameChange}></fm-input>
+          <fm-input id="compname" label="Competition Name" .value=${this.competition.name} required @blur=${this._nameChange}></fm-input>
           ${cache(this.competition.open ? '':html`
             <label for="opendate">Expected Opening Date</label>
             <calendar-input id="opendatate" name="opendate" .value=${this.competition.expected_date} @value-changed=${this._newExpected}></calendar-input>
@@ -120,7 +98,7 @@ class AdminHome extends LitElement {
             <label for="condition">Registration Condition</label>
             <div id="condition" class="panel">${this.competition.condition}</div>
           `:html`
-            <fm-input label="Registration Condition" textarea .value=${this.competition.condition} @blur=${this._conditionChange} rows="5"></fm-input>
+            <fm-input id="condition" label="Registration Condition" textarea .value=${this.competition.condition} @blur=${this._conditionChange} rows="5"></fm-input>
           `)}
           <div class="deadline">
             <label for="pp_deadline">Playoff Picks Deadline</label>
@@ -303,7 +281,9 @@ class AdminHome extends LitElement {
   }
   _rounds(e) {
     e.stopPropagation();
-    switchPath(`${global.cid}/admin/round`);
+    let path = `${global.cid}/admin/round`;
+    if (this.rid > 0) path += `/${this.rid}`
+    switchPath(path);
   }
   _teamLock(e) {
     this.competition.team_lock = e.changed ? 1 : 0;

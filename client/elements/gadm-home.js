@@ -27,7 +27,7 @@ import button from '../styles/button.js';
 import './fm-input.js';
 import { CompetitionCreate, DeleteRequest, CompetitionDelete, CompetitionChanged } from '../modules/events.js';
 import { switchPath } from '../modules/utils.js';
-import { s } from '../libs/lit-html-f17e05ab.js';
+
 
 
 /*
@@ -103,11 +103,22 @@ class GadmHome extends LitElement {
       <style>
        :host {
          --icon-size: 20px;
+         --input-width: var(--admin-name-length);
        }
        .row {
          display: flex;
          flex-direction: row;
-         align-items: center;
+         align-items: flex-end;
+         justify-content: flex-start;
+       }
+       .row fm-input {
+         width: var(--admin-name-length)
+       }
+       #competition material-icon {
+         --icon-size: 30px;
+         padding-bottom: 7px;
+         margin-left: 5px;
+         margin-right: 5px;
        }
        .adm {
          color: var(--item-present);
@@ -125,6 +136,7 @@ class GadmHome extends LitElement {
          grid-area: competition;
 
        }
+
        #other {
          grid-area: other;
          display: flex;

@@ -25,13 +25,13 @@
 
   module.exports = (user,cid,params,responder) => {
     const readname = db.prepare(`SELECT name FROM competition WHERE cid = ?`).pluck();
-    const readdeadline = db.prepare(`SELECT name, pp_deadline, team_lock FROM competition WHERE cid = ?`);
+    const readdeadline = db.prepare(`SELECT name, pp_deadline, team_lock, open, closed FROM competition WHERE cid = ?`);
   
     if(params.check) {
-      const {name, pp_deadline, team_lock} = readdeadline.get(cid);
+      const {name, pp_deadline, team_lock, open, closed} = readdeadline.get(cid);
       responder.addSection('name', name);
       const cutoff = Math.floor(new Date().getTime()/1000);
-      responder.addSection('canpick', cutoff < pp_deadline && team_lock === 1);
+      responder.addSection('canpick', cutoff < pp_deadline && team_lock === 1 && open === 1 && closed === 0);
     } else {
       responder.addSection('name', readname.get(cid));  
     }

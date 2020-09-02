@@ -590,6 +590,38 @@ export class PromoteList extends Event {
   }
 };
 
+export class RoundCreate extends Event {
+  static eventType = 'round-create';
+
+  /*
+     The following are the fields provided by this event
+
+     round: Name of Round.
+
+  */
+
+  constructor(round) {
+    super('round-create',{composed: true, bubbles: true});
+    this.round = round;
+  }
+};
+
+export class RoundDelete extends Event {
+  static eventType = 'round-delete';
+
+  /*
+     The following are the fields provided by this event
+
+     round: rid of round to delete.
+
+  */
+
+  constructor(round) {
+    super('round-delete',{composed: true, bubbles: true});
+    this.round = round;
+  }
+};
+
 export class RoundSelected extends Event {
   static eventType = 'round-selected';
 

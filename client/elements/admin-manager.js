@@ -46,10 +46,12 @@ class AdminManager extends RouteManager {
       competition: {type: Object},
       rounds: {type: Array},
       teams: {type: Array},
+      tics: {type: Array}, //subset of teams that are in this competition;
       users: {type: Array},
       confs: { type: Array },
       divs: { type: Array },
-      maxtic: {type: Number} //largest cid in team_in_competition
+      maxtic: {type: Number}, //largest cid in team_in_competition
+      rid: {type: Number} //largest round.
 
     };
   }
@@ -62,6 +64,8 @@ class AdminManager extends RouteManager {
     this.confs = [];
     this.divs = [];
     this.maxtic = 0;
+    this.rid = 0;
+    this.tics = [];
   }
   connectedCallback() {
     super.connectedCallback();
@@ -91,6 +95,7 @@ class AdminManager extends RouteManager {
           .competition=${this.competition} 
           managed-page
           .maxtic=${this.maxtic} 
+          .rid=${this.rid}
           @teams-set=${this._teamsSet}
           @competition-changed=${this._competitionChanged}></admin-home>`,
         teams: html`<admin-teams 
@@ -106,11 +111,12 @@ class AdminManager extends RouteManager {
           @team-point=${this._teamPoint}></admin-teams>`,
         round: html`<admin-round 
           managed-page
-           
           .rounds=${this.rounds} 
-          .teams=${this.teams} 
-          .route=${this.subRoute}></admin-round>`,
-        email: html`<admin-email managed-page></admin-email>`,
+          .teams=${this.tics} 
+          .route=${this.subRoute}
+          @round-create=${this._roundCreate}
+          @round-delete=${this._roundDelete}></admin-round>`,
+        email: html`<admin-email .users=${this.users} managed-page></admin-email>`,
         help: html`<admin-help managed-page></admin-help>`
       }[this.page])}
     `;
@@ -151,16 +157,40 @@ class AdminManager extends RouteManager {
       this.maxtic = response.maxtic;
       if (this.maxtic >= this.competition.cid) {
         this.teams = response.teams;
+        this.tics = this.teams.filter(t => t.points !== null);
       }
       this.users = response.users; 
       this.confs = response.confs;
       this.divs = response.divs;
       if (this.rounds.length > 0) {
-        let rid = 0;
-        for(const round of this.rounds) {
-          if (round.rid > rid) rid = round.rid;
-        }
-        switchPath(`/${global.cid}/admin/round/${rid}`);
+        this.rid = this.rounds.reduce((ac, cur) => {
+          return Math.max(ac, cur.rid);
+        }, 0);
+        switchPath(`/${global.cid}/admin/round/${this.rid}`);
+      } else {
+        this.rid = 0;
+      }
+
+    }
+  }
+  async _roundCreate(e) {
+    e.stopPropagation();
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api(`admin/${global.cid}/round_create`, e.round);
+    this.dispatchEvent(new WaitRequest(false));
+    this.rounds = response.rounds;
+    this.rid = response.rid;
+  }
+  async _roundDelete(e) {
+    e.stopPropagation();
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api(`admin/${global.cid}/round_delete`, { rid: e.round });
+    this.dispatchEvent(new WaitRequest(false));
+    this.rounds = response.rounds;
+    this.rid = 0;
+    if (this.rounds.length > 0) {
+      for (const round of this.rounds) {
+        if (round.rid > this.rid) this.rid = round.rid;
       }
     }
   }
@@ -170,6 +200,7 @@ class AdminManager extends RouteManager {
     const response = await api(`admin/${global.cid}/team_assign`, e.assign);
     this.dispatchEvent(new WaitRequest(false));
     this.teams = response.teams
+    this.tics = this.teams.filter(t => t.points !== null);
   }
   _teamLocked(e) {
     e.stopPropagation();
@@ -183,6 +214,7 @@ class AdminManager extends RouteManager {
     const response = await api(`admin/${global.cid}/team_point`, points);
     this.dispatchEvent(new WaitRequest(false));
     this.teams = response.teams;  //we return all the teams just to ensure we are still synchronised
+    this.tics = this.teams.filter(t => t.points !== null);
   }
   async _teamsReset(e) {
     e.stopPropagation();
@@ -200,6 +232,7 @@ class AdminManager extends RouteManager {
     const response = await api(`admin/${global.cid}/make_tics`);
     this.dispatchEvent(new WaitRequest(false));
     this.teams = response.teams;
+    this.tics = this.teams.filter(t => t.points !== null);
 
   }
 }

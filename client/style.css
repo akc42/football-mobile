@@ -57,12 +57,13 @@
   --fm-fixed-comment: darkorange;
 
   --email-input-length: 240px;
+  --admin-name-length: 240px;
   --name-input-length: 120px; 
   --pw-input-length: 100px; 
+  --text-input-width: 300px;
 }
   
 body {
   color: var(--color);
   background-color: var(--background-color);
-  overflow-x: hidden;
 }

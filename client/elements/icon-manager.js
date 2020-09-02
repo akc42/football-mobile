@@ -168,9 +168,21 @@ class IconManager extends LitElement {
           <div class="icon fixed"><material-icon>comment</material-icon></div>
           <div class="description">Click to show comment</div>
         </div>
+        <div class="item">
+          <div class="icon approve"><material-icon>grading</material-icon></div>
+          <div class="description">Member Approval Capability</div>
+        </div>
+        <div class="item">
+          <div class="icon admin"><material-icon>font_download</material-icon></div>
+          <div class="description">Competition Admin Function</div>
+        </div>
+        <div class="item">
+          <div class="icon gadm"><material-icon>public</material-icon></div>
+          <div class="description">Global Admin Function</div>
+        </div>
 
         <div class="item">
-          <div class="icon at">@</material-icon></div>
+          <div class="icon at">@</div>
           <div class="description">Match open for making picks</div>
         </div>
         <div class="item">

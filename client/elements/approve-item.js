@@ -17,15 +17,15 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html } from '../libs/lit-element.js';
+import { LitElement, html, css } from '../libs/lit-element.js';
 
-import { RoundSelected } from '../modules/events.js';
+
 
 
 /*
      <approve-item>: Single Member who is seeking approval
 */
-class RoundsUserItem extends LitElement {
+class ApproveItem extends LitElement {
   static get styles() {
     return css`      
       :host {
@@ -96,7 +96,7 @@ class RoundsUserItem extends LitElement {
   }
   _select(e) {
     e.stopPropagation();
-    this.dispatchEvent(new RoundSelected(this.item.rid));
+   
   }
 }
-customElements.define('rounds-user-item', RoundsUserItem);
+customElements.define('approve-item', ApproveItem);
