@@ -54,21 +54,15 @@ class CommentDialog extends LitElement {
     super.disconnectedCallback();
     this.domHost.removeEventListener('comment-request', this._gotRequest);
   }
-  update(changed) {
-    super.update(changed);
-  }
+
   firstUpdated() {
     this.dialog = this.shadowRoot.querySelector('#diag');
     this.eventLocked = false;
   }
-  updated(changed) {
-    super.updated(changed);
-  }
+
   render() {
     return html`
-      <style>
-      
-      </style>
+
       <dialog-box id="diag" position="target" @overlay-closed=${this._dialogClosed}>
         <fm-input textarea id="comment" >${this.comment}</fm-input>
         <button @click=${this._replyToCaller}>Save</button>

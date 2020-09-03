@@ -150,7 +150,7 @@ class AdminManager extends RouteManager {
       this.lastCid = global.cid;
       this.dispatchEvent(new WaitRequest(true));
       this.fetchdataInProgress = true;
-      debug('about to fetch compeition data');
+      debug('about to fetch compeition data', global.cid);
       const response = await api(`admin/${global.cid}/competition_data`);
       debug('got competition_data');
       this.fetchdataInProgress = false;
@@ -178,14 +178,17 @@ class AdminManager extends RouteManager {
   }
   async _roundCreate(e) {
     e.stopPropagation();
+    debug('Round Create Started')
     this.dispatchEvent(new WaitRequest(true));
     const response = await api(`admin/${global.cid}/round_create`, e.round);
     this.dispatchEvent(new WaitRequest(false));
     this.rounds = response.rounds;
     this.rid = response.rid;
+    debug('Round Created with rid of',this.rid);
   }
   async _roundDelete(e) {
     e.stopPropagation();
+    debug('Round Delete')
     this.dispatchEvent(new WaitRequest(true));
     const response = await api(`admin/${global.cid}/round_delete`, { rid: e.round });
     this.dispatchEvent(new WaitRequest(false));

@@ -83,7 +83,7 @@ class MainApp extends LitElement {
   }
   update(changed) {
     if (changed.has('authorised')) {
-      debug('authorised changed to ' + this.authorised);
+      debug('authorised changed to', this.authorised);
       if (this.authorised) {
         //once authorised, the menu key invokes the main menu
         logger(`User ${global.user.uid} Signed In`); 
@@ -367,7 +367,7 @@ class MainApp extends LitElement {
   _competitionSelected(e) {
     const cid = parseInt(e.currentTarget.dataset.cid,10);
     global.cid = cid;
-    debug('competition cid ' + cid + ' selected');
+    debug('competition cid',cid,'selected');
     this.mainmenu.close();
     switchPath(`/${cid}`);
     this.requestUpdate(); //refresh needed in particular competitions menu.
@@ -438,7 +438,7 @@ class MainApp extends LitElement {
     this.close = true;
   }
   _menuRemove(e) {
-    debug(e.menu + ' being removed from menu');
+    debug(e.menu,'being removed from menu');
     switch(e.menu) {
       case 'scores':
         this.scores = false;
@@ -453,7 +453,7 @@ class MainApp extends LitElement {
     }
   }
   _menuReset(e) {
-    debug('menu reset received menu=' + e.menu);
+    debug('menu reset received menu =',e.menu);
     this.close = false;
     if (e.menu) {
       this.profile = true;

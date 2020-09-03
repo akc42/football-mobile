@@ -30,7 +30,6 @@ import './calendar-input.js';
 import { switchPath } from '../modules/utils.js';
 import global from '../modules/globals.js';
 
-
 /*
      <gadm-manager>: Main Page for all the global admin functions
 */
