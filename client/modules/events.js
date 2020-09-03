@@ -249,6 +249,35 @@ export class DeleteRequest extends Event {
   }
 };
 
+export class EmojiClosed extends Event {
+  static eventType = 'emoji-closed';
+
+  /*
+     The following are the fields provided by this event
+
+     none: Just indicates emojo panel dialog closed 
+
+  */
+
+  constructor() {
+    super('emoji-closed',{composed: true, bubbles: true});
+  }
+};
+
+export class EmojiRequest extends Event {
+  static eventType = 'emoji-request';
+
+  /*
+     The following are the fields provided by this event
+
+     none: 
+
+  */
+
+  constructor() {
+    super('emoji-request',{composed: true, bubbles: true});
+  }
+};
 export class EmojiSelect extends Event {
   static eventType = 'emoji-select';
 
@@ -352,6 +381,21 @@ export class LocationAltered extends Event {
   }
 };
 
+export class LostFocus extends Event {
+  static eventType = 'lost-focus';
+
+  /*
+     The following are the fields provided by this event
+
+     none: Simulates a blur on fm-input, moderated by no lost-focus if it moved to the emoji panel.
+
+  */
+
+  constructor(none) {
+    super('lost-focus',{composed: true, bubbles: true});
+    this.none = none;
+  }
+};
 export class MatchPick extends Event {
   static eventType = 'match-pick';
 

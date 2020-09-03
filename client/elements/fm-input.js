@@ -27,6 +27,8 @@ import {cache} from '../libs/cache.js';
 import { ValueChanged } from '../modules/events.js';
 import error from '../styles/error.js';
 import emoji from '../styles/emoji.js';
+import Debug from '../modules/debug.js';
+const debug = Debug('input');
 
 class FmInput extends LitElement {
   static get styles() {
@@ -121,14 +123,19 @@ class FmInput extends LitElement {
     this.message = 'Invalid Input';
     this._placeholder = this.label; //only for now
     this._inputChanged = this._inputChanged.bind(this);
+    this.timer = 0;
+    this.emojiRequestInProgress = false;
   }
   disconnectedCallback() {
     super.disconnectedCallback();
     this._required = false;
+    if (this.timer > 0) clearTimeout(this.timer);
+    this.emojiRequestInProgress = false;
   }
 
   firstUpdated() {
     this.input = this.shadowRoot.querySelector('#input');
+    if (this.textArea) this.requestUpdate(); //needed so we set target on emoji button
     this.invalid = !this.input.validity.valid; //just make sure we know the current situation
   }
   updated(changed) {
@@ -148,7 +155,7 @@ class FmInput extends LitElement {
     }
     if (changed.has('required') && !this.required) this._required = false; //removed the required flag so make _required match
     if (changed.has('textArea') && this.textArea) {
-      import('./emoji-panel.js');
+      import('./emoji-button.js');
     }
     super.updated(changed);
   }
@@ -162,7 +169,7 @@ class FmInput extends LitElement {
           <div class="error" role="alert">
             <material-icon>cancel</material-icon><span>${this.message}</span>
           </div>
-        `: this.textArea? html`<emoji-panel @emoji-select=${this._emoji}></emoji-panel>` :'')}
+        `: this.textArea? html`<emoji-button .target=${this.input}></emoji-button>` :'')}
 
       </div>   
       ${this.textArea ?  html`
@@ -183,7 +190,10 @@ class FmInput extends LitElement {
           rows=${ifDefined(this.rows)}
           wrap=${ifDefined(this.wrap)}
           @input=${this._inputChanged}
-          @blur=${this._blur}>${value}</textarea>
+          @blur=${this._blur}
+          @emoji-closed=${this._closeEmoji}
+          @emoji-request=${this._request}
+          @emoji-select=${this._emoji}>${value}</textarea>
       ` : html`
         <input
           id="input"
@@ -237,15 +247,31 @@ class FmInput extends LitElement {
     return !this.invalid;
   }
   _blur(e) {
+    if (this.textArea) {
+      e.stopPropagation();
+      
+      this.timer = setTimeout(() => {
+        this.timer = 0;
+        debug('sending blur after timeout');
+        this.dispatchEvent(new Event('blur'));
+
+      },500); //get ready to fire a blur
+      debug('stop blur propogation and set timer ' + this.timer);
+    }
+  
     this._required = this.required;
+  }
+  _closeEmoji(e) {
+    e.stopPropagation();
+    this.input.focus();
   }
   _emoji(e) {
     e.stopPropagation();
-    console.log('emoji occured');
+    debug('emoji occured');
     if (this.input !== undefined) {
       this.input.setRangeText(e.emoji,this.input.selectionStart,this.input.selectionEnd,'end');
       this.value =this.input.value;
-      this.input.focus();
+   
     }
   }
   _inputChanged(e) {
@@ -256,6 +282,16 @@ class FmInput extends LitElement {
         this.value = this.items.find(item => item.name === e.target.value).id;
       }
       this.value = e.target.value;
+    }
+  }
+  _request() {
+    this.emojiRequestInProgress = true;
+    //we are making an emoji panel request - therefore cancel any blur timeout
+    debug('seen request for emoji with timer ' + this.timer);
+    if (this.timer > 0) {
+      clearTimeout(this.timer);
+      this.timer = 0;
+      debug('cleared blur timeout');
     }
   }
 }

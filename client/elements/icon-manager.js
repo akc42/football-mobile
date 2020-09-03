@@ -24,6 +24,7 @@ import page from '../styles/page.js';
 import './material-icon.js';
 import './fm-input.js';
 
+
 /*
      <icon-manager>
 */
@@ -106,9 +107,7 @@ class IconManager extends LitElement {
           text-align: center;
 
         }
-        .input {
-          border: 2px solid var(--accent-color);
-        }
+
         .editable {
           color: var(--fm-editable-comment);
         }
@@ -119,6 +118,20 @@ class IconManager extends LitElement {
         fm-input {
           width: 230px;
         }
+        .panel {
+          width: 12rem;
+          font-family:'NotoColorEmoji', 'Roboto Mono', monospace;
+          background-color: var(--background-color);
+          color: var(--color);
+          border: none;
+          border-radius: 5px;
+          box-shadow: 0 0 40px var(--shadow-color), 0 0 10px var(--shadow-color);
+          margin:10px;
+        }
+        .em {
+          color: var(--emoji-button-color);
+        }
+
       </style>
       <fm-page id="page" heading="Icon Meanings">
         <p>There are a number of icons that are used throughout the application which indicate useful information in the limited space that we have available. The purpose of this page is to show these icons and explain what they mean.</p>
@@ -185,17 +198,42 @@ class IconManager extends LitElement {
           <div class="icon at">@</div>
           <div class="description">Match open for making picks</div>
         </div>
-        <div class="item">
-          <div class="icon input"><material-icon>date_range</material-icon></div>
-          <div class="description">Input is a adjustable date, click for calendar</div>
-        </div>
 
-        <p>Finally the following is an example of text input box.  It shows a small panel above it which if you click on an emoji it is added to the text.  If your mobile keyboard also has emojis that should work also.</p>
+        <p>Finally the following is an example of text input box.  It shows a small emoji icon to the top right.  
+        If you click on the <material-icon  class="em"> insert_emoticon</material-icon> icon it puts up a panel
+        like that shown below just below the input area.</p>
         <fm-input textarea label="Text Input"></fm-input>
 
-
-
-
+        <div class="panel">
+          <span @click=${this._getChar}>🍌</span>
+          <span @click=${this._getChar}>🙇</span>
+          <span @click=${this._getChar}>😖</span>
+          <span @click=${this._getChar}>👋</span>
+          <span @click=${this._getChar}>🐒</span>
+          <span @click=${this._getChar}>🥂</span>
+          <span @click=${this._getChar}>😢</span>
+          <span @click=${this._getChar}>🤔</span>
+          <span @click=${this._getChar}>😠</span>
+          <span @click=${this._getChar}>🤩</span>
+          <span @click=${this._getChar}>🙄</span>          
+          <span @click=${this._getChar}>🥺</span>
+          <span @click=${this._getChar}>👐</span>
+          <span @click=${this._getChar}>😉</span>
+          <span @click=${this._getChar}>😠</span>
+          <span @click=${this._getChar}>🤯</span>
+          <span @click=${this._getChar}>🥒</span>
+          <span @click=${this._getChar}>😾</span>
+          <span @click=${this._getChar}>🤣</span>
+          <span @click=${this._getChar}>😈</span>
+          <span @click=${this._getChar}>😮</span>
+          <span @click=${this._getChar}>🙏</span>
+          <span @click=${this._getChar}>👍</span>
+          <span @click=${this._getChar}>❤️</span>
+          <span @click=${this._getChar}>😱</span>
+          <span @click=${this._getChar}>🛌</span>
+                  
+        </div>
+        <p>Click on an icon and it will be automatically added into the text area just were the cursor was last positioned.</p>
       </fm-page>
     `;
   }
