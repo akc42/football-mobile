@@ -63,11 +63,23 @@ class AdminRoundRoundHome extends LitElement {
       </style>
       <football-page id="page" heading="Round Details">
         <div slot="heading">${this.round.name}</div>
-        <p>STILL TO BE IMPLEMENTED</p>
+        <section class="scrollable">
+          <fm-input 
+            id="name" 
+            name="name" 
+            label="Round Name" 
+            required 
+            .value=${this.round.name}
+            @blur=${this._nameChange}></fm-input>
+            
+        </section>
         <button slot="action" @click=${this._options}>Bonus Question</button>
         <button slot="action" @click=${this._matches}>Matches</button>
       </football-page>
     `;
+  }
+  _nameChange(e) {
+    
   }
   _matches(e) {
     e.stopPropagation();
