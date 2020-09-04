@@ -381,21 +381,6 @@ export class LocationAltered extends Event {
   }
 };
 
-export class LostFocus extends Event {
-  static eventType = 'lost-focus';
-
-  /*
-     The following are the fields provided by this event
-
-     none: Simulates a blur on fm-input, moderated by no lost-focus if it moved to the emoji panel.
-
-  */
-
-  constructor(none) {
-    super('lost-focus',{composed: true, bubbles: true});
-    this.none = none;
-  }
-};
 export class MatchPick extends Event {
   static eventType = 'match-pick';
 
@@ -470,6 +455,39 @@ export class OptionComment extends Event {
   constructor(comment) {
     super('option-comment',{composed: true, bubbles: true});
     this.comment = comment;
+  }
+};
+
+
+export class OptionCreate extends Event {
+  static eventType = 'option-create';
+
+  /*
+     The following are the fields provided by this event
+
+     option: rid, label
+
+  */
+
+  constructor(option) {
+    super('option-create',{composed: true, bubbles: true});
+    this.option = option;
+  }
+};
+
+export class OptionDelete extends Event {
+  static eventType = 'option-delete';
+
+  /*
+     The following are the fields provided by this event
+
+     option: rid, opid
+
+  */
+
+  constructor(option) {
+    super('option-delete',{composed: true, bubbles: true});
+    this.option = option;
   }
 };
 
@@ -634,6 +652,22 @@ export class PromoteList extends Event {
   }
 };
 
+export class RoundChanged extends Event {
+  static eventType = 'round-changed';
+
+  /*
+     The following are the fields provided by this event
+
+     changed: object of  fields change.  Must include rid.
+
+  */
+
+  constructor(changed) {
+    super('round-changed',{composed: true, bubbles: true});
+    this.changed = changed;
+  }
+};
+
 export class RoundCreate extends Event {
   static eventType = 'round-create';
 
@@ -681,6 +715,7 @@ export class RoundSelected extends Event {
     this.rid = rid;
   }
 };
+
 
 export class RouteChanged extends Event {
   static eventType = 'route-changed';

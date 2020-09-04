@@ -116,6 +116,7 @@ class AdminManager extends RouteManager {
           .rounds=${this.rounds} 
           .teams=${this.tics} 
           .route=${this.subRoute}
+          @round-changed=${this._roundChanged}
           @round-create=${this._roundCreate}
           @round-delete=${this._roundDelete}></admin-rounds>`,
         email: html`<admin-email .users=${this.users} managed-page></admin-email>`,
@@ -175,6 +176,17 @@ class AdminManager extends RouteManager {
       }
 
     }
+  }
+  async _roundChanged(e) {
+    e.stopPropagation();
+    debug('Round Update Received for round ', e.changed.rid);
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api(`admin/${global.cid}/round_update`, e.changed);
+    this.dispatchEvent(new WaitRequest(false));
+    this.rounds = this.rounds.map( r => {
+      if (r.rid === response.round.rid) return response.round
+      return {...r}; 
+    });   
   }
   async _roundCreate(e) {
     e.stopPropagation();

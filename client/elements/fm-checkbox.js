@@ -58,10 +58,33 @@ class FmCheckbox extends LitElement {
       :host {
         display: flex;
         flex-direction: row;
-
+        cursor: pointer;
       }
       :host([hidden]) {
         display: none;
+      }
+
+      #checkmark {
+        width: 14px;
+        height:14px;
+        --icon-size:  12px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        border-radius: 4px;
+      }
+      #checkmark:focus {
+        outline:none;
+      }
+      #checkmark[checked] {
+        background-color: var(--accent-color);
+        color: var(--accent-constrast-color);
+      }
+      #checkmark[disabled], #checkmark[checked][disabled] {
+        background: var(--disabled-color);
+      }
+      #checklabel {
+        margin-left: 10px;
       }
 
     `;
@@ -98,31 +121,6 @@ class FmCheckbox extends LitElement {
   }
   render() {
     return html`
-    <style>
-      #checkmark {
-        width: 14px;
-        height:14px;
-        --icon-size:  12px;
-        cursor: pointer;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        border-radius: 4px;
-      }
-      #checkmark:focus {
-        outline:none;
-      }
-      #checkmark[checked] {
-        background-color: var(--accent-color);
-        color: var(--accent-constrast-color);
-      }
-      #checkmark[disabled], #checkmark[checked][disabled] {
-        background: var(--disabled-color);
-      }
-      #checklabel {
-        margin-left: 10px;
-      }
-    </style>
       <div
         id="checkmark"
         role="checkbox"

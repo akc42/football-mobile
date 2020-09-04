@@ -49,6 +49,7 @@ class AdminRoundRound extends RouteManager {
       rounds: {type: Array},
       teams: {type: Array},
       round: {type: Object},
+      options: {type: Array},
       matches: {type: Array},
       confs: {type: Array},
       divs: {type: Array}
@@ -62,6 +63,7 @@ class AdminRoundRound extends RouteManager {
     this.rounds = [];
     this.teams = [];
     this.matches = [];
+    this.options = [];
     this.confs = [];
     this.divs = [];
     this.round = {rid: 0}
@@ -104,11 +106,10 @@ class AdminRoundRound extends RouteManager {
       ${cache({
         home: html`<admin-round-round-home 
           managed-page
-          .round=${this.round}></admin-round-round-home>`,
-        bonus: html`<admin-round-round-bonus
-          managed-page
           .round=${this.round}
-          .options=${this.options}></admin-round-round-bonus>`,
+          .options=${this.options}
+          @option-create=${this._optionCreate}
+          @option-delete=${this._optionDelete}></admin-round-round-home>`,
         match: html`<admin-round-round-match
           managed-page
           .round=${this.round}
@@ -148,9 +149,22 @@ class AdminRoundRound extends RouteManager {
       this.options = response.options
     }
   }
-  _roundChanged(e) {
+  async _optionCreate(e) {
     e.stopPropagation();
-
+    const params = {...e.option, rid: this.round.rid}
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api(`admin/${global.cid}/create_option`,params);
+    this.dispatchEvent(new WaitRequest(false));
+    this.options = response.options;
   }
+  async _optionDelete(e) {
+    e.stopPropagation();
+    const params = { ...e.option, rid: this.round.rid }
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api(`admin/${global.cid}/delete_option`, params);
+    this.dispatchEvent(new WaitRequest(false));
+    this.options = response.options;
+  }
+
 }
 customElements.define('admin-round-round', AdminRoundRound);

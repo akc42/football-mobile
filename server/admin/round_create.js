@@ -27,7 +27,7 @@
   module.exports = async function(user, cid, params, responder) {
     debug('new request from user', user.uid, 'with cid', cid, ',rid', params.rid );
     const defaults = db.prepare('SELECT default_bonus, default_points FROM Competition WHERE cid = ?');
-    const createRound = db.prepare('INSERT INTO round (cid, rid, name, bvalue, value) VALUES (?,?, ?, ?, ?)');
+    const createRound = db.prepare('INSERT INTO round (cid, rid, name, bvalue, value, deadline, answer) VALUES (?,?, ?, ?, ?, 0, 0)');
     const rounds = db.prepare('SELECT * FROM round WHERE cid = ? ORDER BY rid DESC');
     db.transaction(() => {
       const {default_bonus, default_points} = defaults.get(cid);

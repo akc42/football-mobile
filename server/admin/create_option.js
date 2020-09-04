@@ -1,4 +1,3 @@
-
 /**
 @licence
     Copyright (c) 2020 Alan Chandler, all rights reserved
@@ -19,53 +18,21 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+(function() {
+  'use strict';
 
-import { css } from '../libs/lit-element.js';
+  const debug = require('debug')('football:api:optioncreate');
+  const db = require('../utils/database');
 
-export default css`
-  :host {
-    height: 100%;
-    display:flex;
-    flex-direction:column;
-    align-items: stretch;
-    box-sizing: border-box;
-  }
-  
-  [hidden] {
-    display: none !important;
-    flex:0, 1, 0px;
-  }
-
-  .scrollable {
-    overflow-y:auto;
-    scroll-snap-type: y mandatory;
-    overflow-x:hidden;
+  module.exports = async function(user, cid, params, responder) {
+    debug('new request from user', user.uid, 'with cid', cid, ', option', params.opid );
+    const create = db.prepare('INSERT INTO option (cid, rid, opid, label) VALUES (?,?,?,?)');
+    const options = db.prepare('SELECT opid, label FROM option WHERE cid = ? AND rid = ? ORDER BY opid');
+    db.transaction(() => {
+      create.run(cid, params.rid, params.opid, params.label);
+      responder.addSection('options', options.all(cid, params.rid));
+    })();
+    debug('call complete');
     
-  }
-  header {
-    flex:0 1 0;
-  }
-  section {
-    flex: 1 0 0;
-  }
-  a:link {
-    color: var(--link-color);
-    text-decoration: none;
-  }
-
-  a:visited {
-    color: var(--link-color);
-    text-decoration: none;
-  }
-
-  a:hover {
-    color: var(--link-color);
-    text-decoration: underline;
-  }
-
-  a:active {
-    color: var(--link-color);
-    text-decoration: underline;
-  }
-
-`;
+  };
+})();

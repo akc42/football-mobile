@@ -22,69 +22,66 @@
 (function() {
   'use strict';
 
-  const debug = require('debug')('football:api:compupd');
+  const debug = require('debug')('football:api:roundupd');
   const db = require('../utils/database');
 
   module.exports = async function(user, cid, params, responder) {
-    debug('new request from user', user.uid, 'with cid', cid, 'and parameter cid', params.cid );
-    let sql = `UPDATE competition SET update_date = (strftime('%s','now')),`;
-    let qry = [];
-    if (params.cid === cid) {
+    debug('new request from user', user.uid, 'with cid', cid, 'and parameter rid', params.rid );
+    if (params.rid !== undefined) {
+      let sql = `UPDATE round SET update_date = (strftime('%s','now')),`;
+      let qry = [];
       if (params.name !== undefined) {
         sql += ' name = ?,';
         qry.push(params.name);
       }
-      if (params.expected_date !== undefined) {
-        sql += ' expected_date = ?,';
-        qry.push(params.expected_date);
+      if (params.question !== undefined) {
+        sql += ' question = ?,';
+        qry.push(params.question);
       }
-      if (params.condition !== undefined) {
-        sql += ' condition = ?,';
-        qry.push(params.condition);
+      if (params.comment !== undefined) {
+        sql += ' comment = ?,';
+        qry.push(params.comment);
       }
-      if (params.pp_deadline !== undefined) {
-        sql += ' pp_deadline = ?,';
-        qry.push(params.pp_deadline);
+      if (params.deadline !== undefined) {
+        sql += ' deadline = ?,';
+        qry.push(params.deadline);
       }
-      if (params.gap !== undefined) {
-        sql += ' gap = ?,';
-        qry.push(params.gap);
+      if (params.valid_question !== undefined) {
+        sql += ' valid_question = ?,';
+        qry.push(params.valid_question);
       }
       if (params.open !== undefined) {
         sql += ' open = ?,';
         qry.push(params.open);
       }
-      if (params.closed !== undefined) {
-        sql += ' closed = ?,';
-        qry.push(params.closed)
+      if (params.answer !== undefined) {
+        sql += ' answer = ?,';
+        qry.push(params.answer)
       }
-      if (params.team_lock !== undefined) {
-        sql += ' team_lock = ?,'
-        qry.push(params.team_lock);
+      if (params.value !== undefined) {
+        sql += ' value = ?,'
+        qry.push(params.value);
       }
-      if (params.default_bonus !== undefined) {
-        sql += ' default_bonus = ?,';
-        qry.push(params.default_bonus);
+      if (params.bvalue !== undefined) {
+        sql += ' bvalue = ?,';
+        qry.push(params.bvalue);
       }
-      if (params.default_pick !== undefined) {
-        sql += ' default_pick = ?,';
-        qry.push(params.default_pick);
-      }
-      if (params.default_playoff !== undefined) {
-        sql += ' default_playoff = ?,';
-        qry.push(params.default_playoff);
+      if (params.ou_round !== undefined) {
+        sql += ' ou_round = ?,';
+        qry.push(params.ou_round);
       }
       //if more params - add here
       sql = sql.slice(0,-1); //remove last comma
-      sql += ' WHERE cid = ?';
+      sql += ' WHERE cid = ? AND rid = ?';
       qry.push(cid);
+      qry.push(params.rid);
       debug('SQL =', sql, 'parameters of ', qry);
       if (qry.length > 1) {
         const upd = db.prepare(sql);
-        const read = db.prepare('SELECT * FROM competition WHERE cid = ?');
+        const read = db.prepare('SELECT * FROM round WHERE cid = ? AND rid = ?');
         db.transaction(() => {
           upd.run(qry);
-          responder.addSection('competition', read.get(cid));
+          responder.addSection('round', read.get(cid, params.rid));
         })();
       }
     }

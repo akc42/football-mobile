@@ -24,48 +24,39 @@ import { css } from '../libs/lit-element.js';
 
 export default css`
   :host {
-    height: 100%;
-    display:flex;
-    flex-direction:column;
-    align-items: stretch;
-    box-sizing: border-box;
+    position: relative;
   }
-  
-  [hidden] {
-    display: none !important;
-    flex:0, 1, 0px;
-  }
-
-  .scrollable {
-    overflow-y:auto;
-    scroll-snap-type: y mandatory;
-    overflow-x:hidden;
-    
-  }
-  header {
-    flex:0 1 0;
-  }
-  section {
-    flex: 1 0 0;
-  }
-  a:link {
-    color: var(--link-color);
-    text-decoration: none;
+  input {
+    opacity: 0;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
   }
 
-  a:visited {
-    color: var(--link-color);
-    text-decoration: none;
+  label span {
+    border-radius: 50%;
+    border: 2px solid var(--color);
+    display: inline-block;
+    margin-right: 0.5em;
+    vertical-align: bottom;
+    width: 12px;
+    height: 12px;
+    position: relative;
   }
-
-  a:hover {
-    color: var(--link-color);
-    text-decoration: underline;
+  input:checked + label span {
+    border-color: var(--accent-color);
   }
-
-  a:active {
-    color: var(--link-color);
-    text-decoration: underline;
+  input:checked + label span::before {
+    content: "";
+    display: block;
+    width: inherit;
+    height: inherit;
+    border-radius: inherit;
+    position: absolute;
+    transform: scale(0.6);
+    transform-origin: center center;
+    background-color: var(--accent-color);
   }
-
 `;

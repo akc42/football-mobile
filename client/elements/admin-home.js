@@ -73,7 +73,7 @@ class AdminHome extends LitElement {
           --input-width: var(--admin-name-length);
         }
         fm-input#gap, fm-input#dbonus, fm-input#dpick, fm-input#dplayoff, fm-input#dunder {
-          --input-width: 35px;
+          --input-width: var(--points-input-width);
         }
         #condition {
           --input-width: var(--text-input-width);
@@ -99,15 +99,14 @@ class AdminHome extends LitElement {
           `:html`
             <fm-input id="condition" label="Registration Condition" textarea .value=${this.competition.condition} @blur=${this._conditionChange} rows="5"></fm-input>
           `)}
-          <div class="deadline">
-            <label for="pp_deadline">Playoff Picks Deadline</label>
-            <calendar-input 
-              id="pp_deadline" 
-              name="ppdead" 
-              .value=${this.competition.pp_deadline} 
-              @value-changed=${this._newPPDeadline} 
-              withTime></calendar-input>
-          </div>
+
+          <calendar-input 
+            id="pp_deadline" 
+            name="ppdead" 
+            label="Playoff Picks Deadline"
+            .value=${this.competition.pp_deadline} 
+            @value-changed=${this._newPPDeadline} 
+            withTime></calendar-input>
           <fm-input
             id="dplayoff"
             name="dplayoff"

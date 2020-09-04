@@ -191,15 +191,13 @@ class MainApp extends LitElement {
         [role="menuitem"]>material-icon {
           margin-right: 4px;
         }
-        header {
-          flex: 0 1 0;
-        }
-         section {
-          flex:1 0 0;
+
+        section {
+          height: calc(100vh - 64px);
         }
 
        .fixed {
-          flex: 0 1 64px;
+          height: 64px;
         }
         .primary {
           color: var(--accent-constrast-color);
@@ -329,7 +327,7 @@ class MainApp extends LitElement {
           <div id="copy">&copy; 2008-${global.copyrightYear} Alan Chandler</div>
         </div>
       </header>
-      <section class="scrollable">
+      <section>
         <error-manager ?hidden=${!this.serverError} @session-status=${this._errorChanged} ></error-manager>    
         <session-manager 
           ?hidden=${this.authorised || this.serverError} 
