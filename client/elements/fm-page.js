@@ -91,12 +91,13 @@ class FmPage extends LitElement {
       @media (min-width: 500px) {
 
         :host {
-          margin: 40px auto 40px auto;
+          margin: 0 auto 0 auto;
           max-height: 100%;
           border-radius: 10px;
           box-shadow: 0px 0px 38px -2px var(--shadow-color);
           padding: 20px;
           min-width: 500px;
+          box-sizing: border-box;
         }
 
       }

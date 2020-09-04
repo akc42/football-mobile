@@ -61,6 +61,7 @@ class NavrefManager extends LitElement {
       <style>
         :host {
           --icon-size: 16px;
+          height: 100%;
         }
         h1 {
           font-size:12px;
