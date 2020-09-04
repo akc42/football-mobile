@@ -18,6 +18,7 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html, css } from '../libs/lit-element.js';
+import {cache} from '../libs/cache.js';
 
 import global from '../modules/globals.js';
 
@@ -29,16 +30,13 @@ class FmPage extends LitElement {
   static get styles() {
     return css`
       :host{
-        height:100%;
-        display: flex;
-        flex-direction:column;
+        height:calc(100% - 20px);
+        display:block;
         max-width: 600px;
-        justify-content: start;
-        padding:10px 0;
-        margin: 0 10px;
-        box-sizing:border-box;
+        margin:10px;
       }
       header {
+        height: 70px;
         display: flex;
         flex-direction: row;
         flex:0 1 0;
@@ -56,11 +54,12 @@ class FmPage extends LitElement {
         justify-content:flex-start;
         flex: 1 1 auto;
         align-items: center;
+        min-height: 0;
       }
       header .heading {
         font-size:18px;
         text-transform: uppercase;
-        flex:1 1 auto;
+        flex:0 1 auto;
 
       }
       header .subheading {
@@ -69,11 +68,13 @@ class FmPage extends LitElement {
 
       }
       section {
-        flex: 1 0 0;
         display: flex;
         flex-direction: column;
-        overflow-y: auto;
-        scroll-snap-type: y mandatory;
+        height: calc(100% - 70px);
+      }
+      .container {
+        overflow: hidden;
+        flex-grow:1;
       }
       .action {
         display: flex;
@@ -81,7 +82,8 @@ class FmPage extends LitElement {
         flex-direction:row;
         flex-wrap: wrap;
         justify-content: space-evenly;
-        flex:0 1 auto;
+        align-items: flex-end;
+        margin: 5px 0px;
       }
 
       @media (min-width: 500px) {
@@ -94,6 +96,7 @@ class FmPage extends LitElement {
           padding: 20px;
           min-width: 500px;
         }
+
       }
       @media (max-width: 300px) {
         header {
@@ -121,9 +124,10 @@ class FmPage extends LitElement {
           <div class="subheading"><slot name="subheading"></slot></div>
         </div>
       </header>
-      <section><slot class="container"></slot></section>
-  
-      <div class="action"><slot name="action"></slot></div>
+      <section>
+        <div class="container"><slot></slot></div>
+        <div class="action"><slot name="action"></slot></div>
+      </section>
     `;
   }
 }

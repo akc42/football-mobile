@@ -93,16 +93,40 @@ class FootballPage extends LitElement {
   }
   render() {
     return html`
-
+      <style>
+        section {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+        }
+        .container {
+          overflow-y:auto;
+          scroll-snap-type: y mandatory;
+          overflow-x:hidden;
+        }
+        .action {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-evenly;
+          margin-bottom: 5px;
+        }
+      </style>
       <fm-page id="page" .heading="${this.heading}">
         ${cache(this.canPick ? html`
          <div slot="subheading" @click=${this._makePicks}>PlayOff Picks Available</div>
         `: '')}
-        <div class="competition">
-          <slot name="heading"></slot><div id="compname">${this.name}</div>
-        </div>
-        <slot></slot>
-        <slot name="action" slot="action"></slot>
+        <section>
+          <div class="competition">
+            <slot name="heading"></slot><div id="compname">${this.name}</div>
+          </div>
+          <div class="container">
+            <slot></slot>
+          </div>
+          <div class="action">
+            <slot name="action" slot="action"></slot>
+          </div>
+        </section>
+        
       </fm-page>
     `;
   }

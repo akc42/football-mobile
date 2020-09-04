@@ -31,10 +31,19 @@ class ListManager extends LitElement {
     return [page, css`
     :host {
       height: var(--list-height,100%);
+      display:flex;
+      flex-direction: column;
     }
 
     #list {
       height: 100%;
+      flex: 1 0 auto;
+    }
+    #list > .item {
+      scroll-snap-align:start;
+      border-radius: 5px;
+      box-shadow: 1px 1px 3px 0px var(--shadow-color);
+      margin:0 5px 5px 3px;
     }
 
 `];
@@ -57,16 +66,6 @@ class ListManager extends LitElement {
   }
   render() {
     return html`
-      <style>
-        #list > .item {
-          scroll-snap-align:start;
-          border-radius: 5px;
-          box-shadow: 1px 1px 3px 0px var(--shadow-color);
-          margin:0 5px 5px 3px;
-        }
-
-      </style>
-     
       <header>
         <slot></slot>
       </header>
