@@ -36,7 +36,6 @@ class ListManager extends LitElement {
     }
 
     #list {
-      height: 100%;
       flex: 1 0 auto;
     }
     #list > .item {

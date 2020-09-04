@@ -73,7 +73,9 @@ class FmPage extends LitElement {
         height: calc(100% - 70px);
       }
       .container {
-        overflow: hidden;
+        overflow-y:auto;
+        scroll-snap-type: y mandatory;
+        overflow-x:hidden;
         flex-grow:1;
       }
       .action {
