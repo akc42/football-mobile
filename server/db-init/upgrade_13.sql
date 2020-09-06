@@ -221,6 +221,31 @@ INSERT INTO team (tid,name,confid,divid) SELECT tid, name, confid, divid FROM ol
 
 DROP TABLE old_team;
 
+CREATE TABLE old_tic (
+    cid integer,
+    tid varchar(3),
+    made_playoff boolean,
+    points integer,
+    PRIMARY KEY (cid,tid)
+);
+
+INSERT INTO old_tic (cid,tid,made_playoff, points) SELECT cid, tid, made_playoff, points FROM team_in_competition;
+
+DROP TABLE team_in_competition;
+
+CREATE TABLE team_in_competition (
+    cid integer NOT NULL REFERENCES competition(cid) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED, -- Competition ID
+    tid varchar(3) NOT NULL REFERENCES team(tid) ON UPDATE CASCADE ON DELETE CASCADE, --TeamID
+    made_playoff boolean DEFAULT 0 NOT NULL, --True if team made playoffs
+    points integer DEFAULT 1 NOT NULL, -- points to allocate if successfully chose team to make playoff
+    eliminated boolean DEFAULT 0 NOT NULL, --marker to show team got eliminated from the competition
+    PRIMARY KEY (cid,tid)
+);
+
+INSERT INTO team_in_competition (cid,tid,made_playoff, points, eliminated) SELECT cid, tid, made_playoff, points, 0 AS eliminated FROM old_tic;
+
+DROP TABLE old_tic;
+
 DElETE FROM settings;
 
 INSERT INTO settings (name,value) VALUES('version',14); --version of this configuration

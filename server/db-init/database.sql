@@ -203,6 +203,7 @@ CREATE TABLE team_in_competition (
     tid varchar(3) NOT NULL REFERENCES team(tid) ON UPDATE CASCADE ON DELETE CASCADE, --TeamID
     made_playoff boolean DEFAULT 0 NOT NULL, --True if team made playoffs
     points integer DEFAULT 1 NOT NULL, -- points to allocate if successfully chose team to make playoff
+    eliminated boolean DEFAULT 0 NOT NULL, --marker to show team got eliminated from the competition
     PRIMARY KEY (cid,tid)
 );
 
