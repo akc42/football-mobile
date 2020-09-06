@@ -28,8 +28,9 @@
       debug('new request from user', user.uid, 'with cid', cid, ',rid', params.rid, ',aid', params.aid );
       const check = db.prepare('SELECT hid FROM match WHERE cid = ? AND rid = ? AND aid = ?').pluck();
       const mcreate = db.prepare(`INSERT INTO match (cid, rid, aid, hid, comment, ascore, hscore, combined_score, open, match_time, underdog)
-      SELECT cid, rid, hid AS aid, ? AS hid, comment, hscore AS ascore, ascore AS hscore, combined_score, open, match_time, underdog
-      FROM match WHERE cid ? AND rid = ? AND aid = ?`);
+      SELECT cid, rid, hid AS aid, aid AS hid, comment, hscore AS ascore, ascore AS hscore, combined_score, open, match_time, underdog
+      FROM match WHERE cid = ? AND rid = ? AND aid = ?`);
+      const hiddrop = db.prepare('UPDATE match SET hid = NULL, hscore = NULL WHERE cid = ? AND rid = ? AND aid = ?');
       const mdelete = db.prepare('DELETE FROM match WHERE cid = ? AND rid = ? AND aid = ?');
       const invalidateCompetitionCache = db.prepare('UPDATE competition SET results_cache = NULL WHERE cid = ?');
       const invalidateRoundCache = db.prepare('UPDATE round SET results_cache = NULL WHERE cid = ? AND rid = ?');
@@ -38,7 +39,8 @@
         const hid = check.get(cid, params.rid, params.aid) 
         if (hid !== null) {
           //insert a new match with aid = old hid
-          mcreate.run(params.drop !== undefined ? null : params.aid, cid, params.rid, params.aid);
+          mcreate.run(cid, params.rid, params.aid);
+          if (params.drop !== undefined) hiddrop.run(cid, params.rid, hid);
           //delete original match (after insert because need data to transfer across)
           mdelete.run(cid, params.rid, params.aid);
           invalidateCompetitionCache.run(cid)

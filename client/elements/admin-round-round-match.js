@@ -27,7 +27,7 @@ import './dialog-box.js';
 import './fm-input.js';
 
 import page from '../styles/page.js';
-import { MatchCreate, MatchChanged, TeamDeselected, MatchSwap, MatchDelete } from '../modules/events.js';
+import { InputReply, MatchCreate, MatchChanged, TeamDeselected, MatchSwap, MatchDelete } from '../modules/events.js';
 
 
 /*
@@ -97,8 +97,15 @@ class AdminRoundRoundMatch extends LitElement {
         hr {
           width: 100%;
         }
+        dialog-box {
+          --dialog-color: var(--background-color);
+        }
+        #input {
+          --input-width: 35px;
+          margin: 20px;
+        }
       </style>
-      <dialog-box id="diag" position="target" @overlay-closed=${this._dialogClosed}>
+      <dialog-box id="diag" position="target" @overlay-closed=${this._dialogClosed} @overlay-closing=${this._dialogClosing}>
         <fm-input
           id="input"
           label=${this.label}
@@ -118,7 +125,7 @@ class AdminRoundRoundMatch extends LitElement {
                 id="M${match.aid}"
                 .round=${this.round} 
                 .match=${match} 
-                @team-deseleted=${this._teamDeselectd}
+                @team-deselected=${this._teamDeselected}
                 @input-request=${this._inputRequest}></admin-match>
             `))}
           </section>
@@ -136,11 +143,14 @@ class AdminRoundRoundMatch extends LitElement {
   }
   _dialogClosed(e) {
     e.stopPropagation();
-    if (this.input.validate()) {
-      const value = this.value === ''? null:parseInt(this.value,10);
-      this.dialog.positionTarget.dispatchEvent(new InputReply({field:this.field, value: value}));
-    }
+    const value = this.value === ''? null:parseInt(this.value,10);
+    this.dialog.positionTarget.dispatchEvent(new InputReply({field:this.field, value: value}));
+    this.value = '';
     this.dialogInUse = false;
+  }
+  _dialogClosing(e) {
+    e.stopPropagation();
+    if (!this.input.validate()) e.preventDefault();
   }
   _inputRequest(e) {
     e.stopPropagation();
@@ -150,6 +160,7 @@ class AdminRoundRoundMatch extends LitElement {
       this.original = this.value;
       this.field = e.request.field;
       this.dialog.positionTarget = e.composedPath()[0];
+      this.dialog.show();
     }
   }
   _teamDeselected(e) {
@@ -159,7 +170,7 @@ class AdminRoundRoundMatch extends LitElement {
     if (match !== undefined) {
       if (tid === match.hid) {
         this.dispatchEvent(new MatchChanged({rid: this.round.rid, hid: null}))
-      } else if (match.hid !== null){
+      } else if (match.hid !== null && match.hid.length > 0){
         this.dispatchEvent(new MatchSwap({rid: this.round.rid, aid: tid, drop: true}))
       } else {
         this.dispatchEvent(new MatchDelete({rid: this.round.rid, aid: tid}));
@@ -188,7 +199,10 @@ class AdminRoundRoundMatch extends LitElement {
         this.dispatchEvent(new MatchChanged({rid: this.round.rid, aid: match.aid, hid: tid}));
       }
     } 
-
+  }
+  _valueChanged(e) {
+    e.stopPropagation();
+    this.value = e.changed;
   }
 }
 customElements.define('admin-round-round-match', AdminRoundRoundMatch);

@@ -120,7 +120,7 @@ class AdminRoundRound extends RouteManager {
           @match-create=${this._matchCreate}
           @match-delete=${this._matchDelete}
           @match-changed=${this._matchChanged}
-          @match-swapped=${this._matchSwapped}></admin-round-round-match>`
+          @match-swap=${this._matchSwapped}></admin-round-round-match>`
       }[this.page])}
     `;
   }

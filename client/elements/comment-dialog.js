@@ -36,9 +36,14 @@ class CommentDialog extends LitElement {
         margin: 4px;
       }
       dialog-box {
+        --dialog-color: var(--background-color);
+      }
+      .container {
         display: flex;
         flex-direction: column;
         align-items: center;
+        width: 90%;
+        margin: 0 auto;
       }
       
     `];
@@ -74,8 +79,10 @@ class CommentDialog extends LitElement {
     return html`
 
       <dialog-box id="diag" position="target" @overlay-closed=${this._dialogClosed}>
-        <fm-input label="Comment" textarea id="comment" .value=${this.comment} @value-changed=${this._inputChanged} ></fm-input>
-        <button @click=${this._replyToCaller}>Save</button>
+        <div class="container">
+          <fm-input label="Comment" textarea id="comment" .value=${this.comment} @value-changed=${this._inputChanged} ></fm-input>
+          <button @click=${this._replyToCaller}>Save</button>
+        </div>
       </dialog-box>
 
     `;
@@ -84,6 +91,7 @@ class CommentDialog extends LitElement {
 
   _dialogClosed(e) {
     this.eventLocked = false;
+    this.comment = '';
   }
 
   _gotRequest(e) {

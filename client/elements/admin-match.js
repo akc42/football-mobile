@@ -19,6 +19,8 @@
 */
 import { LitElement, html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
+import {classMap} from '../libs/class-map.js';
+
 import global from '../modules/globals.js';
 
 import './material-icon.js';
@@ -26,7 +28,7 @@ import './calendar-input.js';
 import './fm-checkbox.js';
 import './comment-button.js';
 
-import {InputRequest, TeamDeselected, MatchChanged} from '../modules/events.js';
+import {InputRequest, TeamDeselected, MatchChanged, MatchSwap} from '../modules/events.js';
 
 
 /*
@@ -86,16 +88,16 @@ class AdminMatch extends LitElement {
         }
         .num {
           font-weight: bold;
-          font-size: 1.5rem;
+          font-size: 1.3rem;
           text-align: center;
         }
-        .team, .score, .under, .at {
+        .team, .score, .under, .at, .misc {
           display: flex;
           flex-direction: column;
           justify-content: space-between;
           align-items: center;
         }
-        .score, .under, material-icon {
+      .score, .under, .pt, material-icon {
           cursor: pointer;
         }
         .dog, .title {
@@ -133,8 +135,15 @@ class AdminMatch extends LitElement {
           display: flex;
           flex-direction: row;
           justify-content: space-between;
+          align-items: center;
         }
-
+        .misc {
+          display: flex;
+          flex-direction: column;
+          justify-content:space-between;
+          align-items: flex-start;
+        }
+  
       </style>
      
         <div class="team aid">
@@ -150,12 +159,13 @@ class AdminMatch extends LitElement {
           <div class="dog">Underdog</div>
           <div class="num">${this.match.underdog < 0 ? -this.match.underdog: ''}</div>
         </div>
-        <div class="at">
+        <div class="at ${classMap({pt: this.match.hid !== null && this.match.hid.length > 0})}" @click=${this._swapTeams}>
+          <div class="title">Swap</div>
           <div class="num">@</div>
-          <comment-button edit class="match" .comment=${this.match.comment} @comment-changed=${this._commentChanged}></comment-button>
+          
         </div>
         <div class="score cscore" @click=${this._setCombinedScore}>
-          <div class="title">ou boundary</div>
+          <div class="title">OU Score</div>
           <div class="num">${this.match.combined_score === null ? '': this.match.combined_score + .5}</div>
         </div>
         <div class="score hscore" @click=${this._setHscore}>
@@ -175,7 +185,10 @@ class AdminMatch extends LitElement {
         </div>
         <div class="mt">
           <calendar-input .value=${this.match.match_time} withTime @value-changed=${this._newMatchTime}></calendar-input>
-          <fm-checkbox .value=${this.match.open} @value-changed=${this._setOpen}>Open</fm-checkbox>
+          <div class="misc">
+            <fm-checkbox .value=${this.match.open} @value-changed=${this._setOpen}>Open</fm-checkbox>
+            <comment-button edit class="match" .comment=${this.match.comment} @comment-changed=${this._commentChanged}></comment-button>
+          </div>
         </div>
       
     `;
@@ -197,7 +210,7 @@ class AdminMatch extends LitElement {
   }
   _inputReply(e) {
     e.stopPropagation();
-    if (e.field === 'underdog' && this.match.underdog < 0) {
+    if (e.reply.field === 'underdog' && this.match.underdog < 0) {
       this.match.underdog = -e.reply.value;
     } else {
       this.match[e.reply.field] = e.reply.value;
@@ -241,6 +254,12 @@ class AdminMatch extends LitElement {
     e.stopPropagation();
     this.match.open = e.changed? 1:0;
     this.dispatchEvent(new MatchChanged({ rid: this.round.rid, aid: this.match.aid, open: this.match.match_time }));
+  }
+  _swapTeams(e) {
+    e.stopPropagation();
+    if (this.match.hid !== null && this.match.hid.length > 0) {
+      this.dispatchEvent(new MatchSwap({rid: this.round.rid, aid: this.match.aid}))
+    }
   }
 }
 customElements.define('admin-match', AdminMatch);
