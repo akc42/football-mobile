@@ -27,9 +27,11 @@
   module.exports = async function(user, cid, params, responder) {
     debug('new request from user', user.uid, 'with cid', cid, 'and rid', params.rid );
     const delRound = db.prepare('DELETE FROM round WHERE cid = ? AND rid = ?');
+    const invalidateCompetitionCache = db.prepare('UPDATE competition SET results_cache = NULL WHERE cid = ?');
     const rounds = db.prepare('SELECT * FROM round WHERE cid = ? ORDER BY rid DESC');
     db.transaction(() => {
       delRound.run(cid, params.rid);
+      invalidateCompetitionCache.run(cid)
       responder.addSection('rounds', rounds.all(cid));
     })()
     debug('request complete');

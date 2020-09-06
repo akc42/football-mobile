@@ -21,20 +21,22 @@
 (function() {
   'use strict';
 
-  const debug = require('debug')('football:api:teampoints');
+  const debug = require('debug')('football:api:matchcreate');
   const db = require('../utils/database');
 
   module.exports = async function(user, cid, params, responder) {
-    debug('new request from user', user.uid, 'with cid', cid );
-    const doUpdate = db.prepare('UPDATE team_in_competition SET points = ? WHERE cid = ? AND tid = ?')
+    debug('new request from user', user.uid, 'with cid', cid, ',rid', params.rid, ',aid', params.aid  );
+    //use dummy time of now so we can order them.
+    const creatematch = db.prepare(`INSERT INTO match (cid, rid, aid ,hid, match_time) VALUES (?,?, ?, null, strftime('%s','now'))`);
     const invalidateCompetitionCache = db.prepare('UPDATE competition SET results_cache = NULL WHERE cid = ?');
-    const teams = db.prepare('SELECT t.*, i.points FROM team t LEFT JOIN team_in_competition i ON i.tid = t.tid AND i.cid = ?');
+    const invalidateRoundCache = db.prepare('UPDATE round SET results_cache = NULL WHERE cid = ? AND rid = ?');
+    const matches = db.prepare('SELECT * FROM match WHERE cid = ? AND rid = ? ORDER BY match_time DESC');
     db.transaction(() => {
-      doUpdate.run(params.points, cid, params.tid);
+      creatematch.run(cid, params.rid, params.aid);
       invalidateCompetitionCache.run(cid)
-      responder.addSection('teams', teams.all(cid));
+      invalidateRoundCache.run(cid, params.rid);
+      responder.addSection('matches', matches.all(cid, params.rid));
     })();
-
-    
+    debug('request complete')    
   };
 })();

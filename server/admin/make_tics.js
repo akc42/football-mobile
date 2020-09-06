@@ -29,6 +29,7 @@
     const points = db.prepare('SELECT default_playoff FROM competition WHERE cid = ?').pluck();
     const tic = db.prepare('SELECT MAX(cid) FROM team_in_competition;').pluck();
     const maketic = db.prepare('INSERT INTO team_in_competition (cid, tid, points) SELECT ? as cid, tid , ? AS points FROM team_in_competition WHERE cid= ?'); 
+    const invalidateCompetitionCache = db.prepare('UPDATE competition SET results_cache = NULL WHERE cid = ?');
     const teams = db.prepare('SELECT t.*, i.points FROM team t LEFT JOIN team_in_competition i ON i.tid = t.tid AND i.cid = ?');
     db.transaction(() => {
       const maxtic = tic.get();
@@ -36,6 +37,7 @@
         //only do this if  we haven't done it already
         const poffp = points.get(cid);
         maketic.run(cid, poffp, maxtic);
+        invalidateCompetitionCache.run(cid)
         responder.addSection('status', true);
       } else {
         responder.addSection('status', false);

@@ -21,20 +21,21 @@
 (function() {
   'use strict';
 
-  const debug = require('debug')('football:api:teampoints');
+  const debug = require('debug')('football:api:matchdelete');
   const db = require('../utils/database');
 
   module.exports = async function(user, cid, params, responder) {
-    debug('new request from user', user.uid, 'with cid', cid );
-    const doUpdate = db.prepare('UPDATE team_in_competition SET points = ? WHERE cid = ? AND tid = ?')
+    debug('new request from user', user.uid, 'with cid', cid, 'and rid', params.rid, 'and aid', params.aid );
+    const delmatch = db.prepare('DELETE FROM match WHERE cid = ? AND rid = ? AND aid = ?');
     const invalidateCompetitionCache = db.prepare('UPDATE competition SET results_cache = NULL WHERE cid = ?');
-    const teams = db.prepare('SELECT t.*, i.points FROM team t LEFT JOIN team_in_competition i ON i.tid = t.tid AND i.cid = ?');
+    const invalidateRoundCache = db.prepare('UPDATE round SET results_cache = NULL WHERE cid = ? AND rid = ?');
+    const matches = db.prepare('SELECT * FROM match WHERE cid = ? AND rid = ? ORDER BY match_time');
     db.transaction(() => {
-      doUpdate.run(params.points, cid, params.tid);
+      delmatch.run(cid, params.rid, params.aid);
       invalidateCompetitionCache.run(cid)
-      responder.addSection('teams', teams.all(cid));
-    })();
-
-    
+      invalidateRoundCache.run(cid, params.rid);
+      responder.addSection('matches', matches.all(cid, params.rid));
+    })()
+    debug('request complete');
   };
 })();

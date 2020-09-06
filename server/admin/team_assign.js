@@ -29,6 +29,7 @@
     const getp = db.prepare('SELECT default_playoff FROM competition WHERE cid = ?').pluck();
     const addcid = db.prepare('INSERT INTO team_in_competition (cid, tid, points) VALUES (?,?,?)');
     const removecid = db.prepare('DELETE FROM team_in_competition WHERE cid = ? AND tid = ?');
+    const invalidateCompetitionCache = db.prepare('UPDATE competition SET results_cache = NULL WHERE cid = ?');
     const teams = db.prepare('SELECT t.*, i.points FROM team t LEFT JOIN team_in_competition i ON i.tid = t.tid AND i.cid = ?');
     db.transaction(() => {
       const points = getp.get(cid); //get the detault points
@@ -37,6 +38,7 @@
       } else {
         removecid.run(cid, params.tid);
       }
+      invalidateCompetitionCache.run(cid)
       responder.addSection('teams', teams.all(cid));
     })();
     

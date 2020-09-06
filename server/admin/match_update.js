@@ -22,68 +22,63 @@
 (function() {
   'use strict';
 
-  const debug = require('debug')('football:api:roundupd');
+  const debug = require('debug')('football:api:matchupd');
   const db = require('../utils/database');
 
   module.exports = async function(user, cid, params, responder) {
-    debug('new request from user', user.uid, 'with cid', cid, 'and parameter rid', params.rid );
+    debug('new request from user', user.uid, 'with cid', cid, 'rid', params.rid, 'aid', params.aid );
     if (params.rid !== undefined) {
-      let sql = `UPDATE round SET update_date = (strftime('%s','now')), results_cache = NULL,`;
+      let sql = `UPDATE match SET`;
       let qry = [];
-      if (params.name !== undefined) {
-        sql += ' name = ?,';
-        qry.push(params.name);
-      }
-      if (params.question !== undefined) {
-        sql += ' question = ?,';
-        qry.push(params.question);
+      if (params.hid !== undefined) {
+        sql += ' hid = ?,';
+        qry.push(params.hid);
       }
       if (params.comment !== undefined) {
         sql += ' comment = ?,';
         qry.push(params.comment);
       }
-      if (params.deadline !== undefined) {
-        sql += ' deadline = ?,';
-        qry.push(params.deadline);
+      if (params.ascore !== undefined) {
+        sql += ' ascore = ?,';
+        qry.push(params.ascore);
       }
-      if (params.valid_question !== undefined) {
-        sql += ' valid_question = ?,';
-        qry.push(params.valid_question);
+      if (params.hscore !== undefined) {
+        sql += ' hscore = ?,';
+        qry.push(params.hscore );
+      }
+      if (params.combined_score !== undefined) {
+        sql += ' combined_score = ?,';
+        qry.push(params.combined_score);
+      }
+      if (params.match_time !== undefined) {
+        sql += ' match_time = ?,';
+        qry.push(params.match_time);
+      }
+      if (params.underdog !== undefined) {
+        sql += ' underdog = ?,';
+        qry.push(params.underdog);
       }
       if (params.open !== undefined) {
         sql += ' open = ?,';
         qry.push(params.open);
       }
-      if (params.answer !== undefined) {
-        sql += ' answer = ?,';
-        qry.push(params.answer)
-      }
-      if (params.value !== undefined) {
-        sql += ' value = ?,'
-        qry.push(params.value);
-      }
-      if (params.bvalue !== undefined) {
-        sql += ' bvalue = ?,';
-        qry.push(params.bvalue);
-      }
-      if (params.ou_round !== undefined) {
-        sql += ' ou_round = ?,';
-        qry.push(params.ou_round);
-      }
       //if more params - add here
       sql = sql.slice(0,-1); //remove last comma
-      sql += ' WHERE cid = ? AND rid = ?';
+      sql += ' WHERE cid = ? AND rid = ? AND aid = ?';
       qry.push(cid);
       qry.push(params.rid);
+      qry.push(params.aid);
       debug('SQL =', sql, 'parameters of ', qry);
       if (qry.length > 1) {
         const upd = db.prepare(sql);
         const invalidateCompetitionCache = db.prepare('UPDATE competition SET results_cache = NULL WHERE cid = ?');
-        const read = db.prepare('SELECT * FROM round WHERE cid = ? AND rid = ?');
+        const invalidateRoundCache = db.prepare('UPDATE round SET results_cache = NULL WHERE cid = ? AND rid = ?');
+        const read = db.prepare('SELECT * FROM match WHERE cid = ? AND rid = ? AND aid = ?');
         db.transaction(() => {
           upd.run(qry);
-          invalidateCompetitionCache.run(cid);
-          responder.addSection('round', read.get(cid, params.rid));
+          invalidateCompetitionCache.run(cid)
+          invalidateRoundCache.run(cid, params.rid);
+          responder.addSection('match', read.get(cid, params.rid, params.aid));
         })();
       }
     }

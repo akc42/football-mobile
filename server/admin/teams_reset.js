@@ -28,10 +28,12 @@
     debug('new request from user', user.uid, 'with cid', cid );
     const getp = db.prepare('SELECT default_playoff FROM competition WHERE cid = ?').pluck();
     const setp = db.prepare('UPDATE team_in_competition SET points = ? WHERE cid = ?');
+    const invalidateCompetitionCache = db.prepare('UPDATE competition SET results_cache = NULL WHERE cid = ?');
     let points;
     db.transaction(() =>{
       points = getp.get(cid);
       setp.run(points,cid);
+      invalidateCompetitionCache.run(cid)
       
     })();
     responder.addSection('points', points);

@@ -27,7 +27,7 @@
 
   module.exports = async function(user, cid, params, responder) {
     debug('new request from user', user.uid, 'with cid', cid, 'and parameter cid', params.cid );
-    let sql = `UPDATE competition SET update_date = (strftime('%s','now')),`;
+    let sql = `UPDATE competition SET update_date = (strftime('%s','now')), results_cache = NULL,`;
     let qry = [];
     if (params.cid === cid) {
       if (params.name !== undefined) {

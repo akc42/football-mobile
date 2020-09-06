@@ -27,9 +27,13 @@
   module.exports = async function(user, cid, params, responder) {
     debug('new request from user', user.uid, 'with cid', cid, ', option', params.opid );
     const create = db.prepare('INSERT INTO option (cid, rid, opid, label) VALUES (?,?,?,?)');
+    const invalidateCompetitionCache = db.prepare('UPDATE competition SET results_cache = NULL WHERE cid = ?');
+    const invalidateRoundCache = db.prepare('UPDATE round SET results_cache = NULL WHERE cid = ? AND rid = ?');
     const options = db.prepare('SELECT opid, label FROM option WHERE cid = ? AND rid = ? ORDER BY opid');
     db.transaction(() => {
       create.run(cid, params.rid, params.opid, params.label);
+      invalidateCompetitionCache.run(cid)
+      invalidateRoundCache.run(cid, params.rid);
       responder.addSection('options', options.all(cid, params.rid));
     })();
     debug('call complete');
