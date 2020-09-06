@@ -189,6 +189,7 @@ class FmInput extends LitElement {
           cols=${ifDefined(this.cols)}
           rows=${ifDefined(this.rows)}
           wrap=${ifDefined(this.wrap)}
+          .value=${value}
           @input=${this._inputChanged}
           @blur=${this._blur}
           @emoji-closed=${this._closeEmoji}
