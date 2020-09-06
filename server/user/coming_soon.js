@@ -38,7 +38,7 @@
         responder.addSection('condition', row.condition);
         responder.addSection('message', s.get());
       } else {
-        debug('competiion is open, so just say so');
+        debug('competition is open, so just say so');
         responder.addSection('open', true);
       }
     })();

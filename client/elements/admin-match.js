@@ -77,6 +77,7 @@ class AdminMatch extends LitElement {
           margin: 2px;
           background-color: var(--accent-color);
           grid-template-columns: repeat(5, 50px);
+          grid-template-rows: 1fr 1fr;
           grid-template-areas:
             "aid ascore at hscore hid"
             "aid aunder cscore hunder hid"
@@ -97,8 +98,11 @@ class AdminMatch extends LitElement {
           justify-content: space-between;
           align-items: center;
         }
-      .score, .under, .pt, material-icon {
+        .score, .under, .pt, material-icon {
           cursor: pointer;
+        }
+        .score:not(.ou) {
+          cursor: normal;
         }
         .dog, .title {
           font-size:0.5rem;
@@ -164,9 +168,11 @@ class AdminMatch extends LitElement {
           <div class="num">@</div>
           
         </div>
-        <div class="score cscore" @click=${this._setCombinedScore}>
-          <div class="title">OU Score</div>
-          <div class="num">${this.match.combined_score === null ? '': this.match.combined_score + .5}</div>
+        <div class="score cscore ${classMap({ou: this.round.ou_round === 1})}" @click=${this._setCombinedScore}>
+          ${cache(this.round.ou_round === 1 ? html`
+            <div class="title">OU Score</div>
+            <div class="num">${this.match.combined_score === null ? '' : this.match.combined_score + .5}</div>
+          `:'')}
         </div>
         <div class="score hscore" @click=${this._setHscore}>
           <div class="title">Score</div>
@@ -244,7 +250,9 @@ class AdminMatch extends LitElement {
   }
   _setCombinedScore(e) {
     e.stopPropagation();
-    e.currentTarget.dispatchEvent(new InputRequest({ field: 'combined_score', value: this.match.combined_score}));
+    if (this.round.ou_round === 1) {
+      e.currentTarget.dispatchEvent(new InputRequest({ field: 'combined_score', value: this.match.combined_score}));
+    }
   }
   _setHscore(e) {
     e.stopPropagation();

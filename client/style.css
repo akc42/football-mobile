@@ -44,6 +44,7 @@
   /*invert(100%) sepia(0%) saturate(5322%) hue-rotate(84deg) brightness(113%) contrast(102%); */
   --logo-background: url('/appimages/football-logo.svg');
   --item-present: lawngreen;
+  --item-not-present: orangered;
   --create-item-color: lawngreen;
  
   --fm-win-color:gold;

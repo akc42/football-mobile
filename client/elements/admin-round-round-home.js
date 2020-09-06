@@ -39,66 +39,7 @@ import { DeleteRequest,RoundChanged, OptionCreate , OptionDelete} from '../modul
 */
 class AdminRoundRoundHome extends LitElement {
   static get styles() {
-    return [page, button, radio, css``];
-  }
-  static get properties() {
-    return {
-      round: {type: Object},
-      options: {type: Array},
-      opid: {type: Number},
-      label: {type: String} //label for opid
-    };
-  }
-  constructor() {
-    super();
-    this.round = {rid: 0, name: ''}
-    this.options = [];
-    this.opid = 1;
-    this.label = '';
-    this.deleteopid = null;
-  }
-  connectedCallback() {
-    super.connectedCallback();
-    this.deleteopid = null;
-    this.addEventListener('delete-reply', this._deleteReply);
-  }
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    this.removeEventListener('delete-reply', this._deleteReply);
-  }
-  update(changed) {
-    if (changed.has('options')) {  
-      this.options = this.options.sort((a,b) => a.opid - b.opid); //ensure we are in ascending order
-      if (this.options.length > 0) {
-          this.opid = this.options.length + 1; //start be assuming it will be one above the end
-          if (this.options.length === 1) {
-            if (this.options[0].opid !== 1) this.opid = 1; //only one and the first is not 1 so we can use the one slot
-          } else {
-            for(let i = 0; i < this.options.length; i++) {
-              if (this.options[i].opid > (i + 1)) {
-                //this is the first time it occurs = so we just found the first gap to use
-                this.opid = i + 1;
-                break;
-              }
-            }
-          }
-      } else {
-        this.opid = 1;
-      }
-    }
-    super.update(changed);
-  }
-  firstUpdated() {
-    this.newOption = this.shadowRoot.querySelector('#newoption');
-  }
-  updated(changed) {
-    super.updated(changed);
-  }
-  render() {
-    return html`
-      <style>
-
-
+    return [page, button, radio, css`
       section.scrollable {
         display: grid;
         grid-gap: 2px;
@@ -181,9 +122,79 @@ class AdminRoundRoundHome extends LitElement {
         .del {
           cursor: pointer;
         }
+
+    `];
+  }
+  static get properties() {
+    return {
+      round: {type: Object},
+      options: {type: Array},
+      opid: {type: Number},
+      label: {type: String} //label for opid
+    };
+  }
+  constructor() {
+    super();
+    this.round = {rid: 0, name: ''}
+    this.options = [];
+    this.opid = 1;
+    this.label = '';
+    this.deleteopid = null;
+  }
+  connectedCallback() {
+    super.connectedCallback();
+    this.deleteopid = null;
+    this.addEventListener('delete-reply', this._deleteReply);
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.removeEventListener('delete-reply', this._deleteReply);
+  }
+  update(changed) {
+    if (changed.has('options')) {  
+      this.options = this.options.sort((a,b) => a.opid - b.opid); //ensure we are in ascending order
+      if (this.options.length > 0) {
+          this.opid = this.options.length + 1; //start be assuming it will be one above the end
+          if (this.options.length === 1) {
+            if (this.options[0].opid !== 1) this.opid = 1; //only one and the first is not 1 so we can use the one slot
+          } else {
+            for(let i = 0; i < this.options.length; i++) {
+              if (this.options[i].opid > (i + 1)) {
+                //this is the first time it occurs = so we just found the first gap to use
+                this.opid = i + 1;
+                break;
+              }
+            }
+          }
+      } else {
+        this.opid = 1;
+      }
+    }
+    super.update(changed);
+  }
+  firstUpdated() {
+    this.newOption = this.shadowRoot.querySelector('#newoption');
+  }
+  updated(changed) {
+    super.updated(changed);
+  }
+  render() {
+    return html`
+      <style>
+
+
+        .icons {
+          color: var(--item-present);
+          --icon-size: 16px;
+        }
       </style>
       <football-page id="page" heading="Round Details">
         <div slot="heading">${this.round.name}</div>
+        ${this.round.ou_round === 1 || this.round.valid_question === 1? html`
+          <div slot="heading" class="icons">${this.round.ou_round? 
+            html`<material-icon>thumbs_up_down</material-icon>`:''}${this.round.valid_question? 
+            html`<material-icon>question_answer</material-icon>`:''}</div>
+        `:''}
         <section class="scrollable">
           <div id="rid">${this.round.rid}</div>
           <fm-input 
@@ -228,61 +239,63 @@ class AdminRoundRoundHome extends LitElement {
               name="validq" 
               ?value=${this.round.valid_question === 1}
               @value-changed=${this._validqChanged}>Bonus Question Valid</fm-checkbox>
-            <fm-input
-              id="bpoints"
-              name="bpoints"
-              type="number"
-              label="Bonus Question Points"
-              required
-              min="1"
-              step="1"
-              max="50"
-              message="Between 1 amd 50"
-              .value=${this.round.bvalue}
-              @blur=${this._bpointsChange}></fm-input>
-            <calendar-input 
-              id="deadline"
-              name="deadline"
-              withTime
-              label="Bonus Deadline"
-              .value=${this.round.deadline}
-              @value-changed=${this._deadlineChanged}></calendar-input>
-            <fm-input
-              id="question"
-              name="question"
-              label="Bonus Question"
-              textArea
-              rows="10"
-              .value=${this.round.question}
-              @blur=${this._questionChange}></fm-input>
-            <form id="optionsel" @change=${this._radioChange}>
-
+            ${cache(this.round.valid_question === 1 ? html`
               <fm-input
-                id="newoption"
-                name="option"
-                label="New Option"
-                .value=${this.label}
-                message="At least character"
-                @value-changed=${this._newOptionLabel}></fm-input>            
-              <div class="optionitem">
-                <input 
-                  type="radio" 
-                  id="o0" 
-                  value="0" 
-                  ?checked=${this.round.answer === null || this.round.answer <= 0} 
-                  name="options">
-                <label for="o0"><span></span>No Answer Yet</label>
-                <material-icon class="add" @click=${this._newOption}>note_add</material-icon> 
-              </div>
-              <hr/>
-              ${cache(this.options.map(o => html`
+                id="bpoints"
+                name="bpoints"
+                type="number"
+                label="Bonus Question Points"
+                required
+                min="1"
+                step="1"
+                max="50"
+                message="Between 1 amd 50"
+                .value=${this.round.bvalue}
+                @blur=${this._bpointsChange}></fm-input>
+              <calendar-input 
+                id="deadline"
+                name="deadline"
+                withTime
+                label="Bonus Deadline"
+                .value=${this.round.deadline}
+                @value-changed=${this._deadlineChanged}></calendar-input>
+              <fm-input
+                id="question"
+                name="question"
+                label="Bonus Question"
+                textArea
+                rows="10"
+                .value=${this.round.question}
+                @blur=${this._questionChange}></fm-input>
+              <form id="optionsel" @change=${this._radioChange}>
+
+                <fm-input
+                  id="newoption"
+                  name="option"
+                  label="New Option"
+                  .value=${this.label}
+                  message="At least character"
+                  @value-changed=${this._newOptionLabel}></fm-input>            
                 <div class="optionitem">
-                  <input type="radio" id="o${o.opid}" .value=${o.opid} name="options" ?checked=${o.opid === this.round.answer}>
-                  <label for="o${o.opid}"><span></span>${o.label}</label>
-                  <material-icon class="del" @click=${this._maybeDelete} data-opid="${o.opid}">close</material-icon>
+                  <input 
+                    type="radio" 
+                    id="o0" 
+                    value="0" 
+                    ?checked=${this.round.answer === null || this.round.answer <= 0} 
+                    name="options">
+                  <label for="o0"><span></span>No Answer Yet</label>
+                  <material-icon class="add" @click=${this._newOption}>note_add</material-icon> 
                 </div>
-              `))}
-            </form>
+                <hr/>
+                ${cache(this.options.map(o => html`
+                  <div class="optionitem">
+                    <input type="radio" id="o${o.opid}" .value=${o.opid} name="options" ?checked=${o.opid === this.round.answer}>
+                    <label for="o${o.opid}"><span></span>${o.label}</label>
+                    <material-icon class="del" @click=${this._maybeDelete} data-opid="${o.opid}">close</material-icon>
+                  </div>
+                `))}
+              </form>
+            `:'')}
           </section>
               
         </section>

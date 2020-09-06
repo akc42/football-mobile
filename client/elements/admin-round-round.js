@@ -75,6 +75,7 @@ class AdminRoundRound extends RouteManager {
   }
   disconnectedCallback() {
     super.disconnectedCallback();
+    this.ridRoute = {active: false}
   }
   update(changed) {
     if (changed.has('ridRoute')) {

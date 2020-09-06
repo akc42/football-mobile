@@ -107,6 +107,7 @@ class AdminManager extends RouteManager {
           ?lock=${this.competition.team_lock === 1}
           @teams-reset=${this._teamsReset}
           @team-assign=${this._teamAssign}
+          @team-eliminated=${this._teamEliminate}
           @team-lock=${this._teamLocked}
           @team-point=${this._teamPoint}></admin-teams>`,
         rounds: html`<admin-rounds 
@@ -219,6 +220,15 @@ class AdminManager extends RouteManager {
     this.dispatchEvent(new WaitRequest(false));
     this.teams = response.teams
     this.tics = this.teams.filter(t => t.points !== null);
+  }
+  async _teamEliminate(e) {
+    e.stopPropagation();
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api(`admin/${global.cid}/team_eliminate`, e.team);
+    this.dispatchEvent(new WaitRequest(false));
+    this.teams = response.teams
+    this.tics = this.teams.filter(t => t.points !== null);
+
   }
   _teamLocked(e) {
     e.stopPropagation();

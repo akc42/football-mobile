@@ -92,7 +92,7 @@ export class PageManager extends RouteManager {
         profile: html`<profile-manager managed-page></profile-manager>`,
         register: html`<register-manager managed-page></register-manager>`,
         rounds: html`<rounds-manager managed-page .roundRoute=${this.subRoute}></rounds-manager>`,
-        soon: html`<soon-manager namaged-page></soon-manager>`,
+        soon: html`<soon-manager managed-page></soon-manager>`,
         scores: html`<scores-manager managed-page .route=${this.subRoute}></scores-manager>`,
         teams: html`<teams-manager managed-page .route=${this.subRoute}></teams-manager>`
       }[this.page])}

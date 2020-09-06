@@ -896,6 +896,21 @@ export class TeamDeselected extends Event {
   }
 };
 
+export class TeamEliminated extends Event {
+  static eventType = 'team-eliminated';
+
+  /*
+     The following are the fields provided by this event
+
+     team: tid and eliminated
+
+  */
+
+  constructor(team) {
+    super('team-eliminated',{composed: true, bubbles: true});
+    this.team = team;
+  }
+};
 export class TeamLock extends Event {
   static eventType = 'team-lock';
 

@@ -26,7 +26,7 @@ import {switchPath} from '../modules/utils.js';
 import global from '../modules/globals.js';
 
 import './date-format.js';
-import './fm-page.js';
+import './football-page.js';
 import page from '../styles/page.js';
 import emoji from '../styles/emoji.js';
 
@@ -76,14 +76,14 @@ class SoonManager extends LitElement {
           color: red;
         }
       </style>
-       <fm-page id="page" heading="Coming Soon">
+       <football-page id="page" heading="Coming Soon">
         <p>${unsafeHTML(this.soon)}</p>
         ${cache(this.expected !== 0 ? html`
           <p>The competition is expected to be open on <date-format .date=${this.expected}></date-format></p>
         `:'')}
         ${cache(this.condition? html`<p>When open, the condition for registering will be:- </p>
         <p class="condition emoji">${this.condition}.</p>`:'')}
-      </fm-page>
+      </football-page>
     `;
   }
 }

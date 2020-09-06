@@ -25,6 +25,7 @@ import './admin-match.js';
 import './match-conf-div.js';
 import './dialog-box.js';
 import './fm-input.js';
+import './material-icon.js';
 
 import page from '../styles/page.js';
 import { InputReply, MatchCreate, MatchChanged, TeamDeselected, MatchSwap, MatchDelete } from '../modules/events.js';
@@ -70,7 +71,7 @@ class AdminRoundRoundMatch extends LitElement {
   }
   update(changed) {
     if (changed.has('matches')) {
-      this.unmatched = this.teams.filter(t => !this.matches.some(m => m.aid === t.tid || m.hid === t.tid));
+      this.unmatched = this.teams.filter(t => !(t.eliminated === 1 || this.matches.some(m => m.aid === t.tid || m.hid === t.tid)));
     }
     super.update(changed);
   }
@@ -104,6 +105,10 @@ class AdminRoundRoundMatch extends LitElement {
           --input-width: 35px;
           margin: 20px;
         }
+        .icons {
+          color: var(--item-present);
+          --icon-size: 16px;
+        }
       </style>
       <dialog-box id="diag" position="target" @overlay-closed=${this._dialogClosed} @overlay-closing=${this._dialogClosing}>
         <fm-input
@@ -118,6 +123,11 @@ class AdminRoundRoundMatch extends LitElement {
       </dialog-box>
       <football-page id="page" heading="Match Management">
         <div slot="heading">${this.round.name}</div>
+        ${this.round.ou_round === 1 || this.round.valid_question === 1 ? html`
+          <div slot="heading" class="icons">${this.round.ou_round ?
+            html`<material-icon>thumbs_up_down</material-icon>` : ''}${this.round.valid_question ?
+            html`<material-icon>question_answer</material-icon>` : ''}</div>
+        `: ''}
         <section class="scrollable">
           <section class="matches">
             ${cache(this.matches.map(match => html`
@@ -169,7 +179,7 @@ class AdminRoundRoundMatch extends LitElement {
     const match = this.matches.find(m => m.aid === tid || m.hid === tid);
     if (match !== undefined) {
       if (tid === match.hid) {
-        this.dispatchEvent(new MatchChanged({rid: this.round.rid, hid: null}))
+        this.dispatchEvent(new MatchChanged({rid: this.round.rid, aid: match.aid, hid: null}))
       } else if (match.hid !== null && match.hid.length > 0){
         this.dispatchEvent(new MatchSwap({rid: this.round.rid, aid: tid, drop: true}))
       } else {

@@ -114,6 +114,9 @@ class IconManager extends LitElement {
         .fixed {
           color: var(--fm-fixed-comment);
         }
+        .present {
+          color: var(--item-present);
+        }
         
         fm-input {
           width: 230px;
@@ -176,10 +179,13 @@ class IconManager extends LitElement {
           <div class="icon editable"><material-icon>comment</material-icon></div>
           <div class="description">Click to edit comment</div>
         </div>
-
         <div class="item">
-          <div class="icon fixed"><material-icon>comment</material-icon></div>
-          <div class="description">Click to show comment</div>
+          <div class="icon present"><material-icon>question_answer</material-icon></div>
+          <div class="description">This is a round with a bonus question</div>
+        </div>
+        <div class="item">
+          <div class="icon present"><material-icon>thumbs_up_down</material-icon></div>
+          <div class="description">This is a round with over under selections.</div>
         </div>
         <div class="item">
           <div class="icon approve"><material-icon>grading</material-icon></div>

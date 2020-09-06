@@ -25,7 +25,7 @@ import './user-pick.js';
 import './material-icon.js';
 import './fm-input.js';
 
-import {PlayoffPick, TeamAssign, TeamPoint} from '../modules/events.js';
+import {TeamAssign, TeamPoint, TeamEliminated} from '../modules/events.js';
 import global from '../modules/globals.js';
 
 /*
@@ -112,7 +112,7 @@ class AdminConfDiv extends LitElement {
           grid-template-areas:
             "logo cbx cbx"
             "logo inp inp"
-            "name name name"
+            "name name elim"
         }
         .cbx {
           grid-area: cbx;
@@ -137,6 +137,18 @@ class AdminConfDiv extends LitElement {
           grid-area:name;
           font-weight: bold;
           font-size: 10px;
+          background-color: var(--background-color);
+        }
+
+        .elim {
+          grid-area: elim;
+          background-color: var(--background-color);
+        }
+        .in {
+          color: var(--item-present);
+        }
+        .out {
+          color: var(--item-not-present);
         }
 
       </style>
@@ -151,7 +163,7 @@ class AdminConfDiv extends LitElement {
             <div class="name">${team.name}</div>
 
             <div class="cbx">
-              <fm-checkbox .value=${team.points !==null } @value-changed=${this._ticChanged} data-tid=${team.tid} ?disabled=${this.lock}></fm-checkbox>
+              <fm-checkbox .value=${team.points !==null } @value-changed=${this._ticChanged} data-tid=${team.tid} ?disabled=${this.lock}>In</fm-checkbox>
             </div>
             <div class="inp">
               <fm-input 
@@ -166,7 +178,9 @@ class AdminConfDiv extends LitElement {
                 data-tid=${team.tid}
                 @blur=${this._updatePoints}></fm-input>
             </div>
-
+            <div class="elim" @click=${this._toggleEliminated} data-tid=${team.tid} >
+              ${team.eliminated === 0 ?html`<material-icon class="in">title</material-icon>`:html`<material-icon class="out">format_clear</material-icon>`}
+            </div> 
           </div>
         `)}
       </div>
@@ -182,7 +196,15 @@ class AdminConfDiv extends LitElement {
       this.requestUpdate();
     }
     this.dispatchEvent(new TeamAssign({ tid: tid, assign: e.changed }));
-
+  }
+  _toggleEliminated(e) {
+    e.stopPropagation();
+    const tid = e.currentTarget.dataset.tid;
+    const team = this.teams.find(t => t.tid === tid);
+    if (team !== undefined) {
+      team.eliminated = team.eliminated === 0 ? 1 : 0;
+      this.dispatchEvent(new TeamEliminated({tid: team.tid, eliminated: team.eliminated}));
+    }
   }
   _updatePoints(e) {
     e.stopPropagation();

@@ -21,19 +21,30 @@
 
 (function () {
   'use strict';
+
+  const debug = require('debug')('football:api:compname');
   const db = require('../utils/database');
 
   module.exports = (user,cid,params,responder) => {
+    debug('Request received with user', user.uid, 'cid', cid);
     const readname = db.prepare(`SELECT name FROM competition WHERE cid = ?`).pluck();
+    const checkreg = db.prepare('SELECT count(*) FROM registration WHERE cid = ? AND uid = ?').pluck();
     const readdeadline = db.prepare(`SELECT name, pp_deadline, team_lock, open, closed FROM competition WHERE cid = ?`);
   
     if(params.check) {
-      const {name, pp_deadline, team_lock, open, closed} = readdeadline.get(cid);
-      responder.addSection('name', name);
-      const cutoff = Math.floor(new Date().getTime()/1000);
-      responder.addSection('canpick', cutoff < pp_deadline && team_lock === 1 && open === 1 && closed === 0);
+      debug('checking')
+      db.transaction(() => {
+        const { name, pp_deadline, team_lock, open, closed } = readdeadline.get(cid);
+        responder.addSection('name', name);
+        const reg = checkreg.get(cid, user.uid);
+        debug('Registration Counter for us is', reg);
+        const cutoff = Math.floor(new Date().getTime() / 1000);
+        responder.addSection('canpick', reg > 0 && cutoff < pp_deadline && team_lock === 1 && open === 1 && closed === 0);
+      })();
+
     } else {
       responder.addSection('name', readname.get(cid));  
     }
+    debug('all Done')
   };
 })();

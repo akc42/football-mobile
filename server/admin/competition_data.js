@@ -32,7 +32,7 @@
     const tic = db.prepare('SELECT MAX(cid) FROM team_in_competition;').pluck();
     
     const rounds = db.prepare('SELECT * FROM round WHERE cid = ? ORDER BY rid DESC');
-    const teams = db.prepare('SELECT t.*, i.points FROM team t LEFT JOIN team_in_competition i ON i.tid = t.tid AND i.cid = ?');
+    const teams = db.prepare('SELECT t.*, i.points, i.eliminated FROM team t LEFT JOIN team_in_competition i ON i.tid = t.tid AND i.cid = ?');
     const registrations =db.prepare('SELECT u.* FROM registration r JOIN participant u USING (uid) WHERE r.cid = ?');
     db.transaction(() => {
       responder.addSection('competition', competition.get(cid));

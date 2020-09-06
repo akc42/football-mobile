@@ -21,20 +21,11 @@
 (function() {
   'use strict';
 
-  const debug = require('debug')('football:api:teampoints');
+  const debug = require('debug')('football:api:register');
   const db = require('../utils/database');
 
   module.exports = async function(user, cid, params, responder) {
     debug('new request from user', user.uid, 'with cid', cid );
-    const doUpdate = db.prepare('UPDATE team_in_competition SET points = ? WHERE cid = ? AND tid = ?')
-    const invalidateCompetitionCache = db.prepare('UPDATE competition SET results_cache = NULL WHERE cid = ?');
-    const teams = db.prepare('SELECT t.*, i.points , i.eliminated FROM team t LEFT JOIN team_in_competition i ON i.tid = t.tid AND i.cid = ?');
-    db.transaction(() => {
-      doUpdate.run(params.points, cid, params.tid);
-      invalidateCompetitionCache.run(cid);
-      responder.addSection('teams', teams.all(cid));
-    })();
-
-    
+    db.prepare('INSERT INTO registration (cid, uid) VALUES(?,?)').run(cid, user.uid);
   };
 })();

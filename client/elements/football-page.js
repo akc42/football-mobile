@@ -33,29 +33,40 @@ import { switchPath } from '../modules/utils.js';
 class FootballPage extends LitElement {
   static get styles() {
     return [ page, css`
-  :host {
-    height: 100%;
-  }
-  .competition {
-    border:2px solid var(--accent-color);
-    border-radius: 5px;
-    box-shadow: 1px 1px 3px 0px var(--shadow-color);
-    margin:5px 5px 5px 3px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;  
-    align-items: center;     
-  }
-  slot[name=heading]::slotted(*) {
-    flex: 1 0 0; 
-    margin: 0 5px;
-  } 
-  .competition>div#compname {
-    flex: 0 1 auto;
-    margin: 0;
-    text-align:center;
-  } 
-`];
+      :host {
+        height: 100%;
+      }
+      .competition {
+        border:2px solid var(--accent-color);
+        border-radius: 5px;
+        box-shadow: 1px 1px 3px 0px var(--shadow-color);
+        margin:5px 5px 5px 3px;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;  
+        align-items: center;     
+      }
+      slot[name=heading]::slotted(*) {
+        flex: 1 0 0; 
+        margin: 0 5px;
+      } 
+      .competition>div#compname {
+        flex: 0 1 auto;
+        margin: 0;
+        text-align:center;
+      }
+      section {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+      .container {
+        overflow-y:auto;
+        scroll-snap-type: y mandatory;
+        overflow-x:hidden;
+      }
+    
+    `];
   }
   static get properties() {
     return {
@@ -93,24 +104,6 @@ class FootballPage extends LitElement {
   }
   render() {
     return html`
-      <style>
-        section {
-          display: flex;
-          flex-direction: column;
-          height: 100%;
-        }
-        .container {
-          overflow-y:auto;
-          scroll-snap-type: y mandatory;
-          overflow-x:hidden;
-        }
-        .action {
-          display: flex;
-          flex-direction: row;
-          justify-content: space-evenly;
-          margin-bottom: 5px;
-        }
-      </style>
       <fm-page id="page" .heading="${this.heading}">
         ${cache(this.canPick ? html`
          <div slot="subheading" @click=${this._makePicks}>PlayOff Picks Available</div>
@@ -122,11 +115,9 @@ class FootballPage extends LitElement {
           <div class="container">
             <slot></slot>
           </div>
-          <div class="action">
-            <slot name="action" slot="action"></slot>
-          </div>
-        </section>
-        
+
+        </section>       
+        <slot slot="action" name="action"></slot>         
       </fm-page>
     `;
   }
