@@ -17,19 +17,39 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html } from '../libs/lit-element.js';
+import { LitElement, html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 import {classMap} from '../libs/class-map.js';
 
 import './material-icon.js';
-import { CommentRequest, CommentShow } from '../modules/events.js';
+import { CommentRequest, CommentShow, ValueChanged, CommentChanged } from '../modules/events.js';
 
 /*
      <comment-button>
 */
 class CommentButton extends LitElement {
   static get styles() {
-    return [];
+    return css`
+      :host {
+        --icon-size: 16px;
+        display: flex;
+        height: 16px;
+        width:16px;
+        cursor:pointer;
+      }
+      .nocomment {
+        display: inline-block;
+        height: 16px;
+        width: 16px;
+      }
+      material-icon {
+        color: var(--fm-fixed-comment);
+      }
+      material-icon.editable {
+        color: var(--fm-editable-comment);
+      
+      }
+    `;
   }
   static get properties() {
     return {
@@ -42,42 +62,8 @@ class CommentButton extends LitElement {
     this.comment = '';
     this.edit = false;
   }
-  connectedCallback() {
-    super.connectedCallback();
-  }
-  disconnectedCallback() {
-    super.disconnectedCallback();
-  }
-  update(changed) {
-    super.update(changed);
-  }
-  firstUpdated() {
-  }
-  updated(changed) {
-    super.updated(changed);
-  }
   render() {
     return html`
-      <style>
-        :host {
-          --icon-size: 16px;
-          display: flex;
-          height: 16px;
-          width:16px;
-          cursor:pointer;
-        }
-        .nocomment {
-          display: inline-block;
-          height: 16px;
-          width: 16px;
-        }
-        material-icon {
-          color: var(--fm-fixed-comment);
-        }
-        material-icon.editable {
-          color: var(--fm-editable-comment);
-        }
-      </style>
       ${cache((this.edit || (this.comment !== null && this.comment.length > 0)) ? html`
         <material-icon 
           ?outlined=${this.comment === null || this.comment.length === 0} 
@@ -90,10 +76,15 @@ class CommentButton extends LitElement {
   _display(e) {
     e.stopPropagation();
     if (this.edit) {
-      this.dispatchEvent(new CommentRequest(this.comment));
+      e.currentTarget.dispatchEvent(new CommentRequest(this.comment));
     } else {
       this.dispatchEvent(new CommentShow(this.comment));
     }
+  }
+  _reply(e) {
+    e.stopPropagation();
+    this.comment = e.comment;
+    this.dispatchEvent(new CommentChanged(this.comment));
   }
 }
 customElements.define('comment-button', CommentButton);

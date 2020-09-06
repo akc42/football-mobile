@@ -117,9 +117,10 @@ class AdminRoundRound extends RouteManager {
           .confs=${this.confs}
           .divs=${this.divs}
           .matches=${this.matches}
-         @match-create=${this._matchCreate}
-         @match-delete=${this._matchDelete}
-         @match-update=${this._matchUpdate}></admin-round-round-match>`
+          @match-create=${this._matchCreate}
+          @match-delete=${this._matchDelete}
+          @match-changed=${this._matchChanged}
+          @match-swapped=${this._matchSwapped}></admin-round-round-match>`
       }[this.page])}
     `;
   }
@@ -128,16 +129,42 @@ class AdminRoundRound extends RouteManager {
     this.dispatchEvent(new WaitRequest(true));
     import(`./admin-round-round-${page}.js`).then(() => this.dispatchEvent(new WaitRequest(false)));
   }
+  async _matchChanged(e) {
+    e.stopPropagation();
+    debug('Match Update Received for match ', e.match.aid);
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api(`admin/${global.cid}/match_update`, e.match);
+    this.dispatchEvent(new WaitRequest(false));
+    this.matches = this.matches.map(m => {
+      if (m.aid === response.match.aid) return response.match
+      return { ...m };
+    });
+  }
+  async _matchCreate(e) {
+    e.stopPropagation();
+    debug('Match Create Started')
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api(`admin/${global.cid}/match_create`, e.match);
+    this.dispatchEvent(new WaitRequest(false));
+    this.matches = response.matches;
+  }
+  async _matchDelete(e) {
+    e.stopPropagation();
+    debug('match Delete')
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api(`admin/${global.cid}/match_delete`, e.match );
+    this.dispatchEvent(new WaitRequest(false));
+    this.matches = response.matches;
+  }
+  async _matchSwapped(e) {
+    e.stopPropagation();
+    debug('Match Swap');
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api(`admin/${global.cid}/match_swap`, e.match);
+    this.dispatchEvent(new WaitRequest(false));
+    this.matches = response.matches;
+  }
 
-  _matchCreate(e) {
-    e.stopPropagation();
-  }
-  _matchDelete(e) {
-    e.stopPropagation();
-  }
-  _matchUpdate(e) {
-    e.stopPropagation();
-  } 
 
   async _newRound() {
     if (this.lastRid !== this.rid) {
@@ -165,6 +192,5 @@ class AdminRoundRound extends RouteManager {
     this.dispatchEvent(new WaitRequest(false));
     this.options = response.options;
   }
-
 }
 customElements.define('admin-round-round', AdminRoundRound);

@@ -17,21 +17,31 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html } from '../libs/lit-element.js';
+import { LitElement, html, css } from '../libs/lit-element.js';
 
 import './dialog-box.js';
 
 import domHost from '../modules/host.js';
 import { CommentReply } from '../modules/events.js';
 
-import emoji from '../styles/emoji.js';
+import button from '../styles/button.js';
 
 /*
      <comment-dialog>
 */
 class CommentDialog extends LitElement {
   static get styles() {
-    return [emoji];
+    return [button, css`
+      button {
+        margin: 4px;
+      }
+      dialog-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      
+    `];
   }
   static get properties() {
     return {
@@ -64,7 +74,7 @@ class CommentDialog extends LitElement {
     return html`
 
       <dialog-box id="diag" position="target" @overlay-closed=${this._dialogClosed}>
-        <fm-input textarea id="comment" >${this.comment}</fm-input>
+        <fm-input label="Comment" textarea id="comment" .value=${this.comment} @value-changed=${this._inputChanged} ></fm-input>
         <button @click=${this._replyToCaller}>Save</button>
       </dialog-box>
 

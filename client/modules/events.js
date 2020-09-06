@@ -101,6 +101,22 @@ export class CalendarRequest extends Event {
     this.date = date;
   }
 };
+
+export class CommentChanged extends Event {
+  static eventType = 'comment-changed';
+
+  /*
+     The following are the fields provided by this event
+
+     changed: new value of comment
+
+  */
+
+  constructor(changed) {
+    super('comment-changed',{composed: true, bubbles: true});
+    this.changed = changed;
+  }
+};
 export class CommentReply extends Event {
   static eventType = 'comment-reply';
 
@@ -326,6 +342,39 @@ export class FormResponse extends Event {
   }
 };
 
+
+export class InputReply extends Event {
+  static eventType = 'input-reply';
+
+  /*
+     The following are the fields provided by this event
+
+     reply: field and value
+
+  */
+
+  constructor(reply) {
+    super('input-reply',{composed: true, bubbles: true});
+    this.reply = reply;
+  }
+};
+
+export class InputRequest extends Event {
+  static eventType = 'input-request';
+
+  /*
+     The following are the fields provided by this event
+
+     request: field and value
+
+  */
+
+  constructor(request) {
+    super('input-request',{composed: true, bubbles: true});
+    this.request = request;
+  }
+};
+
 export class KeyPressed extends Event {
   static eventType = 'key-pressed';
 
@@ -381,6 +430,53 @@ export class LocationAltered extends Event {
   }
 };
 
+export class MatchChanged extends Event {
+  static eventType = 'match-changed';
+
+  /*
+     The following are the fields provided by this event
+
+     match: rid and aid from match plus field(s) that have changed
+
+  */
+
+  constructor(match) {
+    super('match-changed',{composed: true, bubbles: true});
+    this.match = match;
+  }
+};
+
+export class MatchCreate extends Event {
+  static eventType = 'match-create';
+
+  /*
+     The following are the fields provided by this event
+
+     match: rid and aid for new match
+
+  */
+
+  constructor(match) {
+    super('match-create',{composed: true, bubbles: true});
+    this.match = match;
+  }
+};
+
+export class MatchDelete extends Event {
+  static eventType = 'match-delete';
+
+  /*
+     The following are the fields provided by this event
+
+     match: rid and aid of match to delete
+
+  */
+
+  constructor(match) {
+    super('match-delete',{composed: true, bubbles: true});
+    this.match = match;
+  }
+};
 export class MatchPick extends Event {
   static eventType = 'match-pick';
 
@@ -394,6 +490,24 @@ export class MatchPick extends Event {
   constructor(pick) {
     super('match-pick',{composed: true, bubbles: true});
     this.pick = pick;
+  }
+};
+
+export class MatchSwap extends Event {
+  static eventType = 'match-swap';
+
+  /*
+     The following are the fields provided by this event
+
+     match: rid and aid of match + drop if we are dropping hid from new record NOTE;
+            With drop, from a users perspective, we have just deselected the aid.  The old hid (assuming there was one)
+            becomes the new aid and the new hid is set to null. This event is not used if the result is deleting the match (no hid when aid deselected)
+
+  */
+
+  constructor(match) {
+    super('match-swap',{composed: true, bubbles: true});
+    this.match = match;
   }
 };
 export class MenuAdd extends Event {
@@ -766,6 +880,22 @@ export class TeamAssign extends Event {
   }
 };
 
+export class TeamDeselected extends Event {
+  static eventType = 'team-deselected';
+
+  /*
+     The following are the fields provided by this event
+
+     tid:   tid of team selected
+
+  */
+
+  constructor(tid) {
+    super('team-deselected', { composed: true, bubbles: true });
+    this.tid = tid;
+  }
+};
+
 export class TeamLock extends Event {
   static eventType = 'team-lock';
 
@@ -810,6 +940,22 @@ export class TeamsReset extends Event {
 
   constructor() {
     super('teams-reset',{composed: true, bubbles: true});
+  }
+};
+
+export class TeamSelected extends Event {
+  static eventType = 'team-selected';
+
+  /*
+     The following are the fields provided by this event
+
+     tid:   tid of team selected
+
+  */
+
+  constructor(tid) {
+    super('team-selected',{composed: true, bubbles: true});
+    this.tid = tid;
   }
 };
 export class TeamsSet extends Event {

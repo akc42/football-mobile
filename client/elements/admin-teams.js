@@ -21,7 +21,7 @@ import { LitElement, html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
 import './football-page.js';
-import './conf-div.js';
+import './admin-conf-div.js';
 import './fm-checkbox.js';
 import './material-icon.js';
 import page from '../styles/page.js';
@@ -98,7 +98,7 @@ class AdminTeams extends LitElement {
         </div>
         <section id="list" class="scrollable">
           ${cache(this.confs.map(conf => this.divs.map(div => 
-            html`<conf-div 
+            html`<admin-conf-div 
               data-conf=${conf.confid} 
               data-div=${div.divid} 
               class="item" 
@@ -106,8 +106,7 @@ class AdminTeams extends LitElement {
               .conf=${conf} 
               .div=${div} 
               .points=${this.points}
-              tic
-              ?lock=${this.lock}></conf-div>`)))}
+              ?lock=${this.lock}></admin-conf-div>`)))}
         </section>
       </football-page>
     `;

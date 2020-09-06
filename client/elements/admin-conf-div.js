@@ -29,9 +29,9 @@ import {PlayoffPick, TeamAssign, TeamPoint} from '../modules/events.js';
 import global from '../modules/globals.js';
 
 /*
-     <conf-div>
+     <admin-conf-div>
 */
-class ConfDiv extends LitElement {
+class AdminConfDiv extends LitElement {
   static get styles() {
     return [];
   }
@@ -89,12 +89,7 @@ class ConfDiv extends LitElement {
           padding: 3px;
           justify-content: space-around;
         }
-        .me {
-          border-radius: 2px;
-          border:1px solid var(--accent-color);
-          padding: 2px;
-          margin-right: 5px;
-        }
+
         .divteam {
           display: flex;
           flex-direction:row;
@@ -105,6 +100,7 @@ class ConfDiv extends LitElement {
           background-color: var(--accent-color); 
           border: 1px solid var(--accent-color);
           --icon-size:20px;
+          --input-width: 35px;
           margin: 5px;
           padding: 2px;
           border-radius:5px;
@@ -112,82 +108,98 @@ class ConfDiv extends LitElement {
           display:grid;
           grid-gap: 2px;
           grid-template-columns: 50px 25px 25px;
-          grid-template-rows: 24px 24px 30px;
+          grid-template-rows: 24px 24px 30px;          
           grid-template-areas:
-            "logo madepo points"
-            "logo pick pick"
-            "name name name";
+            "logo cbx cbx"
+            "logo inp inp"
+            "name name name"
         }
-
-        .poff, .team img, .points, .pick, .name {
+        .cbx {
+          grid-area: cbx;
           background-color: var(--background-color);
-          text-align: center;
-
+          display: flex;
+          justify-content: center;
+          align-items: center;
         }
+        .inp {
+          grid-area: inp;
+          background-color: var(--background-color);
+          display: flex;
+          justify-content: center;
+          align-items: center;
 
-
-        .poff {
-          color:var(--fm-in-playoff);
-          grid-area: madepo;
         }
         .team img {
           grid-area: logo;
         }
-        .points {
-          grid-area: points;
-        }
-        .pick {
-          grid-area: pick;
-        }
+
         .name {
           grid-area:name;
           font-weight: bold;
           font-size: 10px;
         }
-        .pickable {
-          cursor: pointer;
-        }
 
       </style>
       <header>
-        ${cache(this.user.uid !== 0 && !this.nome ? 
-          html`<div class="${classMap({ me: this.user.uid === global.user.uid})}">User: ${this.user.name}'s Picks</div>`
-        : '')}
+
         <div>${this.conf.name} - ${this.div.name}</div>
       </header>
       <div class="divteam">
-      ${this.teams.filter(team => team.confid === this.conf.confid && team.divid === this.div.divid).map(team => {
-        let pick ;
-        if (this.user.uid !== 0) pick = this.user.picks.find(p => p.tid === team.tid);
-        return html`
-          <div 
-            class="team ${classMap({pickable:this.user.uid === global.user.uid && this.deadline > cutoff})}" 
-            @click=${this._makePick}
-            data-tid=${team.tid}>
+        ${this.teams.filter(team => team.confid === this.conf.confid && team.divid === this.div.divid).map(team => html`
+          <div class="team tic">
             <img src="/appimages/teams/${team.tid}.png"/>
-            <div class="name">${team.name}</div>  
-              <div class="poff">${cache(team.made_playoff === 1 ? html`<material-icon>emoji_events</material-icon>` : '')}</div>
-              <div class="points">${team.points}</div>
-              <div class="pick">${cache(pick !== undefined ? html`<user-pick 
-                result 
-                ?correct=${team.made_playoff === 1} 
-                ?admin=${pick.admin_made === 1}
-                .deadline=${this.deadline}
-                .made=${pick.submit_time}></user-pick>` : '')}</div>
-    
+            <div class="name">${team.name}</div>
+
+            <div class="cbx">
+              <fm-checkbox .value=${team.points !==null } @value-changed=${this._ticChanged} data-tid=${team.tid} ?disabled=${this.lock}></fm-checkbox>
+            </div>
+            <div class="inp">
+              <fm-input 
+                message=""
+                preventInvalid
+                type="number" 
+                .value=${team.points === null ? '': team.points.toString()} 
+                ?required=${team.points !== null} 
+                min="1" 
+                max="8" 
+                step="1"
+                data-tid=${team.tid}
+                @blur=${this._updatePoints}></fm-input>
+            </div>
+
           </div>
-      `;
-      })}
+        `)}
       </div>
 
     `;
   }
-  _makePick(e) {
-    const cutoff = Math.floor(new Date().getTime() / 1000);
-    if(this.user.uid === global.uid && this.deadline > cutoff) {
-      e.stopPropagation();
-      this.dispatchEvent(new PlayoffPick(e.currentTarget.dataset.tid)); 
+  _ticChanged(e) {
+    e.stopPropagation();
+    const tid = e.currentTarget.dataset.tid; 
+    const team = this.teams.find(t => t.tid === tid);
+    if (team !== undefined) {
+      team.points = e.changed ? this.points:null;
+      this.requestUpdate();
     }
+    this.dispatchEvent(new TeamAssign({ tid: tid, assign: e.changed }));
+
+  }
+  _updatePoints(e) {
+    e.stopPropagation();
+    const tid = e.currentTarget.dataset.tid; 
+    const team = this.teams.find(t => t.tid === tid);
+    if (team !== undefined) {
+      const points = parseInt(e.currentTarget.value,10)
+      if (points !== team.points) {
+        //has changes so 
+        team.points = points
+        this.requestUpdate();
+        this.dispatchEvent(new TeamPoint({tid: team.tid, points: points}))
+      }
+    }
+
+
+
   }
 }
-customElements.define('conf-div', ConfDiv);
+customElements.define('admin-conf-div', AdminConfDiv);

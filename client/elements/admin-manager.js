@@ -170,7 +170,7 @@ class AdminManager extends RouteManager {
         this.rid = this.rounds.reduce((ac, cur) => {
           return Math.max(ac, cur.rid);
         }, 0);
-        switchPath(`/${global.cid}/admin/rounds/round/${this.rid}`);
+        if (this.subRoute.active && this.subRoute.path.length < 8) switchPath(`/${global.cid}/admin/rounds/round/${this.rid}`);
       } else {
         this.rid = 0;
       }

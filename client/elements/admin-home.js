@@ -48,20 +48,7 @@ class AdminHome extends LitElement {
     super();
     this.competition = {cid: 0, name: '', expected_date: 0, gap: 0, pp_deadline: 0, condition: ''}
   }
-  connectedCallback() {
-    super.connectedCallback();
-  }
-  disconnectedCallback() {
-    super.disconnectedCallback();
-  }
-  update(changed) {
-    super.update(changed);
-  }
-  firstUpdated() {
-  }
-  updated(changed) {
-    super.updated(changed);
-  }
+
   render() {
     return html`
       <style>
