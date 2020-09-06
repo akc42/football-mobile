@@ -21,7 +21,7 @@
 
  
   export class MyEvent extends Event {
-    static eventType = 'my-event';
+    
 
     // a place to document event fields
     myData;
@@ -39,7 +39,7 @@
 */
 
 export class ApiError extends Event {
-  static eventType = 'api-error';
+  
 
   /*
      The following are the fields provided by this event
@@ -55,7 +55,7 @@ export class ApiError extends Event {
 };
 
 export class AuthChanged extends Event {
-  static eventType = 'auth-changed';
+  
 
   /*
      The following are the fields provided by this event
@@ -71,7 +71,7 @@ export class AuthChanged extends Event {
 };
 
 export class CalendarReply extends Event {
-  static eventType = 'calendar-reply';
+  
 
   /*
      The following are the fields provided by this event
@@ -87,7 +87,7 @@ export class CalendarReply extends Event {
 };
 
 export class CalendarRequest extends Event {
-  static eventType = 'calendar-request';
+  
 
   /*
      The following are the fields provided by this event
@@ -103,7 +103,7 @@ export class CalendarRequest extends Event {
 };
 
 export class CommentChanged extends Event {
-  static eventType = 'comment-changed';
+  
 
   /*
      The following are the fields provided by this event
@@ -118,7 +118,7 @@ export class CommentChanged extends Event {
   }
 };
 export class CommentReply extends Event {
-  static eventType = 'comment-reply';
+  
 
   /*
      The following are the fields provided by this event
@@ -134,7 +134,7 @@ export class CommentReply extends Event {
 };
 
 export class CommentRequest extends Event {
-  static eventType = 'comment-request';
+  
 
   /*
      The following are the fields provided by this event
@@ -150,7 +150,7 @@ export class CommentRequest extends Event {
 };
 
 export class CommentShow extends Event {
-  static eventType = 'comment-show';
+  
 
   /*
      The following are the fields provided by this event
@@ -166,7 +166,7 @@ export class CommentShow extends Event {
 };
 
 export class CompetitionChanged extends Event {
-  static eventType = 'competition-changed';
+  
 
   /*
      The following are the fields provided by this event
@@ -185,7 +185,7 @@ export class CompetitionChanged extends Event {
 
 
 export class CompetitionCreate extends Event {
-  static eventType = 'competition-create';
+  
 
   /*
      The following are the fields provided by this event
@@ -202,7 +202,7 @@ export class CompetitionCreate extends Event {
 
 
 export class CompetitionDelete extends Event {
-  static eventType = 'competition-delete';
+  
 
   /*
      The following are the fields provided by this event
@@ -219,7 +219,7 @@ export class CompetitionDelete extends Event {
 
 
 export class CompetitionsReread extends Event {
-  static eventType = 'competitions-reread';
+  
 
   /*
      The following are the fields provided by this event
@@ -234,7 +234,7 @@ export class CompetitionsReread extends Event {
 };
 
 export class DeleteReply extends Event {
-  static eventType = 'delete-reply';
+  
 
   /*
      The following are the fields provided by this event
@@ -250,7 +250,7 @@ export class DeleteReply extends Event {
 
 
 export class DeleteRequest extends Event {
-  static eventType = 'delete-request';
+  
 
   /*
      The following are the fields provided by this event
@@ -266,7 +266,7 @@ export class DeleteRequest extends Event {
 };
 
 export class EmojiClosed extends Event {
-  static eventType = 'emoji-closed';
+  
 
   /*
      The following are the fields provided by this event
@@ -281,7 +281,7 @@ export class EmojiClosed extends Event {
 };
 
 export class EmojiRequest extends Event {
-  static eventType = 'emoji-request';
+  
 
   /*
      The following are the fields provided by this event
@@ -295,7 +295,7 @@ export class EmojiRequest extends Event {
   }
 };
 export class EmojiSelect extends Event {
-  static eventType = 'emoji-select';
+  
 
   /*
      The following are the fields provided by this event
@@ -311,7 +311,7 @@ export class EmojiSelect extends Event {
 };
 
 export class FormError extends Event {
-  static eventType = 'form-error';
+  
 
   /*
      The following are the fields provided by this event
@@ -327,7 +327,7 @@ export class FormError extends Event {
 
 
 export class FormResponse extends Event {
-  static eventType = 'form-response';
+  
 
   /*
      The following are the fields provided by this event
@@ -344,7 +344,7 @@ export class FormResponse extends Event {
 
 
 export class InputReply extends Event {
-  static eventType = 'input-reply';
+  
 
   /*
      The following are the fields provided by this event
@@ -360,7 +360,7 @@ export class InputReply extends Event {
 };
 
 export class InputRequest extends Event {
-  static eventType = 'input-request';
+  
 
   /*
      The following are the fields provided by this event
@@ -376,7 +376,7 @@ export class InputRequest extends Event {
 };
 
 export class KeyPressed extends Event {
-  static eventType = 'key-pressed';
+  
 
   /*
      The following are the fields provided by this event
@@ -392,7 +392,7 @@ export class KeyPressed extends Event {
 };
 
 export class KeyUpdated extends Event {
-  static eventType = 'key-updated';
+  
 
   /*
     The purpose of this event is to cross inform subsytems that something they may be interested in has been updated.
@@ -416,7 +416,7 @@ export class KeyUpdated extends Event {
 };
 
 export class LocationAltered extends Event {
-  static eventType = 'location-altered';
+  
 
   /*
      The following are the fields provided by this event
@@ -431,7 +431,7 @@ export class LocationAltered extends Event {
 };
 
 export class MatchChanged extends Event {
-  static eventType = 'match-changed';
+  
 
   /*
      The following are the fields provided by this event
@@ -447,7 +447,7 @@ export class MatchChanged extends Event {
 };
 
 export class MatchCreate extends Event {
-  static eventType = 'match-create';
+  
 
   /*
      The following are the fields provided by this event
@@ -463,7 +463,7 @@ export class MatchCreate extends Event {
 };
 
 export class MatchDelete extends Event {
-  static eventType = 'match-delete';
+  
 
   /*
      The following are the fields provided by this event
@@ -478,7 +478,7 @@ export class MatchDelete extends Event {
   }
 };
 export class MatchPick extends Event {
-  static eventType = 'match-pick';
+  
 
   /*
      The following are the fields provided by this event
@@ -494,7 +494,7 @@ export class MatchPick extends Event {
 };
 
 export class MatchSwap extends Event {
-  static eventType = 'match-swap';
+  
 
   /*
      The following are the fields provided by this event
@@ -511,7 +511,7 @@ export class MatchSwap extends Event {
   }
 };
 export class MenuAdd extends Event {
-  static eventType = 'menu-add';
+  
 
   /*
      The following are the fields provided by this event
@@ -526,7 +526,7 @@ export class MenuAdd extends Event {
 
 
 export class MenuRemove extends Event {
-  static eventType = 'menu-remove';
+  
 
   /*
      The following are the fields provided by this event
@@ -541,7 +541,7 @@ export class MenuRemove extends Event {
   }
 };
 export class MenuReset extends Event {
-  static eventType = 'menu-reset';
+  
 
   /*
      The following are the fields provided by this event
@@ -557,7 +557,7 @@ export class MenuReset extends Event {
 };
 
 export class OptionComment extends Event {
-  static eventType = 'option-comment';
+  
 
   /*
      The following are the fields provided by this event
@@ -574,7 +574,7 @@ export class OptionComment extends Event {
 
 
 export class OptionCreate extends Event {
-  static eventType = 'option-create';
+  
 
   /*
      The following are the fields provided by this event
@@ -590,7 +590,7 @@ export class OptionCreate extends Event {
 };
 
 export class OptionDelete extends Event {
-  static eventType = 'option-delete';
+  
 
   /*
      The following are the fields provided by this event
@@ -606,7 +606,7 @@ export class OptionDelete extends Event {
 };
 
 export class OptionPick extends Event {
-  static eventType = 'option-pick';
+  
 
   /*
      The following are the fields provided by this event
@@ -622,7 +622,7 @@ export class OptionPick extends Event {
 };
 
 export class OverlayClosed  extends Event {
-  static eventType = 'overlay-closed';
+  
 
   /*
      The following are the fields provided by this event
@@ -640,7 +640,7 @@ export class OverlayClosed  extends Event {
 };
 
 export class OverlayClosing extends Event {
-  static eventType = 'overlay-closing';
+  
 
   /*
      The following are the fields provided by this event
@@ -655,7 +655,7 @@ export class OverlayClosing extends Event {
 };
 
 export class OverwriteWarning extends Event {
-  static eventType = 'overwrite-warning';
+  
 
   /*
      The following are the fields provided by this event
@@ -670,7 +670,7 @@ export class OverwriteWarning extends Event {
 };
 
 export class PageClose extends Event {
-  static eventType = 'page-close';
+  
 
   /*
      The following are the fields provided by this event
@@ -685,7 +685,7 @@ export class PageClose extends Event {
 };
 
 export class PageClosed extends Event {
-  static eventType = 'page-closed';
+  
 
   /*
      The following are the fields provided by this event
@@ -701,7 +701,7 @@ export class PageClosed extends Event {
 
 
 export class PageData extends Event {
-  static eventType = 'page-data';
+  
 
   /*
      The following are the fields provided by this event
@@ -717,7 +717,7 @@ export class PageData extends Event {
 };
 
 export class PageTitle extends Event {
-  static eventType = 'page-title';
+  
 
   /*
      The following are the fields provided by this event
@@ -734,7 +734,7 @@ export class PageTitle extends Event {
 
 
 export class PlayoffPick extends Event {
-  static eventType = 'playoff-pick';
+  
 
   /*
      The following are the fields provided by this event
@@ -751,7 +751,7 @@ export class PlayoffPick extends Event {
 
 
 export class PromoteList extends Event {
-  static eventType = 'promote-list';
+  
 
   /*
      The following are the fields provided by this event
@@ -767,7 +767,7 @@ export class PromoteList extends Event {
 };
 
 export class RoundChanged extends Event {
-  static eventType = 'round-changed';
+  
 
   /*
      The following are the fields provided by this event
@@ -783,7 +783,7 @@ export class RoundChanged extends Event {
 };
 
 export class RoundCreate extends Event {
-  static eventType = 'round-create';
+  
 
   /*
      The following are the fields provided by this event
@@ -799,7 +799,7 @@ export class RoundCreate extends Event {
 };
 
 export class RoundDelete extends Event {
-  static eventType = 'round-delete';
+  
 
   /*
      The following are the fields provided by this event
@@ -815,7 +815,7 @@ export class RoundDelete extends Event {
 };
 
 export class RoundSelected extends Event {
-  static eventType = 'round-selected';
+  
 
   /*
      The following are the fields provided by this event
@@ -832,7 +832,7 @@ export class RoundSelected extends Event {
 
 
 export class RouteChanged extends Event {
-  static eventType = 'route-changed';
+  
 
   /*
      The following are the fields provided by this event
@@ -848,7 +848,7 @@ export class RouteChanged extends Event {
 };
 
 export class SessionStatus extends Event {
-  static eventType = 'session-status';
+  
 
   /*
      The following are the fields provided by this event
@@ -865,7 +865,7 @@ export class SessionStatus extends Event {
 };
 
 export class TeamAssign extends Event {
-  static eventType = 'team-assign';
+  
 
   /*
      The following are the fields provided by this event
@@ -881,7 +881,7 @@ export class TeamAssign extends Event {
 };
 
 export class TeamDeselected extends Event {
-  static eventType = 'team-deselected';
+  
 
   /*
      The following are the fields provided by this event
@@ -897,7 +897,7 @@ export class TeamDeselected extends Event {
 };
 
 export class TeamEliminated extends Event {
-  static eventType = 'team-eliminated';
+  
 
   /*
      The following are the fields provided by this event
@@ -912,7 +912,7 @@ export class TeamEliminated extends Event {
   }
 };
 export class TeamLock extends Event {
-  static eventType = 'team-lock';
+  
 
   /*
      The following are the fields provided by this event
@@ -928,7 +928,7 @@ export class TeamLock extends Event {
 };
 
 export class TeamPoint extends Event {
-  static eventType = 'team-point';
+  
 
   /*
      The following are the fields provided by this event
@@ -944,7 +944,7 @@ export class TeamPoint extends Event {
 };
 
 export class TeamsReset extends Event {
-  static eventType = 'teams-reset';
+  
 
   /*
      The following are the fields provided by this event
@@ -959,7 +959,7 @@ export class TeamsReset extends Event {
 };
 
 export class TeamSelected extends Event {
-  static eventType = 'team-selected';
+  
 
   /*
      The following are the fields provided by this event
@@ -974,7 +974,7 @@ export class TeamSelected extends Event {
   }
 };
 export class TeamsSet extends Event {
-  static eventType = 'teams-set';
+  
 
   /*
      The following are the fields provided by this event
@@ -989,7 +989,7 @@ export class TeamsSet extends Event {
 };
 
 export class UserSelected extends Event {
-  static eventType = 'user-selected';
+  
 
   /*
      The following are the fields provided by this event
@@ -1005,7 +1005,7 @@ export class UserSelected extends Event {
 };
 
 export class ValueChanged extends Event {
-  static eventType = 'value-changed';
+  
 
   /*
      The following are the fields provided by this event
@@ -1021,7 +1021,7 @@ export class ValueChanged extends Event {
 };
 
 export class WaitRequest extends Event {
-  static eventType = 'wait-request';
+  
 
   /*
      The following are the fields provided by this event
