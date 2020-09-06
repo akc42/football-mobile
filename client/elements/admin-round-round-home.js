@@ -74,10 +74,10 @@ class AdminRoundRoundHome extends LitElement {
           if (this.options.length === 1) {
             if (this.options[0].opid !== 1) this.opid = 1; //only one and the first is not 1 so we can use the one slot
           } else {
-            for(let i = 1; i < this.options.length; i++) {
-              if (this.options[i].opid > i) {
+            for(let i = 0; i < this.options.length; i++) {
+              if (this.options[i].opid > (i + 1)) {
                 //this is the first time it occurs = so we just found the first gap to use
-                this.opid = i;
+                this.opid = i + 1;
                 break;
               }
             }
