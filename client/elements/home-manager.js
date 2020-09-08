@@ -60,12 +60,12 @@ class HomeManager extends LitElement {
               switchPath(`/${global.cid}/teams`);
             }
           } else if (response.hasPicked) {
-            switchPath(`${global.cid}/rounds/${global.lrid}`);
+            switchPath(`/${global.cid}/rounds/${global.lrid}`);
           } else {
             switchPath(`/${global.cid}/scores`);
           }
         } else if (response.canRegister) {
-          switchPath(`${global.cid}/register`);
+          switchPath(`/${global.cid}/register`);
         } else {
           switchPath(`/${global.cid}/scores`);
         }

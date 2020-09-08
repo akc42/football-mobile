@@ -57,9 +57,10 @@ export class PageManager extends RouteManager {
         this.route = cidR;
       } else {
         /*
-          some urls, don't need a cid, they are /profile, /navref and /icon plus /gadm and its sub pages
+          some urls, don't need a cid, they are /,  /profile, /navref and /icon plus /gadm and its sub pages
         */
-        if (cidR.params.cid === 'profile' || cidR.params.cid === 'navref' || cidR.params.cid === 'help' || cidR.params.cid === 'gadm' ) {
+        if (cidR.params.cid === '' || cidR.params.cid === 'profile' || 
+            cidR.params.cid === 'navref' || cidR.params.cid === 'help' || cidR.params.cid === 'gadm' ) {
           this.route = route; //just pass straight through
         } else {
           if (global.cid === 0) global.cid = global.lcid;

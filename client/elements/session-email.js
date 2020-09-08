@@ -42,17 +42,20 @@ class SessionEmail extends LitElement {
   }
   static get properties() {
     return {
-      email: {type: String}
+      email: {type: String},
+      donefirst: {type: Boolean}
     };
   }
   constructor() {
     super();
     this.email = '';
+    this.donefirst = false;
     this._keyPressed = this._keyPressed.bind(this);
 
   }
   connectedCallback() {
     super.connectedCallback();
+    this.donefirst = false;
     document.body.addEventListener('key-pressed', this._keyPressed);
     if (this.keys === undefined) {
       this.keys = new AppKeys(document.body, 'Enter');
@@ -78,7 +81,14 @@ class SessionEmail extends LitElement {
         }
       </style>
       <fm-page heading="Welcome">
-        <fm-input id="email" name="email" type="email" autofocus required label="Email" message="Valid Email Address Required"></fm-input>
+        <fm-input 
+          id="email" 
+          name="email" 
+          type="${this.donefirst? 'email': 'text'}" 
+          autofocus 
+          ?required=${this.donefirst} 
+          label="Email" 
+          message="Valid Email Address Required" @blur=${this._doneFirst}></fm-input>
         <button slot="action" @click=${this._continue}>Continue</button>
         <p>By continuing you agree to ${global.organisationName} <a href="#" @click=${this._privacy}>Privacy Policy</a></p>
       </fm-page>
@@ -101,6 +111,10 @@ class SessionEmail extends LitElement {
         throw new Error('Email Verify Failed ')
       }
     }
+  }
+  _doneFirst(e) {
+    e.stopPropagation();
+    this.donefirst = true;
   }
   _keyPressed(e) {
     if (e.key === 'Enter') {

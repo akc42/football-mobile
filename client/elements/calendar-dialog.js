@@ -39,7 +39,6 @@ const weekdayFormatter = Intl.DateTimeFormat('default', {
 const weekdayMaker = new Date(1593918000000);  
 const weekdays = [];
 for(let i = 0; i < 7; i++) {
-  console.log('Weekday Maker', weekdayMaker.toISOString())
   weekdays.push(weekdayFormatter.format(weekdayMaker));
   weekdayMaker.setDate(weekdayMaker.getDate() + 1);
 }

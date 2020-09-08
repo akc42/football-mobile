@@ -128,7 +128,6 @@ class WaitingIndicator extends LitElement {
     super();
     this.waiting = false;
     this._gotRequest = this._gotRequest.bind(this);
-    this.callers = new Map();
   }
   connectedCallback() {
     super.connectedCallback();
@@ -153,21 +152,6 @@ class WaitingIndicator extends LitElement {
   _gotRequest(e) {
     e.stopPropagation(e); 
     this.waiting = e.wait;
-    const caller = e.composedPath()[0];
-
-    if (this.callers.has(caller)) {
-      let count = this.callers.get(caller);
-      count += this.waiting? 1:-1;
-      this.callers.set(caller,count);
-    } else {
-      if (!this.waiting) {
-        console.log(caller, 'set waiting false without a true');
-      } else {
-        this.callers.set(caller,1);
-      }
-    }
-    console.log('Request received from ', e.composedPath()[0], 'the callers map is now', this.callers);
-    
   }
 }
 customElements.define('waiting-indicator', WaitingIndicator);
