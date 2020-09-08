@@ -35,8 +35,8 @@ const monthFormatter = Intl.DateTimeFormat('default', {
 const weekdayFormatter = Intl.DateTimeFormat('default', {
   weekday: 'narrow'
 })
-//this is a 5 jun 2020 3:0am utc, asunday (near the beginning of the month, so 7 days later it is still the same month)
-const weekdayMaker = new Date(1593918000000);  
+//use 5 july 2020 3:0am local, sunday (near the beginning of the month, so 7 days later it is still the same month)
+const weekdayMaker = new Date(2020,6,5,3,0,0);  //setting date like this uses local time.
 const weekdays = [];
 for(let i = 0; i < 7; i++) {
   weekdays.push(weekdayFormatter.format(weekdayMaker));

@@ -79,7 +79,6 @@ class DialogBox extends LitElement  {
   constructor() {
     super();
     this.nativeDialog = !!window.HTMLDialogElement;  //store it so we can change it in testing later
-    this.nativeDialog = false; //temp
     if (!this.nativeDialog) import('./dialog-polyfill.js');
     this.sizingTarget = this;
     this.fitInto = window;
