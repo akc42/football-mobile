@@ -84,7 +84,7 @@ class SessionEmail extends LitElement {
         <fm-input 
           id="email" 
           name="email" 
-          type="${this.donefirst? 'email': 'text'}" 
+          type="email" 
           autofocus 
           ?required=${this.donefirst} 
           label="Email" 
