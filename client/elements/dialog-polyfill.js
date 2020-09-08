@@ -59,10 +59,10 @@ class DialogPolyfill extends LitElement {
   render() {
     return html`
       <style>
-          :host(:not([open])) {
-            display: none;
+          :host:not([open]) {
+            display: none!important;
           }
-          :host([open]) {
+          :host[open] {
             display: block;
           }
           #backdrop {
@@ -83,7 +83,6 @@ class DialogPolyfill extends LitElement {
             border: none;
             border-radius: 2px;
             box-shadow: 0 0 40px rgba(0,0,0,0.1), 0 0 10px rgba(0,0,0,0.25);
-            overflow-y: auto;
             padding: 1em;
           }
       </style>

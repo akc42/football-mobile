@@ -1,6 +1,7 @@
 *~
 client/libs
 client/images
+client/videos
 server/db-init/pre-upgrade_*.sql
 server/db-init/post-upgrade_*.sql
 server/db-init/football.db

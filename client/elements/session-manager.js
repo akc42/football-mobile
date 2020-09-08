@@ -83,12 +83,15 @@ class SessionManager extends LitElement {
       this.dispatchEvent(new WaitRequest(true));
       switch(this.state) {
         case 'authorised':
+          this.dispatchEvent(new WaitRequest(false));
           global.user = this.user;
           this.authorised = true;
           break;
         case 'error': 
+          this.dispatchEvent(new WaitRequest(false));
           break;
         case 'logoff':
+          this.dispatchEvent(new WaitRequest(false));
           document.cookie = `${global.cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
           this.authorised = false;
           this.state = 'email';
@@ -102,6 +105,7 @@ class SessionManager extends LitElement {
             if (mbball.test(document.cookie)) {
               performance.mark('start_user_validate');
               api('session/validate_user', {}).then(response => {
+                this.dispatchEvent(new WaitRequest(false));
                 performance.mark('end_user_validate');
                 performance.measure('user_validate','start_user_validate','end_user_validate');
                 if (response.user.uid !== 0) {
@@ -112,6 +116,7 @@ class SessionManager extends LitElement {
                 }
               });
             } else {
+              this.dispatchEvent(new WaitRequest(false));
               this._readHash();
             }
           });

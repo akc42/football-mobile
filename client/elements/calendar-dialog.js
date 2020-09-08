@@ -35,10 +35,11 @@ const monthFormatter = Intl.DateTimeFormat('default', {
 const weekdayFormatter = Intl.DateTimeFormat('default', {
   weekday: 'narrow'
 })
-
-const weekdayMaker = new Date('2020-07-05 3:00');  //this is a sunday (near the beginning of the month, so 7 days later it is still the same month)
+//this is a 5 jun 2020 3:0am utc, asunday (near the beginning of the month, so 7 days later it is still the same month)
+const weekdayMaker = new Date(1593918000000);  
 const weekdays = [];
 for(let i = 0; i < 7; i++) {
+  console.log('Weekday Maker', weekdayMaker.toISOString())
   weekdays.push(weekdayFormatter.format(weekdayMaker));
   weekdayMaker.setDate(weekdayMaker.getDate() + 1);
 }

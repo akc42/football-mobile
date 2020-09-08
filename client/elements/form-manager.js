@@ -60,23 +60,12 @@ class FormManager extends LitElement  {
     return html`
       <style>
         :host {
-          display: flex;
-          flex-direction: column;
           height: 100%;
-          justify-content: start;
-          box-sizing:border-box;
         }
 
-        .contents {
-          flex: 1 0 0;
-          display: flex;
-          flex-direction: column;
-          overflow-y: auto;
-          scroll-snap-type: y mandatory;
-        }
 
       </style>
-      <slot id="mychildren" class="contents"></slot>        
+      <slot id="mychildren"></slot>        
     `;
   }
   get params() {

@@ -41,8 +41,13 @@ class DialogBox extends LitElement  {
         border: none;
         border-radius: 5px;
         box-shadow: 0 0 40px var(--shadow-color), 0 0 10px var(--shadow-color);
-        overflow-y: auto;
         padding: 0;
+        display: none;
+        opacity:0;
+      }
+      #dialog[open] {
+        display:block;
+        opacity: 1;
       }
     `;
   }
@@ -74,6 +79,8 @@ class DialogBox extends LitElement  {
   constructor() {
     super();
     this.nativeDialog = !!window.HTMLDialogElement;  //store it so we can change it in testing later
+    this.nativeDialog = false; //temp
+    if (!this.nativeDialog) import('./dialog-polyfill.js');
     this.sizingTarget = this;
     this.fitInto = window;
     this.position = 'target';
@@ -120,7 +127,8 @@ class DialogBox extends LitElement  {
         </dialog>`
     : html`
         <dialog-polyfill
-          id="dialog">
+          id="dialog"
+          ?open=${this.opened}>
           <slot @slotchange=${this._slotChange}></slot>
         </dialog-polyfill>`)}
     `;

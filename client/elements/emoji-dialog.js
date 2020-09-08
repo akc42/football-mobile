@@ -103,8 +103,10 @@ class EmojiDialog extends LitElement {
   }
 
   _dialogClosed(e) {
-    this.eventLocked = false;
-    this.dialog.positionTarget.dispatchEvent(new EmojiClosed());
+    if (this.eventLocked) {
+      this.eventLocked = false;
+      this.dialog.positionTarget.dispatchEvent(new EmojiClosed());
+    }
   }
 
   _gotRequest(e) {
@@ -116,6 +118,7 @@ class EmojiDialog extends LitElement {
   }
   _getChar(e) {
     e.stopPropagation();
+    if(!this.eventLocked) return; //not running so ignore
     const c = e.target.innerText;
     this.dialog.positionTarget.dispatchEvent(new EmojiSelect(c));
   }
