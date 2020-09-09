@@ -26,46 +26,30 @@
 
   module.exports = async function(user, cid, params, responder) {
     debug('new request from user', user.uid, 'with cid', cid );
-    db.transaction(() => {
-      const matches = db.prepare(`SELECT count(*) FROM competition c WHERE c.open = 1 AND c.cid = ? AND
-        EXISTS ( 
- 	        SELECT r.rid FROM round r WHERE r.cid = c.cid AND r.open = 1 AND (
-            EXISTS (
-              SELECT m.aid FROM match m WHERE m.cid = r.cid and m.rid = r.rid AND m.open = 1 AND (strftime('%s','now') + 60 * c.gap) < m.match_time 
-              AND NOT EXISTS (
-                  SELECT 1 FROM pick pk WHERE pk.cid = m.cid AND pk.rid = m.rid AND pk.uid = ? AND pk.aid = m.aid
-              )
-            )
-            OR (
- 			        r.valid_question = 1 AND strftime('%s','now') < r.deadline
- 			        AND NOT EXISTS (
- 				        SELECT 1 FROM option_pick o WHERE o.cid = r.cid AND o.rid = r.rid AND o.uid = ?
- 			        ))))`).pluck().get(cid, user.uid, user.uid);
-      responder.addSection('matches', matches !== 0);
+    const getGap = db.prepare('SELECT gap FROM compeition WHERE cid = ?');
+    const round = db.prepare('SELECT rid FROM rounds WHERE open = 1 AND cid = ? ORDER BY rid DESC LIMIT 1').pluck();
+    const poffs = db.prepare(`SELECT count(*) FROM competition c WHERE c.open = 1 AND c.cid = ? 
+      AND strftime('%s','now') < c.pp_deadline`).pluck()
+    const bonus = db.prepare(`SELECT valid_question FROM round WHERE cid = ? AND rid = ? AND strftime('%s','now') < deadline `).pluck();
+    const picks = db.prepare(`SELECT COUNT(*) FROM match WHERE cid = ? AND rid = ? AND (strftime('%s','now') + 60 * ?) < match_time`).pluck(); 
 
-      const poffs = db.prepare(`SELECT count(*) FROM competition c WHERE c.open = 1 AND c.cid = ? AND strftime('%s','now') < c.pp_deadline
-          AND (
-            EXISTS (
-              SELECT f.confid, d.divid FROM conference f JOIN division d WHERE 
-              NOT EXISTS (SELECT 1 FROM div_winner_pick p WHERE cid = c.cid AND uid = ? AND p.confid = f.confid AND p.divid = d.divid)
-            )
-            OR EXISTS (
-              SELECT f.confid FROM conference f  WHERE
-              NOT EXISTS (SELECT 1 FROM wildcard_pick w WHERE w.cid = c.cid and uid = ? AND w.confid = f.confid  and opid=1)
-              OR NOT EXISTS (SELECT 1 FROM wildcard_pick w WHERE w.cid = c.cid and uid = ? AND w.confid = f.confid  and opid=2)
-          )
-        )`).pluck().get(cid, user.uid, user.uid, user.uid);
-      if (matches !==0 || poffs !== 0) {
-        responder.addSection('canPick', true);
+    db.transaction(() => {
+      const rid = round.get(cid);
+      if (rid === undefined) {
+        debug('no open round');
+        responder.addSection('rid', 0);
+        responder.addSection('poff', poffs.get(cid));
       } else {
-        responder.addSection('canPick', false);
-        const results = db.prepare(`SELECT count(*) FROM competition c JOIN round r ON r.cid = c.cid AND r.rid = (
-		                                  SELECT r.rid FROM round WHERE cid = c.cid AND open = 1 ORDER BY rid DESC LIMIT 1
-                                    ) WHERE c.open = 1 AND c.cid = ? AND (	EXISTS ( 
-                                        SELECT 1 FROM match m WHERE m.cid = r.cid and m.rid = r.rid AND m.open = 1
-                                    ) OR r.valid_question = 1) `).pluck().get(cid);
-        responder.addSection('hasPicked', results !== 0);
+        debug('round selected = ', rid);
+        responder.addSection('rid', rid);
+        const valid = bonus.get(cid, rid);
+        responder.addSection('bonus', valid !== undefined && valid === 1);
+        const gap = getGap.get(cid);
+        const matches = picks.get(cid, rid, gap)
+        responder.AddSection('matches', );
+        debug('bonus', valid !== undefined && valid === 1,'matches', matches)
       }
     })();
+    debug('All Done');
   };
 })();

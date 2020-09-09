@@ -53,6 +53,7 @@
   --fm-indeterminate-pick:mediumorchid; 
   --fm-correct-pick:lawngreen; 
   --fm-pick-fail: orangered;
+  --picks-available-color: lawngreen;
 
   --fm-pick-open: blue; 
   --fm-editable-comment: lawngreen;

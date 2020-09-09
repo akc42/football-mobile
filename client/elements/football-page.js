@@ -21,6 +21,7 @@ import { LitElement, html, css } from '../libs/lit-element.js';
 import { cache } from '../libs/cache.js';
 
 import './fm-page.js';
+import './material-icon.js';
 import page from '../styles/page.js';
 
 import api from '../modules/api.js';
@@ -68,6 +69,12 @@ class FootballPage extends LitElement {
       .pick {
         cursor: pointer;
       }
+      .pick span {
+        font-size: 0.7rem;
+      }
+      .pick material-icon {
+        color:  var(--picks-available-color);
+      }
     
     `];
   }
@@ -110,7 +117,7 @@ class FootballPage extends LitElement {
     return html`
       <fm-page id="page" .heading="${this.heading}">
         ${cache(this.canPick && !this.nohead ? html`
-         <div class="pick" slot="subheading" @click=${this._makePicks}>PlayOff Picks Available</div>
+         <div class="pick" slot="subheading" @click=${this._makePicks}><material-icon>create</material-icon> <span>PlayOff Picks<span></div>
         `: '')}
         <section>
           <div class="competition">

@@ -134,6 +134,9 @@ class IconManager extends LitElement {
         .em {
           color: var(--emoji-button-color);
         }
+        .picks {
+          color: var(--picks-available-color);
+        }
 
       </style>
       <fm-page id="page" heading="Icon Meanings">
@@ -148,6 +151,13 @@ class IconManager extends LitElement {
           <div class="description">Move one level up url hierachy </div>
         </div>
         <div class="item">
+          <div class="icon picks"><material-icon>create</material-icon></div>
+          <div class="description">Picks Can Be Made, Click to do so</div>
+        </div>
+        <div class="item">
+          <div class="icon picks"><material-icon>rule</material-icon></div>
+          <div class="description">Bonus Question Can Be Answered, Click to do so</div>
+        </div>        <div class="item">
           <div class="icon unknown"><material-icon>check_circle</material-icon></div>
           <div class="description">Pick with unknown result</div>
         </div>

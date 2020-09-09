@@ -26,6 +26,7 @@ import './list-manager.js';
 import './rounds-home-item.js';
 import './football-page.js';
 import './date-format.js';
+import './material-icon.js';
 
 import { switchPath } from '../modules/utils.js';
 import global from '../modules/globals.js';
@@ -68,8 +69,14 @@ class RoundsHome extends LitElement {
       :host {
         --icon-size: 20px;
       }
-      #canpick {
-        color: red;
+      #canpick  {
+        cursor: pointer;
+      }
+      #canpick  span {
+        font-size: 0.7rem;
+      }
+      #canpick  material-icon {
+        color:  var(--picks-available-color);
       }
       .container {
         background-color:var(--background-color);
@@ -139,18 +146,18 @@ class RoundsHome extends LitElement {
     <football-page heading="Round Data">
       <div slot="heading">Round ${this.round.rid} - ${this.round.name}</div>
       ${this.iCanPick?html`
-        <div id="canpick" slot="heading" @click=${this._makePicks}>Round Picks</div>
+        <div id="canpick" slot="heading" @click=${this._makePicks}><material-icon>create</material-icon> <span>Round Picks</span></div>
       `:''}
       <list-manager custom="rounds-home-item"  .items=${this.users} style="${this.round.valid_question === 1? '--list-height:700px':''}">
         <div class="container">
           <div class="matches">Matches ${this.round.matches.length}</div>
           <div class="points"><strong>Points ${this.round.value}</strong><br/>per correct pick (excluding underdog)</div>
-          ${this.round.ou_round === 1 ? html`<div class="over">Over Under round</div>`: ''}
+          ${this.round.ou_round === 1 ? html`<div class="over"><material-icon>thumbs_up_down</material-icon> <span>Over Under round</span></div>`: ''}
           <div class="emoji comment">${this.round.comment}</div>
           ${this.round.valid_question === 1? html`
             <div class="bonus">
               ${this.round.optionOpen?html`
-                <div class="deadline">Deadline <date-format withTime .date=${this.round.deadline}></date-format></div>
+                <div class="deadline"><material-icon>question_answer</material-icon> Deadline <date-format withTime .date=${this.round.deadline}></date-format></div>
               `:''} 
               <div class="emoji">${this.round.question}></div>
               <ul>
@@ -166,8 +173,8 @@ class RoundsHome extends LitElement {
           <div class="userhead">
             <div class="un">User Name</div>
             <div class="mh">Match <span>(Help?)</span></div>
-            <div class="ou">${this.round.ou_round === 1? 'Over Under':'No O/U'}</div>
-            <div class="bn">${this.round.valid_question === 1? 'Bonus':'No Bonus'}</div>
+            <div class="ou">${this.round.ou_round === 1 ?html`<material-icon>thumbs_up_down</material-icon>`:'No O/U'}</div>
+            <div class="bn">${this.round.valid_question === 1 ? html`<material-icon>question_answer</material-icon>`:'No Bonus'}</div>
             <div class="tl">Total <span>(Done?)</span></div> 
           </div>
         </div>

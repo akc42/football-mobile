@@ -93,7 +93,7 @@ class ScoresHome extends LitElement {
         grid-area:ts;
       }
     </style>
-    <football-page heading="Summary Scores">
+    <football-page heading="Summary">
       <list-manager custom="scores-home-item"  .items=${this.users}>
         <div class="container">
           <div class="un">Name</div>

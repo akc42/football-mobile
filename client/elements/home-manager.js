@@ -53,16 +53,24 @@ class HomeManager extends LitElement {
       if (response.isOpen) {
         if (response.isRegistered) {
           const response = await api(`/user/${global.lcid}/can_pick`);
-          if (response.canPick) {
-            if (response.matches) {
-              switchPath(`/${global.cid}/rounds`);
+          if (response.rid === 0) {
+            if(response.poffs > 0) {
+              switchPath(`/${global.cid}/teams/user`)
             } else {
-              switchPath(`/${global.cid}/teams`);
+              if (global.user.uid === global.luid) {
+                switchPath(`/${global.cid}/admin`);
+              } else {
+                switchPath(`/${global.cid}/teams`);
+              }
             }
-          } else if (response.hasPicked) {
-            switchPath(`/${global.cid}/rounds/${global.lrid}`);
           } else {
-            switchPath(`/${global.cid}/scores`);
+            if (response.bonus) {
+              switchPath(`/${global.cid}/rounds/${response.rid}/bonus`);
+            } else if (response.matches > 0) {
+              switchPath(`/${global.cid}/rounds/${response.rid}/match`);
+            } else {
+              switchPath(`/${global.cid}/rounds/${response.rid}`);
+            }
           }
         } else if (response.canRegister) {
           switchPath(`/${global.cid}/register`);
