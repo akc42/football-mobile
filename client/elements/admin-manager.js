@@ -71,16 +71,11 @@ class AdminManager extends RouteManager {
     super.connectedCallback();
     this.lastCid = 0;
   }
-  disconnectedCallback() {
-    super.disconnectedCallback();
-  }
   update(changed) {
     if (changed.has('route') && this.route.active) {
       this._newRoute();
     }
     super.update(changed);
-  }
-  firstUpdated() {
   }
   updated(changed) {
     super.updated(changed);

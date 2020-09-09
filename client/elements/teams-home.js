@@ -37,7 +37,9 @@ class TeamsHome extends LitElement {
     return {
       teams: {type: Array},
       confs: {type: Array},
-      divs: {type: Array}
+      divs: {type: Array},
+      users: {type: Array},
+      deadline: {type: Number}
     };
   }
   constructor() {
@@ -45,6 +47,8 @@ class TeamsHome extends LitElement {
     this.teams = [];
     this.confs = [];
     this.divs = [];
+    this.users = [];
+    this.deadline = 0;
   }
   connectedCallback() {
     super.connectedCallback();
@@ -76,15 +80,21 @@ class TeamsHome extends LitElement {
         }
 
       </style>
-      <football-page id="page" heading="Teams">
+      <football-page id="page" heading="PlayOff Picks">
         <section id="list" class="scrollable">
-          ${cache(this.confs.map(conf => this.divs.map(div => html`<conf-div data-conf=${conf.confid} data-div=${div.divid} @click=${this._selectDiv} class="item" .teams=${this.teams} .conf=${conf} .div=${div}></conf-div>`)))}
+          ${cache(this.confs.map(conf => this.divs.map(div => html`
+            <conf-div 
+              class="item" 
+              .users=${this.users} 
+              .teams=${this.teams} 
+              .conf=${conf} 
+              .div=${div} 
+              .deadline=${this.deadline}></conf-div>
+          `)))}
         </section>
       </football-page>
     `;
   }
-  _selectDiv(e) {
-    switchPath(`/${global.cid}/teams/div/${e.target.dataset.conf}/${e.target.dataset.div}`);
-  }
+
 }
 customElements.define('teams-home', TeamsHome);

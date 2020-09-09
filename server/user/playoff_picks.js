@@ -29,7 +29,7 @@
     const deadline = db.prepare('SELECT pp_deadline FROM competition WHERE cid = ?').pluck();
     const confs = db.prepare('SELECT confid, name FROM conference');
     const divs = db.prepare('SELECT divid, name FROM division');
-    const teams = db.prepare(`SELECT t.*, c.made_playoff, c.points 
+    const teams = db.prepare(`SELECT t.*, c.made_playoff, c.points , c.update_date
         FROM team t JOIN team_in_competition c USING(tid) WHERE c.cid = ?`);
     const users = db.prepare(`SELECT u.uid, u.name, SUM(p.score) FILTER(WHERE p.confid='AFC') ascore, SUM(p.score) FILTER(where p.confid = 'NFC') nscore, 
         SUM(p.score) pscore FROM participant u JOIN registration r USING (uid) LEFT JOIN playoff_score p USING (cid,uid) WHERE r.cid = ? 

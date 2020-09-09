@@ -739,7 +739,7 @@ export class PlayoffPick extends Event {
   /*
      The following are the fields provided by this event
 
-     pick: tid of team being picked.  This is unvalidated
+     pick: tid of team being picked.  and pick (setting or unsetting as true or false)
 
   */
 
@@ -749,6 +749,18 @@ export class PlayoffPick extends Event {
   }
 };
 
+export class PlayoffFail extends Event {
+  /*
+     The following are the fields provided by this event
+
+     pick: tid of team and pick (setting or unsetting as true or false)
+
+  */
+  constructor(pick) {
+    super('playoff-fail',{composed: true, bubbles: true});
+    this.pick = pick;
+  }
+};
 
 export class PromoteList extends Event {
   

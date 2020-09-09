@@ -26,8 +26,11 @@
 
   module.exports = async function(user, cid, params, responder) {
     debug('new request from user', user.uid, 'with cid', cid , 'and team', params.tid);
-    const doUpdate = db.prepare('UPDATE team_in_competition SET eliminated = ? WHERE cid = ? AND tid = ?')
-    const teams = db.prepare('SELECT t.*, i.points, i.eliminated FROM team t LEFT JOIN team_in_competition i ON i.tid = t.tid AND i.cid = ?');
+    
+    const doUpdate = db.prepare(`UPDATE team_in_competition SET eliminated = ?, update_date = strftime('%s','now') 
+      WHERE cid = ? AND tid = ?`);
+    const teams = db.prepare(`SELECT t.*, i.points, i.eliminated,i.made_playoff, i.update_date FROM team t 
+      LEFT JOIN team_in_competition i ON i.tid = t.tid AND i.cid = ?`);
     db.transaction(() => {
       doUpdate.run(params.eliminated, cid, params.tid);
       responder.addSection('teams', teams.all(cid));

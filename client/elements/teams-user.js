@@ -22,8 +22,8 @@ import {cache} from '../libs/cache.js';
 
 import './football-page.js';
 import page from '../styles/page.js';
-import './conf-div.js';
-
+import './pick-conf-div.js';
+import { PageClosed } from '../modules/events.js';
 
 
 /*
@@ -52,6 +52,7 @@ class TeamsUser extends LitElement {
   }
   connectedCallback() {
     super.connectedCallback();
+    
   }
   disconnectedCallback() {
     super.disconnectedCallback();
@@ -62,6 +63,10 @@ class TeamsUser extends LitElement {
   firstUpdated() {
   }
   updated(changed) {
+    if (changed.has('deadline')) {
+      const cutoff = Math.floor(new Date().getTime() / 1000);
+      if (this.deadline < cutoff) this.dispatchEvent(new PageClosed());
+    }
     super.updated(changed);
   }
   render() {
@@ -79,19 +84,17 @@ class TeamsUser extends LitElement {
         }
 
       </style>
-      <football-page id="page" heading="User Playoff Picks">
-        <div slot="heading">${this.user.name}'s Playoff Score</div>
-        <div slot="heading">AFC:${this.user.ascore},NFC:${this.user.nscore},TOT:${this.user.pscore}</div>
+      <football-page id="page" heading="Make Picks" nohead>
+        <div slot="heading">${this.user.name}</div>
         <section id="list" class="scrollable">
           ${cache(this.confs.map(conf => this.divs.map(div => html`
-            <conf-div 
+            <pick-conf-div 
               class="item" 
               .teams=${this.teams} 
               .conf=${conf} 
               .div=${div}
               .user=${this.user}
-              nome
-              .deadline=${this.deadline}></conf-div>
+              .deadline=${this.deadline}></pick-conf-div>
           `)))}
         </section>
       </football-page>

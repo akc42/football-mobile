@@ -38,6 +38,7 @@ class AdminConfDiv extends LitElement {
   static get properties() {
     return {
       teams: {type: Array}, //Array of all teams in competition
+      teamsindiv: {type: Array}, //filted teams to just this division
       conf: {type: Object},
       div: {type: Object},
       user: {type: Object}, //If set this may include users picks (and will pass back clicks to pick a team)
@@ -51,6 +52,7 @@ class AdminConfDiv extends LitElement {
   constructor() {
     super();
     this.teams = [];
+    this.teamsindiv = [];
     this.conf = {name:'', confid:''};
     this.div = {name:'', divid: ''};
     this.user = {uid: 0, picks: []};
@@ -67,6 +69,9 @@ class AdminConfDiv extends LitElement {
     super.disconnectedCallback();
   }
   update(changed) {
+    if (changed.has('teams') || changed.has('conf') || changed.has('div')) {
+      this.teamsindiv = this.teams.filter(team => team.confid === this.conf.confid && team.divid === this.div.divid);
+    }
     super.update(changed);
   }
   firstUpdated() {
@@ -157,7 +162,7 @@ class AdminConfDiv extends LitElement {
         <div>${this.conf.name} - ${this.div.name}</div>
       </header>
       <div class="divteam">
-        ${this.teams.filter(team => team.confid === this.conf.confid && team.divid === this.div.divid).map(team => html`
+        ${this.teamsindiv.map(team => html`
           <div class="team tic">
             <img src="/appimages/teams/${team.tid}.png"/>
             <div class="name">${team.name}</div>

@@ -65,6 +65,9 @@ class FootballPage extends LitElement {
         scroll-snap-type: y mandatory;
         overflow-x:hidden;
       }
+      .pick {
+        cursor: pointer;
+      }
     
     `];
   }
@@ -72,6 +75,7 @@ class FootballPage extends LitElement {
     return {
       name: { type: String },
       heading: { type: String },
+      nohead: {type: Boolean}, //Set if the subheading should not be set (because we are on the page already!)
       canPick: { type: Boolean }  //Flag to see picks
     };
   }
@@ -105,8 +109,8 @@ class FootballPage extends LitElement {
   render() {
     return html`
       <fm-page id="page" .heading="${this.heading}">
-        ${cache(this.canPick ? html`
-         <div slot="subheading" @click=${this._makePicks}>PlayOff Picks Available</div>
+        ${cache(this.canPick && !this.nohead ? html`
+         <div class="pick" slot="subheading" @click=${this._makePicks}>PlayOff Picks Available</div>
         `: '')}
         <section>
           <div class="competition">
@@ -123,7 +127,7 @@ class FootballPage extends LitElement {
   }
   _makePicks(e) {
     e.stopPropagation();
-    switchPath(`/${global.cid}/teams/user/${global.uid}`);
+    switchPath(`/${global.cid}/teams/user`);
   }
 }
 customElements.define('football-page', FootballPage);

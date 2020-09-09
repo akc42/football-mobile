@@ -239,6 +239,7 @@ CREATE TABLE team_in_competition (
     made_playoff boolean DEFAULT 0 NOT NULL, --True if team made playoffs
     points integer DEFAULT 1 NOT NULL, -- points to allocate if successfully chose team to make playoff
     eliminated boolean DEFAULT 0 NOT NULL, --marker to show team got eliminated from the competition
+    update_date bigint DEFAULT (strftime('%s','now')) NOT NULL, --date of last update
     PRIMARY KEY (cid,tid)
 );
 

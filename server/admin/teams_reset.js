@@ -27,14 +27,16 @@
   module.exports = async function(user, cid, params, responder) {
     debug('new request from user', user.uid, 'with cid', cid );
     const getp = db.prepare('SELECT default_playoff FROM competition WHERE cid = ?').pluck();
-    const setp = db.prepare('UPDATE team_in_competition SET points = ? WHERE cid = ?');
+    const setp = db.prepare(`UPDATE team_in_competition SET points = ?, update_date = strftime('%s','now') WHERE cid = ?`);
     const invalidateCompetitionCache = db.prepare('UPDATE competition SET results_cache = NULL WHERE cid = ?');
+    const teams = db.prepare(`SELECT t.*, i.points, i.eliminated,i.made_playoff, i.update_date FROM team t 
+      LEFT JOIN team_in_competition i ON i.tid = t.tid AND i.cid = ?`);
     let points;
     db.transaction(() =>{
       points = getp.get(cid);
       setp.run(points,cid);
       invalidateCompetitionCache.run(cid)
-      
+      responder.addSection('teams', teams.all(cid));
     })();
     responder.addSection('points', points);
   };

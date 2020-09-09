@@ -21,18 +21,18 @@
 (function() {
   'use strict';
 
-  const debug = require('debug')('football:api:teampoints');
+  const debug = require('debug')('football:api:teamplayoff');
   const db = require('../utils/database');
 
   module.exports = async function(user, cid, params, responder) {
     debug('new request from user', user.uid, 'with cid', cid );
-    const doUpdate = db.prepare(`UPDATE team_in_competition SET points = ? , update_date = strftime('%s','now') 
+    const doUpdate = db.prepare(`UPDATE team_in_competition SET made_playoff = ?, update_date = strftime('%s','now') 
       WHERE cid = ? AND tid = ?`)
     const invalidateCompetitionCache = db.prepare('UPDATE competition SET results_cache = NULL WHERE cid = ?');
     const teams = db.prepare(`SELECT t.*, i.points, i.eliminated,i.made_playoff, i.update_date FROM team t 
       LEFT JOIN team_in_competition i ON i.tid = t.tid AND i.cid = ?`);
     db.transaction(() => {
-      doUpdate.run(params.points, cid, params.tid);
+      doUpdate.run(params.made_playoffs, cid, params.tid);
       invalidateCompetitionCache.run(cid);
       responder.addSection('teams', teams.all(cid));
     })();

@@ -25,9 +25,10 @@ import Route from '../modules/route.js';
 
 import RouteManager from './route-manager.js';
 
-import {MenuReset, MenuAdd, PageClosed, WaitRequest} from '../modules/events.js';
+import {MenuReset, MenuAdd, PageClosed, WaitRequest, PlayoffFail} from '../modules/events.js';
 import global from '../modules/globals.js';
 import Debug from '../modules/debug.js';
+import { switchPath } from '../modules/utils.js';
 const debug = Debug('teams');
 
 /*
@@ -49,32 +50,24 @@ class TeamsManager extends RouteManager {
       divs: {type: Array},
       deadline: {type: Number}, //deadline for the picks
       users: {type: Array}, //Matches team array, but each entry will be an array of users who picked the team for playoff
-      user: {type: Object}, //specific user in uid
-      div: {type: Object},
-      conf: {type: Object},
+      user: {type: Object}, //specific user in uid = me.
+
     };
   }
   constructor() {
     super();
-    this.teamRoute = {active: false, params: {}}
-    this.uid = 0;
     this.teams = [];
     this.confs = [];
     this.divs = [];
     this.users = [];
-    this.div = {divid: '', name: 'dummy'};
-    this.conf = {confid: '', name: 'dummy'};
     this.deadline = 0;
-    this.dRouter = new Route('/:confid/:divid','page:div');
-    this.uRouter = new Route(':uid','page:user');
     this.showAllUsers = false;
-    this.user={uid:0, picks:[], name: 'dummy'};
-    this.fetchdataInProgress = false;
+    this.user = global.user;
     this.lastCid = 0;
   }
   connectedCallback() {
     super.connectedCallback();
-    this.fetchdataInProgress = false;
+    this.user = global.user;
     this.lastCid = 0;
   }
   disconnectedCallback() {
@@ -82,49 +75,8 @@ class TeamsManager extends RouteManager {
   }
   update(changed) {
     if (changed.has('route') && this.route.active) {
-      this.dispatchEvent(new MenuReset());
       this._newRoute();
     } 
-    if (changed.has('subRoute') && this.subRoute.active) {
-      const uidR = this.uRouter.routeChange(this.subRoute);
-      if (uidR.active) {
-        this.dispatchEvent(new MenuAdd());  
-        debug('user route is active');
-        if (this.fetchdataInProgress) {
-          debug('fetch still in progress so delay setting up user')
-          this.user = {uid: uidR.params.uid, name: 'dummy', picks: []};
-        } else {
-          this.user = this.users.find(user => user.uid === uidR.params.uid);
-          if (this.user === undefined) {
-            debug('could not find user user ' + uidR.params.uid);
-            this.dispatchEvent(new PageClosed());
-          }
-        }
-      } else {
-        this.user = {uid : 0, picks:[], name: 'dummy'};
-      }
-      const divR = this.dRouter.routeChange(this.subRoute);
-      if (divR.active) {
-        this.dispatchEvent(new MenuAdd());
-        debug('div route is active')
-        if (this.fetchdataInProgress) {
-          debug('fetch still in progress, so delay setting up conf and div');
-          this.conf = {confid: divR.params.confid, name: 'dummy'};
-          this.div = {divid: divR.params.divid, name:'dummy'};
-        } else {
-          this.conf = this.confs.find(conf => conf.confid === divR.params.confid);
-          this.div = this.divs.find(div => div.divid === divR.params.divid)
-          if (!(this.conf !== undefined && this.div !== undefined)) {
-            debug('could not find conf and div');
-            this.dispatchEvent(new PageClosed());
-          }
-        }
-      } else {
-        //we are not using those at the moment, so we can mark them as such
-        this.conf = {confid: '',name:'dummy'};
-        this.div = {divid : '', name: 'dummy'};
-      }
-    }
     super.update(changed);
   }
 
@@ -133,22 +85,21 @@ class TeamsManager extends RouteManager {
       <style>
       </style>
         ${cache({
-          home: html`<teams-home managed-page .teams=${this.teams} .confs=${this.confs} .divs=${this.divs}></teams-home>`,
-          div: html`<teams-div 
+          home: html`<teams-home 
             managed-page 
+            .users=${this.users} 
             .teams=${this.teams} 
-            .conf=${this.conf} 
-            .div=${this.div} 
-            .users=${this.users}
-            .deadline=${this.deadline}></teams-div>`,
+            .confs=${this.confs} 
+            .divs=${this.divs}
+            .deadline=${this.deadline}></teams-home>`,
           user: html`<teams-user 
             managed-page
+            .user=${this.user}
             .teams=${this.teams} 
             .confs=${this.confs} 
             .divs=${this.divs} 
-            .user=${this.user} 
             .deadline=${this.deadline}
-            @picks-changed=${this._picksChanged}></teams-user>`
+            @playoff-pick=${this._picksChanged}></teams-user>`
         }[this.page])}
     `;
   }
@@ -165,47 +116,48 @@ class TeamsManager extends RouteManager {
   async _newRoute() {
     if (this.lastCid !== global.cid) { //don't repeat ourselves if still in the team section when we get a new route.
       this.lastCid = global.cid; 
-      this.fetchdataInProgress = true;
-      debug('about to fetch picks');
+      this.dispatchEvent(new WaitRequest(true));
       const response = await api(`user/${global.cid}/playoff_picks`);
+      this.dispatchEvent(new WaitRequest(false));
       debug('we have the fetched picks');
-      this.fetchdataInProgress = false;
       this.teams = response.teams;
       this.confs = response.confs;
       this.divs = response.divs;
       this.users = response.users;
       for( const user of this.users) {
         user.picks = response.picks.filter(pick => pick.uid === user.uid);
+        if (user.uid === global.user.uid) this.user = user;  //we now have a record of me AND my picks
       }
       this.deadline = response.deadline;
-
-      let failedConfDiv = false;
-      if (this.conf.confid.length > 0) { //looking for a conf
-        debug('delayed look for conf');
-        this.conf = this.confs.find(conf => conf.confid === this.conf.confid);
-        if (this.conf === undefined) failedConfDiv = true; 
-      }
-      if (this.div.divid.length > 0) { //looking for a div
-        debug('delayed look for div');
-        this.div = this.divs.find(div => div.divid === this.div.divid);
-        if (this.div === undefined) failedConfDiv = true;
-      }
-      if (failedConfDiv) {
-        debug('failed in delayed look for conf and div');
-        this.dispatchEvent(new PageClosed());
-      } else if ( this.user.uid !== 0) {
-        debug('delayed look for user');
-        this.user = this.users.find(user => user.uid === this.user.uid);
-        if (this.user === undefined)  {
-          debug('failed in delayed look for user');
-          this.dispatchEvent(new PageClosed());
-        }
-      } 
     }
   }
-  _picksChanged(e) {
+  async _picksChanged(e) {
     e.stopPropagation();
-    //TODO update local copy of picks and also the database
+    const cutoff = Math.floor(new Date().getTime() / 1000);
+    if (this.deadline < cutoff) {
+      switchPath(`/${global.cid}/teams`); //can't continue past deadline, just go to display picks
+    } else {
+      const sender = e.composedPath()[0];
+      const pick = e.pick;//remember it until we get a response from the api call..
+          this.dispatchEvent(new WaitRequest(true));
+      const response = await api(`user/${global.cid}/update_ppick`, pick);
+      this.dispatchEvent(new WaitRequest(false));
+      if (response.status) {
+        this.user.picks = response.picks;
+        const user = { ...this.user }; //clone it ;
+        for (let i = 0; i < this.users.length; i++) {
+          if (this.users[i].uid === global.user.uid) {
+            this.users[i] = user
+            break;
+          }  
+        }
+        this.user = user; //trigger user update
+        this.users = this.users.slice(0); //trigger updates all round
+        
+      } else {
+        sender.dispatchEvent(new PlayoffFail(pick))
+      }
+    }
   }
 }
 customElements.define('teams-manager', TeamsManager);
