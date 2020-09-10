@@ -32,15 +32,16 @@
     const readCache = db.prepare(`SELECT results_cache FROM competition WHERE cid = ? AND results_cache IS NOT NULL AND cache_store_date > (
       SELECT CASE WHEN value = 0 THEN 0 ELSE strftime('%s','now') - (3600 * value) END As expiry FROM settings WHERE name = 'cache_age')`).pluck();
     debug('prepared cache read - now see if we can build build score cache assuming cache not available')
-    const makeUsersCache = db.prepare(`SELECT u.uid,u.name AS name,sum(rs.score) AS rscore, sum(rs.bscore) AS bscore, 
+    const makeUsersCache = db.prepare(`SELECT r.uid,sum(rs.score) AS rscore, sum(rs.bscore) AS bscore, 
       sum(rs.mscore) AS mscore, p.pscore AS lscore, sum(rs.score) + p.pscore AS tscore 
-      FROM participant u JOIN registration r USING (uid) JOIN round_score rs USING (cid,uid)
+      FROM registration r JOIN round_score rs USING (cid,uid)
       JOIN ( SELECT cid,uid,sum(score) as pscore FROM playoff_score GROUP BY cid,uid ) p USING (cid,uid) 
-      WHERE r.cid = ? GROUP BY u.uid,u.name,p.pscore; `);
+      WHERE r.cid = ? GROUP BY r.uid,p.pscore ORDER BY tscore DESC;`);
     const makeRoundsCache = db.prepare(`SELECT uid,r.rid, score, bscore, mscore, pscore, oscore FROM round_score rs 
     JOIN round r USING (cid,rid) WHERE r.cid = ? AND r.open = 1`);
-    debug('now prepare the install the cache');
-    const readRoundData = db.prepare('SELECT rid,name FROM round WHERE cid= ? ');
+    debug('now prepare to install the cache');
+    const readRoundData = db.prepare('SELECT rid,name, valid_question, ou_round FROM round WHERE cid= ? ORDER BY rid DESC');
+    const readUserData = db.prepare('SELECT u.uid, u.name FROM participant u JOIN registration r USING (uid) WHERE r.cid = ?')
     const setCache = db.prepare(`UPDATE competition SET results_cache = ?, cache_store_date = strftime('%s','now') WHERE cid = ?`);
     db.transaction(() => {
       debug('in transaction')
@@ -62,6 +63,7 @@
       responder.addSection('cache',cache);
       debug('get addition round data info (name basically)');
       responder.addSection('rounds', readRoundData.all(cid));
+      responder.addSection('users', readUserData.all(cid));
     })();
     debug('All Done');
   };

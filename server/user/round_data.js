@@ -33,6 +33,7 @@
       FROM settings WHERE name = 'cache_age')`).pluck();
     const readRound = db.prepare(`SELECT rid, name, open, valid_question, question, comment, answer, value, bvalue, ou_round, deadline
       FROM round where cid = ? and rid = ?`);
+    const readGap = db.prepare('SELECT gap FROM competition WHERE cid = ?').pluck();
     const readTeams = db.prepare(`SELECT m.aid, ta.name as aname,  th.name as hname 
       FROM match m JOIN team ta ON m.aid = ta.tid JOIN team th ON m.hid = th.tid 
       WHERE m.cid = ? AND m.rid = ? AND m.open = 1 ORDER BY m.match_time, m.aid`);
@@ -70,6 +71,7 @@
       responder.addSection('cache', cache);
       debug('read round basic info');
       responder.addSection('round', readRound.get(cid, params.rid));
+      responder.addSection('gap', readGap.get(cid));
       debug('add team info');
       responder.addSection('teams', readTeams.all(cid,params.rid));
     })();

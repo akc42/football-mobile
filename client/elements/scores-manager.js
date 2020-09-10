@@ -17,52 +17,48 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { html, css } from '../libs/lit-element.js';
+import { LitElement, html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
+import {classMap} from '../libs/class-map.js'; 
 
-import RouteManager from './route-manager.js';
-import { MenuReset, MenuAdd, WaitRequest } from '../modules/events.js';
-import Route from '../modules/route.js';
+
+import { WaitRequest } from '../modules/events.js';
 import api from '../modules/api.js';
 import global from '../modules/globals.js';
 import { switchPath } from '../modules/utils.js';
-import Debug from '../modules/debug.js';
-const debug = new Debug('scores');
 
+import './football-page.js';
+import page from '../styles/page.js'
 /*
      <scores-manager>
 */
-class ScoresManager extends RouteManager {
+class ScoresManager extends LitElement {
 
   static get styles() {
-    return css`        
+    return [page,css`        
       :host {
         height: 100%;
       }
-    `;
+    `];
   }
   static get properties() {
     return {
+      route: {type: Object}, //just use to know when we have been selected
       users: {type: Array}, //to hold full competitions cache result
-      user: {type:Object},  //a selected on of the users above
-      rounds: {type: Array}, //array of rounds and their names, augmented by user round scores when user is selected
-      userRoute : {type: Object},
+      rounds: {type: Array} //array of rounds and their names, augmented by user round scores when user is selected
+
 
     };
   }
   constructor() {
     super();
+    this.route = {active: false};
     this.users = [];
-    this.user = {uid:0, name:'', rscore:0, pscore: 0, rounds:[]};
     this.rounds = [];
-    this.uRouter = new Route('/:uid','page:user');
-    this.userRoute = {active: false}
-    this.fetchdataInProgress = false;
     this.lastCid = 0;
   }
   connectedCallback() {
     super.connectedCallback();
-    this.fetchdataInProgress = false;
     this.lastCid = 0;
   }
   disconnectedCallback() {
@@ -72,103 +68,165 @@ class ScoresManager extends RouteManager {
     if (changed.has('route') && this.route.active) {
         this._newRoute();
     }
-    if (changed.has('subRoute') && this.subRoute.active) {
-      this.userRoute = this.uRouter.routeChange(this.subRoute);
-      if (this.userRoute.active) {
-         if (!this.fetchdataInProgress) {
-            this.user = this.users.find(user => user.uid === this.userRoute.params.uid);
-            debug('no fetch happening, find index for ' + this.userRoute.params.uid);
-            if (this.user === undefined)  {
-              this.user = { uid: 0, name: '', rscore: 0, pscore: 0, rounds: [] }; //reset user to dummy
-              switchPath(`/${global.cid}/scores`);
-            } else {
-              for (const round of this.rounds) {
-                const scores = this.user.rounds.find(r => r.rid === round.rid);
-                if (scores === undefined) {
-                  Object.assign(round,{score:0, bscore:0, mscore:0, pscore: 0, oscore: 0});
-                } else {
-                  Object.assign(round, { ...scores});
-                }
-              }
-            }
-
-
-         } else {
-           debug('fetch in progress, delayed index setting');
-         }
-      } else {
-        switchPath(`/${global.cid}/scores`);
-      }
-    }
-    if(changed.has('users') && this.userRoute.active) {
-      this.user = this.users.find(user => user.uid === this.userRoute.params.uid);
-      debug('no fetch happening, find  ' + this.userRoute.params.uid);
-      if (this.user === undefined) {
-        this.user = { uid: 0, name: '', rscore: 0, pscore: 0, rounds: [] }; //reset user to dummy
-        switchPath(`/${global.cid}/scores`);
-      } else {
-        for (const round of this.rounds) {
-          const scores = this.user.rounds.find(r => r.rid === round.rid);
-          if (scores === undefined) {
-            Object.assign(round,{ score: 0, bscore: 0, mscore: 0, pscore: 0, oscore: 0 });
-          } else {
-            Object.assign(round, { ...scores });
-          }
-        }
-      }
-    }
     super.update(changed);
   }
   render() {
     return html`
-      <style>
+    <style>
+    
 
-      </style>
-      ${cache({
-        home: html`<scores-home 
-          managed-page
-          .users=${this.users} 
-          @user-selected=${this._selectUser}></scores-home>`,
-        user: html`<scores-user 
-          managed-page
-          .user=${this.user}
-          .rounds=${this.rounds}
-          .name=${this.name}
-          @round-selected=${this._selectRound}></scores-user>` 
-      }[this.page])}
+      header.total, section.usertotal {
+        
+
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-areas:
+          "user rs ps"
+          "user ts ts";
+      }
+      header.total, header.round, section.usertotal.me, section.userround.me {
+        border:2px solid var(--accent-color);
+        background-color: var(--accent-color);
+      }
+      section.usertotal, section.userround {
+        border:2px solid var(--secondary-color);
+        background-color: var(--secondary-color);
+      }
+      header.total, header.round, section.usertotal, section.userround {
+        border-radius: 5px;
+        box-shadow: 1px 1px 3px 0px var(--shadow-color);
+        margin:5px 5px 5px 3px;
+        display: grid;
+        grid-gap:2px;
+      }
+      .un, .rs,.ps,.ts, .mt, .bs, .ou, .mp {
+        background-color: var(--background-color);
+        text-align: center;
+        vertical-align: center;
+        font-weight: bold;
+      }
+      .un {
+        grid-area:user
+      }
+
+      .rs {
+        grid-area:rs;
+      }
+      .ps {
+        grid-area: ps;
+      }
+      .ts {
+        grid-area:ts;
+      }
+      header.ts,header.rs {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        border:2px solid var(--accent-color);
+        border-radius: 5px;
+        margin: 5px 0;
+      }
+
+
+      header.round, section.userround {
+        grid-template-columns: 6fr 2fr 1fr 1fr 2fr;
+        grid-template-areas:
+          "user mp ou ou bs"
+          "user mt mt rs rs";
+      }
+      .mp {
+        grid-area: mp;
+      }
+      .mt {
+        grid-area: mt;
+      }
+      .bs {
+        grid-area: bs;
+      }
+      .ou {
+        grid-area: ou;
+      }
+      .oubo {
+        color: var(--item-present);
+      }
+    </style>
+    <football-page heading="Summary">
+      <section class="scrollable"> 
+        <header class="ts">Total Scores</header>      
+        <header class="total">
+          <div class="un">Name</div>
+          <div class="rs">Round Score</div>
+          <div class="ps">Playoff Score</div>
+          <div class="ts">Total Score</div>
+        </header>
+        ${cache(this.users.map(user => html`
+          <section class="usertotal ${classMap({me: global.user.uid === user.uid})}">    
+            <div class="un" >${user.name}</div>
+            <div class="rs" >${user.rscore}</div>
+            <div class="ps" >${user.lscore}</div>
+            <div class="ts" >${user.tscore}</div>
+          </section>
+        `))}
+        ${cache(this.rounds.map(round => html`
+          <section class="round" data-rid=${round.rid} @click=${this._gotoRound}>
+            <header class="rs">
+              <div class="rr">No ${round.rid}</div>
+              <div class="rn">${round.name}</div>
+              <div class="oubo">
+                ${round.valid_question === 1 ? html`<material-icon>question_answer</material-icon>`: ''}
+                ${round.ou_round === 1 ? html`<material-icon>thumbs_up_down</material-icon>`: ''}
+              </div>
+            </header>
+            <header class="round">
+              <div class="un">User Name</div>
+              <div class="mp">Match Picks</div>
+              <div class="ou">${round.ou_round === 1 ? 'Over Under':''}</div>
+              <div class="mt">Match Total</div>
+              <div class="bs">${round.valid_question === 1 ? 'Bonus Score':''}</div>
+              <div class="rs">Round Score</div>
+            </header>
+
+            ${cache(round.users.map(user => html`
+              <section class="userround ${classMap({me: global.user.uid === user.uid })}">
+                <div class="un">${user.name}</div>
+                <div class="mp">${user.pscore}</div>
+                <div class="ou">${round.ou_round === 1 ? user.oscore: ''}</div>
+                <div class="mt">${user.mscore}</div>
+                <div class="bs">${round.valid_question === 1 ? user.bscore: ''}</div>
+                <div class="rs">${user.score}</div> 
+              </section>           
+            `))}
+          </section>
+        `))}
+
+      </section>
+
+    </football-page>
     `;
+  
   }
-  loadPage(page) {
-    this.dispatchEvent(new WaitRequest(true));
-    import(`./scores-${page}.js`).then(() => this.dispatchEvent(new WaitRequest(false)));
-    if (page === this.homePage()) {
-      this.dispatchEvent(new MenuReset())
-    } else {
-      this.dispatchEvent(new MenuAdd());
-    }
+  _gotoRound(e) {
+    e.stopPropagation();
+    const rid = e.currentTarget.dataset.rid;
+    switchPath(`${global.cid}/round/${rid}`);
   }
   async _newRoute() {
     if (this.lastCid !== global.cid) {  //don't repeat if we don't have to
       this.lastCid = global.cid;
-      this.fetchdataInProgress = true;
-      debug('about to fetch users_summary');
+      this.dispatchEvent(new WaitRequest(true));
       const response = await api(`user/${global.cid}/competition_scores`);
-      debug('got users_summary');
-      this.fetchdataInProgress = false;
-      this.users = response.cache.users;
-      this.users.sort((a,b) => b.tscore - a.tscore); //sort in decending order of total score.
-      for(const user of this.users) {
-        user.rounds = response.cache.rounds.filter(u => u.uid === user.uid); //put all the round data with correct user (sort comes later)
+      this.dispatchEvent(new WaitRequest(false));
+      //users and their total scores
+      const map = new Map();
+      response.cache.users.forEach(user => map.set(user.uid, user)); //user ordered ones first
+      response.users.forEach(user => map.set(user.uid, {...map.get(user.uid), ...user}));
+      this.users = Array.from(map.values());
+      
+      this.rounds = response.rounds;
+      for(const round of this.rounds) {
+        round.users = response.cache.rounds.filter(r => r.rid === round.rid).sort((a,b) => b.score - a.score)
+          .map(rnd => Object.assign({},rnd,{name:map.get(rnd.uid).name}));
       }
-      this.rounds = response.rounds.reverse();
     }
-  }
-  _selectUser(e) {
-    e.stopPropagation();
-    switchPath(`/${global.cid}/scores/user/${e.uid}`);
-  }
-  _selectRound(e) {
-    switchPath(`/${global.cid}/rounds/${e.rid}/user/${this.user.uid}`);
   }
 }
 customElements.define('scores-manager', ScoresManager);

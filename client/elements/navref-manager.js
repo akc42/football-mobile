@@ -31,7 +31,24 @@ import './material-icon.js';
 */
 class NavrefManager extends LitElement {
   static get styles() {
-    return [page,css``];
+    return [page,css`
+      :host {
+        --icon-size: 16px;
+        height: 100%;
+      }
+      h1 {
+        font-size:12px;
+        font-weight: bold;
+      }
+      h2 {
+        font-size:10px;
+        font-weight: bold;
+      }
+      p, li {
+        font-size:12px;
+        font-weight: normal;
+      }
+    `];
   }
   static get properties() {
     return {
@@ -83,7 +100,7 @@ class NavrefManager extends LitElement {
           <ul>
             <li>Before you are signed in there is no url beyond the main site address shown</li>
             <li>After you are signed in the url shows where you are in the application. A <material-icon>menu</material-icon> button appears on the main header bar.</li>
-            <li>When showing competition data, the first part of the url will be the id of the competion.  Other pages (such as this one) do not.</li>
+            <li>When showing competition data, the first part of the url will be the id of the competition.  Other pages (such as this one) do not.</li>
             <li>Competition data comes in three main sections:-
               <ol>
                 <li>Scores - The user scores</li>
@@ -97,17 +114,28 @@ class NavrefManager extends LitElement {
           </ul>
 
           <h1>URL Reference</h1>
-          <p>The lists below describe the various urls, what is shown on the page when that url is selected, and where you go when you click on one of the items on the page.  These will be shown like this<strong>/:cid/round/:rid/user/:uid</strong>. Those segments (split with '/') that start with a ':' means that is a parameter, So the actual url may be <strong>/17/round/20/user/4</strong>, which means that the page is showing details of competition no 17 (2019 competition) round no 20 (superbowl), user no 4 (me, Alan).  This page will show all my match picks.</p>
+          <p>The lists below describe the various urls, what is shown on the page when that url is selected, and where you go when you click on
+          one of the items on the page.  These will be shown like this<strong>/:cid/rounds/:rid/match</strong>. Those segments (split with '/') that
+          start with a ':' means that is a parameter, So the actual url may be <strong>/18/rounds/1/match</strong>, which means that the page
+          is showing details of competition no 18 (2020 competition) round no 1. This page will show your picks, allowing you to change them if 
+          that is still possible.</p>
           <ul>
-            <li><strong>/:cid/scores</strong> - will show the summary scores for each user in the competition. Clicking on a user will take you to 
-              <strong>/:cid/scores/user/:uid</strong></li>
-            <li><strong>/:cid/scores/user/:uid</strong> - will show the individual round scores for each of the rounds in the competion for that particular user. Clicking on a particular round will take you to <strong>/:cid/round/:rid</strong></li>
-            <li><strong>/:cid/round/:rid</strong> - will show details of the round and then lists all users in the competition, with scores for that particular round. Clicking on a user will take you to <strong>/:cid/round/:rid/user/:uid</strong> for that particular user.</li>
-            <li><strong>/:cid/round/:rid/user/:uid</strong> - will show details of the round and the user bonus pick (if a bonus question round), and a list of matches in the round, together with the results and picks for that user.  Note - if the user is <strong>you</strong> and the round is still open for selecting which answer to the bonus question is to be made, this can be changed.  Also if any match is still open , clicking on the approprate part of the match will select either the match result pick, or the under over result selection.</li>
-            <li><strong>/:cid/teams</strong> - will show a list of teams in the competition. The teams are organised by conference and then by division.  Each team shows whether it made the playoff and the score received if you selected that team.  Clicking on a particular division, will take you to
-            <strong>/:cid/teams/div/:confid/:divid</strong></li>
-            <li><strong>/:cid/teams/div/:confid/:divid</strong> - will show a list of users and for each one it all teams in that division and the picks that user has made.  Clicking on the particular user will take you to <strong>/:cid/teams/user/:uid</strong></li>
-            <li><strong>/:cid/teams/user/:uid</strong> - will show for that particular user a list of all divisions, and the teams in that division with an indication by them if it is one of their playoff picks.  If that user is <strong>you</strong> and the picks are still open you can toggle the selections to modify you picks.</li>
+            <li><strong>/</strong> or <strong>/:cid</strong>. This is the home page.  Although the url exists, ultimately you can't stop here and you
+            will be immediately routed elsewhere.  Normally that will be <strong>/rounds/:rid</strong> where ":rid" is the latest open round, however
+            if no round exists it will look to <strong>/teams</strong> page.
+            <li><strong>/:cid/scores</strong> - will show the summary scores for each user in the competition followed further down the page with
+            each of the rounds of the competition with the scores for all of the users for each round. Clicking on a particular round will take
+            you to <strong>/:cid/round/:rid</strong></li>
+            <li><strong>/:cid/rounds/:rid</strong> - will show details of the round.  If this is a bonus question round, the answers will be provided
+            with the correct one marked, and below that a list of all the users and there answers to the question.  Below that will be the matches
+            (ordered by match time) and below each match will be the users picks and results.</li>
+            <li><strong>/:cid/rounds/:rid/bonus</strong>is a page to allow you to select the answer to the bonus question. You get to it by
+            clicking on the <material-icon>rule</material-icon> icon.</li>
+            <li><strong>/:cid/rounds/:rid/match</strong>is a page to allow you to make your match picks.  You get to it by clicking on the
+            <material-icon>create</material-icon> icon.</li>
+
+            <li><strong>/:cid/teams</strong> - will show a list of teams in the competition. The teams are organised by conference and then by division.  Each team shows whether it made the playoff and the score received if you selected that team.  Below each division is a list of users and their playoff picks. At the start of each conference each user has a line just highlighting their conferene and total playoff picks.</li>
+            <li><strong>/:cid/teams/user</strong> - allows you to make your playoff picks.  </li>
             <li><strong>/:cid/register</strong> - a page where you can register for the next competiion</li>
             <li><strong>/:cid/soon</strong> - the page you go to when a competition exists but is not yet open.</li>
             <li><strong>/profile</strong>A page where you can edit your profile.  Changes of e-mail will require you to validate your e-mail address again.</li>
