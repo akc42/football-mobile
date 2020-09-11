@@ -21,7 +21,7 @@ import { LitElement, html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
 import './football-page.js';
-import './admin-match.js';
+import './fm-match.js';
 import './match-conf-div.js';
 import './dialog-box.js';
 import './fm-input.js';
@@ -47,7 +47,10 @@ class AdminRoundRoundMatch extends LitElement {
       confs: {type: Array},
       divs: {type:Array},
       label: {type:String}, //label for input in dialog box (dynamically set)
-      value: {type: String} //value for dialog input
+      value: {type: String}, //value for dialog input
+      next: { type: Number }, //Next rid (unless 0 when none)
+      previous: { type: Number } //previous rid (unless 0 when none)
+
     };
   }
   constructor() {
@@ -62,6 +65,8 @@ class AdminRoundRoundMatch extends LitElement {
     this.value = '';
     this.original = '';
     this.dialogInUse = true;
+    this.next = 0;
+    this.previous = 0
   }
   connectedCallback() {
     super.connectedCallback();
@@ -131,12 +136,13 @@ class AdminRoundRoundMatch extends LitElement {
         <section class="scrollable">
           <section class="matches">
             ${cache(this.matches.map(match => html`
-              <admin-match
+              <fm-match
                 id="M${match.aid}"
+                edit
                 .round=${this.round} 
                 .match=${match} 
                 @team-deselected=${this._teamDeselected}
-                @input-request=${this._inputRequest}></admin-match>
+                @input-request=${this._inputRequest}></fm-match>
             `))}
           </section>
           <hr/>

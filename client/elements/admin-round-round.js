@@ -52,7 +52,10 @@ class AdminRoundRound extends RouteManager {
       options: {type: Array},
       matches: {type: Array},
       confs: {type: Array},
-      divs: {type: Array}
+      divs: {type: Array},
+      next: { type: Number }, //Next rid (unless 0 when none)
+      previous: { type: Number } //previous rid (unless 0 when none)
+
     };
   }
   constructor() {
@@ -68,6 +71,8 @@ class AdminRoundRound extends RouteManager {
     this.divs = [];
     this.round = {rid: 0}
     this.lastRid = 0;
+    this.next = 0;
+    this.previous = 0;
   }
   connectedCallback() {
     super.connectedCallback();
@@ -109,6 +114,8 @@ class AdminRoundRound extends RouteManager {
           managed-page
           .round=${this.round}
           .options=${this.options}
+          .next=${this.next}
+          .previous=${this.previous}
           @option-create=${this._optionCreate}
           @option-delete=${this._optionDelete}></admin-round-round-home>`,
         match: html`<admin-round-round-match
@@ -117,6 +124,8 @@ class AdminRoundRound extends RouteManager {
           .teams=${this.teams}
           .confs=${this.confs}
           .divs=${this.divs}
+          .next=${this.next}
+          .previous=${this.previous}
           .matches=${this.matches}
           @match-create=${this._matchCreate}
           @match-delete=${this._matchDelete}

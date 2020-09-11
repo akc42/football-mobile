@@ -21,13 +21,12 @@
 
 (function () {
   'use strict';
+  const debug = require('debug')('football:api:latestrid');
   const db = require('../utils/database');
 
-  module.exports = (user,params,responder) => {
-   
-    const cid = db.prepare(`SELECT cid FROM competition 
-      WHERE open = 1 OR administrator = ? OR ? = 1 ORDER BY cid DESC LIMIT 1`).pluck().get(user.uid, user.global_admin);
-    responder.addSection('cid', cid);  
-
+  module.exports = (user, cid, params,responder) => {
+    debug ('Received Request for cid', cid);
+    responder.addSection('rid', db.prepare(`SELECT rid FROM round WHERE cid = ? ORDER BY rid DESC LIMIT 1`).pluck().get(cid));
+    debug ('all done');
   };
 })();

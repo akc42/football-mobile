@@ -52,7 +52,6 @@ class AdminManager extends RouteManager {
       divs: { type: Array },
       maxtic: {type: Number}, //largest cid in team_in_competition
       rid: {type: Number} //largest round.
-
     };
   }
   constructor() {
@@ -66,6 +65,7 @@ class AdminManager extends RouteManager {
     this.maxtic = 0;
     this.rid = 0;
     this.tics = [];
+    this.next = 
   }
   connectedCallback() {
     super.connectedCallback();

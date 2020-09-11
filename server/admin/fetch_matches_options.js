@@ -26,7 +26,8 @@
 
   module.exports = async function(user, cid, params, responder) {
     debug('new request from user', user.uid, 'with cid', cid, 'and rid', params.rid );
-    const matches = db.prepare('SELECT * FROM match WHERE cid = ? AND rid = ? ORDER BY match_time');
+    const matches = db.prepare(`SELECT m.*, m.match_time - c.gap AS deadline FROM match m JOIN competition c USING(cid) 
+      WHERE m.cid = ? AND rid = ? ORDER BY match_time`);
     const options = db.prepare('SELECT * FROM option WHERE cid = ? AND rid = ? ORDER BY opid');
     db.transaction(() => {
       responder.addSection('matches', matches.all(cid,params.rid));

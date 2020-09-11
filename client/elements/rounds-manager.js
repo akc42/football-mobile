@@ -45,20 +45,27 @@ class RoundsManager extends RouteManager {
       roundRoute: {type: Object}, //the route that got used here
       users: {type: Array}, //to hold full competitions cache result
       user: {type: Object}, //to hold selected user (including their picks)
-      round: {type: Object}
+      round: {type: Object},
+      options: {type: Array},
+      matches: {type: Array},
+      next: {type: Number},
+      previous: {type: Number}
     };
   }
   constructor() {
     super();
     this.users = [];
-    this.round = {rid: 0, name: '',matches:[], options:[]};
+    this.round = {rid: 0};
+    this.options = [];
+    this.matches = [];
+    this.next = 0;
+    this.previous = 0;
     this.rid = 0;
     this.rRouter = new Route('/:rid', 'page:rounds');
     this.roundRoute = {active: false};
-    this.fetchdataInProgress = false;
     this.lastCid = 0;
     this.lastRid = 0;
-    this.user = {uid:0, name : ''};
+    this.user = {uid:0, name : '', picks: []};
   }
   connectedCallback() {
     super.connectedCallback();
@@ -70,13 +77,22 @@ class RoundsManager extends RouteManager {
     super.disconnectedCallback();
   }
   update(changed) {
-    if (changed.has('route') && this.route.active) this._newRoute();
+    if (changed.has('route') && this.route.active) {
+      if (typeof this.route.params.rid === 'number') {  
+        this._newRoute();
+      }
+    }
     super.update(changed);
   }
 
   updated(changed) {
     if (changed.has('roundRoute') && this.roundRoute.active) {
-      this.route = this.rRouter.routeChange(this.roundRoute);
+      const route = this.rRouter.routeChange(this.roundRoute);
+      if (typeof route.params.rid !== 'number') {
+        this._getRid();
+      } else {
+        this.route = route;
+      }
     }
     super.updated(changed);
   }
@@ -89,16 +105,23 @@ class RoundsManager extends RouteManager {
         home: html`<rounds-home 
           managed-page
           .users=${this.users} 
-          .round=${this.round}></rounds-home>`,
+          .round=${this.round}
+          .next=${this.next}
+          .previous=${this.previous}
+          .options=${this.options}
+          .matches=${this.matches}
+          @round-changed=${this._gotoRound}></rounds-home>`,
         bonus: html`<rounds-bonus 
           managed-page 
           .user=${this.user} 
-          .round=${this.round} 
+          .round=${this.round}
+          .options=${this.options}
           @option-pick=${this._optionPick}></rounds-bonus>`,
         match: html`<rounds-match 
           managed-page 
           .user=${this.user} 
           .round=${this.round}
+          .matches=${this.matches}
           @match-pick=${this._matchPick}k></rounds-match>`
       }[this.page])}
     `;
@@ -112,28 +135,39 @@ class RoundsManager extends RouteManager {
       this.dispatchEvent(new MenuAdd());
     }
   }
+  async _getRid() {
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api(`user/${global.cid}/find_latest_rid`,);
+    this.dispatchEvent(new WaitRequest(false));
+    this.rRouter.params = {rid: response.rid};
+  }
+  _gotoRound(e) {
+    e.stopPropagation();
+    this.rRouter.params = e.changed;
+  }
   async _newRoute() {
-    if (typeof this.route.params.rid === 'number' && (this.lastRid !== this.route.params.rid || this.lastcid !== global.cid)) {
+    if (this.lastRid !== this.route.params.rid || this.lastcid !== global.cid) {
       this.lastRid = this.route.params.rid;
       this.lastCid = global.cid;
-      this.fetchdataInProgress = true;
-      debug('about to fetch round_data');
+
+      this.dispatchEvent(new WaitRequest(true));
       const response = await api(`user/${global.cid}/round_data`,{rid: this.route.params.rid});
-      debug('got rounddata');
-      this.fetchdataInProgress = false;
+      this.dispatchEvent(new WaitRequest(false));
       this.round = response.round;
-      this.round.matches = response.cache.matches;
-      for (const match of this.round.matches) {
-        match.deadline = match.match_time - (response.gap * 60);
+      this.next = response.next;
+      this.previous = response.previous;
+      this.matches = response.cache.matches;
+      this.round.match_deadline = 0; //very latest match deadline we can use to control if link to make picks
+      for (const match of this.matches) {
+        this.round.match_deadline = Math.max(match.deadline, this.round.match_deadline);
         const {aid, ...teamData} = response.teams.find(t => t.aid === match.aid);
         if (aid === undefined) {
-          Object.assign(match, {aname:'',alogo:'',hname:'',hlogo:''});
+          Object.assign(match, {aname:'',hname:''});
         } else {
           Object.assign(match,{...teamData});
         }
       }
-      this.round.options = response.cache.options;
-      this.round.optionOpen = (cutoff < this.round.deadLine); //convenient helper;
+      this.options = response.cache.options;
       this.users = response.cache.users;
       this.users.sort((a,b) => b.score - a.score);  //order users by desc score.
       for (const user of this.users) {
@@ -145,7 +179,7 @@ class RoundsManager extends RouteManager {
         user.picks = response.cache.picks.filter(p => p.uid === user.uid);
         for (const pick of user.picks) {
           if (pick.submit_time !== null) {
-            const match = this.round.matches.find(m => m.aid === pick.aid);
+            const match = this.matches.find(m => m.aid === pick.aid);
             if (match !==undefined && match.deadline < pick.submit_time) user.wasLatePick = true;
           }
           if (pick.admin_made === 1) user.hadAdminSupport = true;

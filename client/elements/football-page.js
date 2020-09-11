@@ -27,6 +27,7 @@ import page from '../styles/page.js';
 import api from '../modules/api.js';
 import global from '../modules/globals.js';
 import { switchPath } from '../modules/utils.js';
+import { WaitRequest } from '../modules/events.js';
 
 /*
      <football-page>: fm-page extended with Slot "heading" for info for competition heading bar
@@ -41,20 +42,16 @@ class FootballPage extends LitElement {
         border:2px solid var(--accent-color);
         border-radius: 5px;
         box-shadow: 1px 1px 3px 0px var(--shadow-color);
-        margin:5px 5px 5px 3px;
+        margin:3px;
+        padding: 1px;
         display: flex;
         flex-direction: row;
-        justify-content: space-around;  
+        justify-content: space-between;  
         align-items: center;     
       }
-      slot[name=heading]::slotted(*) {
-        flex: 1 0 0; 
-        margin: 0 5px;
-      } 
-      .competition>div#compname {
-        flex: 0 1 auto;
-        margin: 0;
-        text-align:center;
+
+      #compname {
+        font-weight: bold;
       }
       section {
         display: flex;
@@ -75,6 +72,9 @@ class FootballPage extends LitElement {
       .pick material-icon {
         color:  var(--picks-available-color);
       }
+      .pt {
+        cursor: pointer;
+      }
     
     `];
   }
@@ -83,22 +83,30 @@ class FootballPage extends LitElement {
       name: { type: String },
       heading: { type: String },
       nohead: {type: Boolean}, //Set if the subheading should not be set (because we are on the page already!)
-      canPick: { type: Boolean }  //Flag to see picks
+      canPick: { type: Boolean },  //Flag to see picks
+      next: {type: Number}, //Next cid or 0 if not one
+      previous: {type: Number}, //Previous cid or 0 if not one.
     };
   }
   constructor() {
     super();
     this.name = '<!--NO NAME-->'; //we need to fetch it but a comment will do in the meantime
     this.heading = '';
+    this.next = 0;
+    this.previous = 0;
     this.canPick = false;
   }
   connectedCallback() {
     super.connectedCallback();
     this.canPick = false;
     const check = global.lcid === global.cid
+    this.dispatchEvent(new WaitRequest(true));
     api(`user/${global.cid}/fetch_comp_name`, { check: check }).then(response => {
-      this.name = response.name
+      this.name = response.name;
+      this.next = response.next;
+      this.previous = response.previous;
       if (check) this.canPick = response.canpick;
+      //this.dispatchEvent(new WaitRequest(false)); //bit naughty, but competion data to have been read
     });
   }
   disconnectedCallback() {
@@ -121,16 +129,28 @@ class FootballPage extends LitElement {
         `: '')}
         <section>
           <div class="competition">
-            <slot name="heading"></slot><div id="compname">${this.name}</div>
+            ${this.previous === 0 ? html`<div>&nbsp;</div>` : html`<material-icon class="pt" @click=${this._goPrevious}>arrow_back</material-icon>`}
+            <div id="compname">${this.name}</div>
+            ${this.next === 0 ? html`<div>&nbsp;</div>` : html`<material-icon class="pt" @click=${this._goNext}>arrow_forward</material-icon>`}
           </div>
+          <slot name="heading"></slot>
           <div class="container">
             <slot></slot>
           </div>
-
         </section>       
         <slot slot="action" name="action"></slot>         
       </fm-page>
     `;
+  }
+  _goNext(e) {
+    e.stopPropagation();
+    global.cid = this.next;
+    switchPath(`/${global.cid}`);
+  }
+  _goPrevious(e) {
+    e.stopPropagation();
+    global.cid = this.previous;
+    switchPath(`/${global.cid}`);
   }
   _makePicks(e) {
     e.stopPropagation();

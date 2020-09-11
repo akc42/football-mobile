@@ -130,7 +130,10 @@ class AdminRoundRoundHome extends LitElement {
       round: {type: Object},
       options: {type: Array},
       opid: {type: Number},
-      label: {type: String} //label for opid
+      label: {type: String}, //label for opid
+      next: { type: Number }, //Next rid (unless 0 when none)
+      previous: { type: Number } //previous rid (unless 0 when none)
+
     };
   }
   constructor() {
@@ -140,6 +143,8 @@ class AdminRoundRoundHome extends LitElement {
     this.opid = 1;
     this.label = '';
     this.deleteopid = null;
+    this.next = 0;
+    this.previous = 0;
   }
   connectedCallback() {
     super.connectedCallback();
@@ -189,12 +194,7 @@ class AdminRoundRoundHome extends LitElement {
         }
       </style>
       <football-page id="page" heading="Round Details">
-        <div slot="heading">${this.round.name}</div>
-        ${this.round.ou_round === 1 || this.round.valid_question === 1? html`
-          <div slot="heading" class="icons">${this.round.ou_round? 
-            html`<material-icon>thumbs_up_down</material-icon>`:''}${this.round.valid_question? 
-            html`<material-icon>question_answer</material-icon>`:''}</div>
-        `:''}
+        <round-header slot="heading" .round=${this.round} .previous=${this.previous} .next=${this.next}></round-header>
         <section class="scrollable">
           <div id="rid">${this.round.rid}</div>
           <fm-input 
