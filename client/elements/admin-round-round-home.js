@@ -24,6 +24,7 @@ import './football-page.js';
 import page from '../styles/page.js';
 import button from '../styles/button.js';
 import radio from '../styles/radio.js';
+import opids from '../styles/opids.js';
 
 import {switchPath} from '../modules/utils.js';
 import global from '../modules/globals.js';
@@ -39,7 +40,7 @@ import { DeleteRequest,RoundChanged, OptionCreate , OptionDelete} from '../modul
 */
 class AdminRoundRoundHome extends LitElement {
   static get styles() {
-    return [page, button, radio, css`
+    return [page, button, radio, opids, css`
       section.scrollable {
         display: grid;
         grid-gap: 2px;
@@ -185,14 +186,7 @@ class AdminRoundRoundHome extends LitElement {
   }
   render() {
     return html`
-      <style>
 
-
-        .icons {
-          color: var(--item-present);
-          --icon-size: 16px;
-        }
-      </style>
       <football-page id="page" heading="Round Details">
         <round-header slot="heading" .round=${this.round} .previous=${this.previous} .next=${this.next}></round-header>
         <section class="scrollable">
@@ -290,7 +284,8 @@ class AdminRoundRoundHome extends LitElement {
                 ${cache(this.options.map(o => html`
                   <div class="optionitem">
                     <input type="radio" id="o${o.opid}" .value=${o.opid} name="options" ?checked=${o.opid === this.round.answer}>
-                    <label for="o${o.opid}"><span></span>${o.label}</label>
+                    <label for="o${o.opid}"><span></span> <material-icon class="C${o.opid%6}">stop</material-icon> ${o.label}</label>
+                    <material-icon>
                     <material-icon class="del" @click=${this._maybeDelete} data-opid="${o.opid}">close</material-icon>
                   </div>
                 `))}

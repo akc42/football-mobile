@@ -65,7 +65,6 @@ class AdminManager extends RouteManager {
     this.maxtic = 0;
     this.rid = 0;
     this.tics = [];
-    this.next = 
   }
   connectedCallback() {
     super.connectedCallback();

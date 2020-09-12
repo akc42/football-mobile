@@ -53,16 +53,6 @@ class FootballPage extends LitElement {
       #compname {
         font-weight: bold;
       }
-      section {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-      }
-      .container {
-        overflow-y:auto;
-        scroll-snap-type: y mandatory;
-        overflow-x:hidden;
-      }
       .pick {
         cursor: pointer;
       }
@@ -127,17 +117,13 @@ class FootballPage extends LitElement {
         ${cache(this.canPick && !this.nohead ? html`
          <div class="pick" slot="subheading" @click=${this._makePicks}><material-icon>create</material-icon> <span>PlayOff Picks<span></div>
         `: '')}
-        <section>
-          <div class="competition">
-            ${this.previous === 0 ? html`<div>&nbsp;</div>` : html`<material-icon class="pt" @click=${this._goPrevious}>arrow_back</material-icon>`}
-            <div id="compname">${this.name}</div>
-            ${this.next === 0 ? html`<div>&nbsp;</div>` : html`<material-icon class="pt" @click=${this._goNext}>arrow_forward</material-icon>`}
-          </div>
-          <slot name="heading"></slot>
-          <div class="container">
-            <slot></slot>
-          </div>
-        </section>       
+        <div class="competition">
+          ${this.previous === 0 ? html`<div>&nbsp;</div>` : html`<material-icon class="pt" @click=${this._goPrevious}>arrow_back</material-icon>`}
+          <div id="compname">${this.name}</div>
+          ${this.next === 0 ? html`<div>&nbsp;</div>` : html`<material-icon class="pt" @click=${this._goNext}>arrow_forward</material-icon>`}
+        </div>
+        <slot name="heading"></slot>
+        <slot></slot>       
         <slot slot="action" name="action"></slot>         
       </fm-page>
     `;

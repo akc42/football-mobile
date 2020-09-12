@@ -17,17 +17,21 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html } from '../libs/lit-element.js';
+import { LitElement, html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js'
 import {classMap} from '../libs/class-map.js';
 
 import page from '../styles/page.js';
 import emoji from '../styles/emoji.js';
+import opids from '../styles/opids.js';
 
 import './football-page.js';
 import './date-format.js';
 import './material-icon.js';
 import './round-header.js';
+import './user-pick.js';
+import './fm-match.js';
+import './comment-button.js';
 
 import { switchPath } from '../modules/utils.js';
 import global from '../modules/globals.js';
@@ -38,7 +42,7 @@ import global from '../modules/globals.js';
 */
 class RoundsHome extends LitElement {
   static get styles() {
-    return [page,emoji];
+    return [page,emoji,opids,css``];
   }
   static get properties() {
     return {
@@ -73,14 +77,14 @@ class RoundsHome extends LitElement {
     super.updated(changed);
   }
   render() {
+    const cutoff = Math.floor(new Date().getTime()/1000);
     return html`
       <style>
         :host {
           --icon-size: 20px;
-          height: 100%;
         }
 
-        header.rs {
+        header.rs, header.bonus {
           background-color:var(--accent-color);
           border:2px solid var(--accent-color);
           border-radius: 5px;
@@ -90,25 +94,49 @@ class RoundsHome extends LitElement {
           padding: 1px;
         }
 
-        .points, .excl, .rcom {
+        .points, .excl, .rcom, ul, .rq {
           background-color: var(--background-color);
         }
         .points {
-          grid-area: points;
           text-align: center;
           font-weight: bold;
         }
         .excl {
-          grid-area: excl;
           text-align: center;
         }
         .rcom {
-          grid-area: comment;
           margin-top: 1px;
           padding: 2px;
         }
+        header.bonus ul {
+          margin-top: 1px;
+          list-style-type: none;
+        }
+        .opheader,section.options {
+          background-color: var(--accent-color);
+          margin-top: 2px;
+          display: grid;
+          grid-gap: 1px;
+          grid-template-columns: 85px repeat(auto-fit, minmax(20px,1fr));
 
+        }
+        .opheader > * , section.options > *{
+          background-color: var(--background-color);
+        }
+        .opheader {
+          background-color: var(--accent-color);
+        }
+        section.options {
+          border-radius:3px;
+          border: 1px solid var(--secondary-color);
+          background-color: var(--secondary-color);
+          padding: 1px;
+        }
+        section.options.me {
+          border: 1px solid var(--accent-color);
+          background-color: var(--accent-color);
 
+        }
 
         .container {
           background-color:var(--background-color);
@@ -195,35 +223,61 @@ class RoundsHome extends LitElement {
           ${cache(this.round.valid_question === 1 ? html`
             <section class="bonus">
                 <header class="bonus">
-                  ${this.round.optionOpen ? html`
-                    <div class="deadline"><material-icon>question_answer</material-icon> Deadline <date-format withTime .date=${this.round.deadline}></date-format></div>
-                  `: ''} 
-                  <div class="emoji">${this.round.question}></div>
-                  <ul>
+                  <div class="emoji rq">${this.round.question}></div>
+
+                  <ul >
                     ${this.options.map(option => html`
                       <li>
                         <span>${!this.round.optionOpen && option.opid === this.round.answer ? html`
-                          <material-icon>check</material-icon>`: html`-`}
+                          <material-icon class="C${option.opid%6}">check</material-icon>`: 
+                      html`<material-icon class="C${option.opid % 6}">stop</material-icon>`}
                         </span> ${option.label}</li>
                     `)}
                   </ul>
+                  ${this.round.optionOpen ? html`
+                    <div class="deadline">
+                      <material-icon>question_answer</material-icon> Deadline <date-format withTime .date=${this.round.deadline}></date-format>
+                    </div>
+                  `: ''} 
+                  <div class="opheader">
+                    <div>&nbsp;</div>
+                    ${this.options.map(option => html`<material-icon class="C${option.opid % 6}">stop</material-icon>`)}
+                  </div>
                 </header>
                 ${cache(this.users.map(user => html`
-                  
-                  <section class="options">
-                  
+                  <section class="options ${classMap({me: user.uid === global.user.uid})}">
+                    <div class="un">${user.name} ${user.comment !== null && user.comment.length > 0 ? html`
+                      <comment-button .comment=${user.comment}></comment-button>`:''}</div>
+                      ${this.options.map(option => option.opid === user.opid ? html`
+                        <user-pick
+                          ?result=${this.round.answer !== 0}
+                          ?correct=${this.round.answer === user.opid}
+                          ?admin=${user.admin_made === 1}
+                          .deadline=${this.round.deadline}
+                          .made=${user.submit_time}
+                        ></user-pick>`
+                      :html`<div>&nbsp;</div>`)}
                   </section>
                 `))}
             </section>
           `:'')}
           ${cache(this.matches.map(match => html`
             <fm-match .round=${this.round} .match=${match}></fm-match>
-            ${cache(this.users.map(user => html`
+            ${cache(this.users.map(user => {
+              const pick = user.picks.find(p => p.aid === match.aid);        
+              return html`
               <section class="pics">
-                <div class="un">${user.name}</div>
-
+                <div class="un">${user.name} ${pick.comment !== null && pick.comment.length > 0 ? html`
+                      <comment-button .comment=${pick.comment}></comment-button>` : ''}</div>
+                ${pick !== undefined && pick.pid === match.aid ? html`<user-pick clss="ap"
+                  ?result=${match.match_time < cutoff}
+                  ?correct=${match.ascore > match.hscore}
+                  ?admin=${pick.admin_made === 1}
+                  .made=${pick.submit_time}
+                  .deadline=${match.deadline}></user-pick>`: html`<div class="ap"></div>`}
+                
               </section>
-            `))}
+            `}))}
           `))}     
         </section>
     </football-page>

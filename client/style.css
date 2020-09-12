@@ -60,6 +60,15 @@
   --fm-fixed-comment: darkorange;
   --emoji-button-color: gold;
 
+  --opid-1: rgb(255,0,0);
+  --opid-2: rgb(0,255,255);
+  --opid-3: rgb(255,255,0);
+  --opid-4: rgb(0,0,255);
+  --opid-5: rgb(0,255,0);
+  --opid-6: rgb(255,0,255);
+  
+
+
   --email-input-length: 240px;
   --admin-name-length: 240px;
   --name-input-length: 120px; 

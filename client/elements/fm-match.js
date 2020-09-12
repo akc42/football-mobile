@@ -82,22 +82,14 @@ class FmMatch extends LitElement {
           border-radius: 4px;
           margin: 2px;
           background-color: var(--accent-color);
-          grid-template-columns: repeat(5, 50px);
           grid-template-rows: 1fr 1fr;
-          grid-template-areas:
-            "aid ascore at hscore hid"
-            "aid aunder cscore hunder hid"
-            "mt mt mt mt mt";
-
-        }
-        section.comment {
-          grid-template-columns: 75px repeat(5, 50px);
+          grid-template-columns: 1fr repeat(5, 50px);
           grid-template-areas:
             "comment aid ascore at hscore hid"
             "comment aid aunder cscore hunder hid"
             "comment mt mt mt mt mt";
-
         }
+
         .team, .score, .at, .under, .mt, .cmt {
           background-color: var(--background-color);
         }
@@ -163,15 +155,17 @@ class FmMatch extends LitElement {
         }
         .emoji {
           grid-area: comment;
-          height: 100%;
+          height: 126px;
           overflow-y: auto;
+          background-color: var(--background-color);
+        }
+        .under material-icon {
+          color: var(--fm-win-color);
         }
   
       </style>
-      <section class=${classMap({comment: this.match.comment !== null && this.match.comment.length > 0})}>
-        ${cache(this.match.comment !== null && this.match.comment.length > 0 ? html`
-          <div class="emoji">${this.match.comment}</div>
-        `:'')}
+      <section>
+        <div class="emoji">${this.match.comment !== null && this.match.comment.length > 0 ? this.match.comment:''}</div>
         <div class="team aid">
           <img src="/appimages/teams/${this.match.aid}.png" alt="${this.match.aname} team logo"/>
           <div class="sname">${this.match.aid}</div>
@@ -182,8 +176,10 @@ class FmMatch extends LitElement {
           <div class="num">${this.match.ascore}</div>
         </div>
         <div class="under aunder ${classMap({ pt: this.edit })}"  @click=${this._makeUnderAid}>
-          <div class="dog">Underdog</div>
-          <div class="num">${this.match.underdog < 0 ? -this.match.underdog: ''}</div>
+          ${this.match.underdog < 0 ? html`
+            <div class="dog">Underdog</div>
+            <div class="score">${-this.match.underdog} </div>`: ''}
+          ${!this.edit && this.match.hscore < this.match.ascore ? html`<material-icon>emoji_events</material-icon>` : ''}
         </div>
         <div class="at ${classMap({pt: (this.edit && this.match.hid !== null && this.match.hid.length > 0) ||
           this.match.deadline > cutoff })}" @click=${this._swapTeams}>
@@ -205,8 +201,10 @@ class FmMatch extends LitElement {
           <div class="num">${this.match.hscore}</div>
         </div>
         <div class="under hunder ${classMap({ pt: this.edit })}"  @click=${this._makeUnderHid}>
-          <div class="dog">Underdog</div>
-          <div class="score">${this.match.underdog > 0 ? this.match.underdog : ''}</div>
+          ${this.match.underdog > 0 ? html`
+            <div class="dog">Underdog</div>
+            <div class="score">${this.match.underdog}</div>`: ''}
+          ${!this.edit && this.match.hscore > this.match.ascore ? html`<material-icon>emoji_events</material-icon>`:''}
         </div>
         <div class="team hid">
           ${cache(this.match.hid !==null && this.match.hid.length > 0 ? html`
@@ -309,7 +307,7 @@ class FmMatch extends LitElement {
       this.dispatchEvent(new MatchSwap({rid: this.round.rid, aid: this.match.aid}))
     } else {
       const cutoff = Math.floor(new Date().getTime() / 1000);
-      if (this.match.deadline > cuttoff) switchPath(`/${global.cid}/rounds/${this.round.rid}/match`);
+      if (this.match.deadline > cutoff) switchPath(`/${global.cid}/rounds/${this.round.rid}/match`);
     }
   }
 }

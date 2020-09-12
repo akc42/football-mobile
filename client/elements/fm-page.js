@@ -31,7 +31,8 @@ class FmPage extends LitElement {
     return css`
       :host{
         height:calc(100% - 20px);
-        display:block;
+        display:flex;
+        flex-direction: column;
         max-width: 600px;
         margin:10px;
       }
@@ -71,13 +72,9 @@ class FmPage extends LitElement {
         display: flex;
         flex-direction: column;
         height: calc(100% - 70px);
+        flex-grow: 1;
       }
-      .container {
-        overflow-y:auto;
-        scroll-snap-type: y mandatory;
-        overflow-x:hidden;
-        flex-grow:1;
-      }
+
       .action {
         display: flex;
         width:100%;
@@ -128,7 +125,7 @@ class FmPage extends LitElement {
         </div>
       </header>
       <section>
-        <div class="container"><slot></slot></div>
+        <slot></slot>
         <div class="action"><slot name="action"></slot></div>
       </section>
     `;

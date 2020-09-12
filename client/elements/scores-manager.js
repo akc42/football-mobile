@@ -37,12 +37,7 @@ class ScoresManager extends LitElement {
 
   static get styles() {
     return [page,css`        
-      :host {
-        height: 100%;
-      }
       header.total, section.usertotal {
-        
-
         grid-template-columns: 1fr 1fr 1fr;
         grid-template-areas:
           "user rs ps"
@@ -64,10 +59,8 @@ class ScoresManager extends LitElement {
         grid-gap:2px;
       }
       section.round{
-        position: -webkit-sticky;
-        position: sticky;
-        top:0px;
         cursor: pointer;
+        background-color: var(--background-color);
       }
       .un, .rs,.ps,.ts, .mt, .bs, .ou, .mp {
         background-color: var(--background-color);
@@ -205,10 +198,11 @@ class ScoresManager extends LitElement {
     const rid = e.currentTarget.dataset.rid;
     switchPath(`${global.cid}/rounds/${rid}`);
   }
-  _gotoRoundOnPage(e) {
+  async _gotoRoundOnPage(e) {
     e.stopPropagation(e);
     const link = `#round${e.changed.rid}`;
-    const element = this.shadowRoot.querySelector(link)
+    const element = this.shadowRoot.querySelector(link);
+
     element.scrollIntoView({behaviour: 'smooth', block: 'start'});
   }
   async _newRoute() {
