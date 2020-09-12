@@ -78,6 +78,7 @@ class RoundsHome extends LitElement {
   }
   render() {
     const cutoff = Math.floor(new Date().getTime()/1000);
+    let renderedComment = false;
     return html`
       <style>
         :host {
@@ -110,6 +111,7 @@ class RoundsHome extends LitElement {
         }
         header.bonus ul {
           margin-top: 1px;
+          margin-bottom: 0px;
           list-style-type: none;
         }
         .opheader,section.options {
@@ -120,95 +122,74 @@ class RoundsHome extends LitElement {
           grid-template-columns: 85px repeat(auto-fit, minmax(20px,1fr));
 
         }
-        .opheader > * , section.options > *{
+        .opheader > * , section.options > * , section.pics > * {
           background-color: var(--background-color);
+          text-align: center;
         }
         .opheader {
           background-color: var(--accent-color);
         }
-        section.options {
+        section.options, section.pics {
           border-radius:3px;
           border: 1px solid var(--secondary-color);
           background-color: var(--secondary-color);
           padding: 1px;
         }
-        section.options.me {
+        section.options.me, section.pics.me {
           border: 1px solid var(--accent-color);
           background-color: var(--accent-color);
 
         }
-
-        .container {
-          background-color:var(--background-color);
-          border:2px solid var(--accent-color);
-          border-radius: 5px;
-          box-shadow: 1px 1px 3px 0px var(--shadow-color);
-          margin:5px 5px 5px 3px;
+        section.pics {
+          margin-top: 2px;
           display: grid;
-          grid-gap:2px;
+          grid-gap: 1px;
+          grid-template-columns: 85px repeat(5, 1fr);
           grid-template-areas:
-            "match bonus"
-            "points bonus"
-            "over bonus"
-            "comment bonus"
-            "user user"
+            "un away empty empty empty home"
+            "un ap empty empty empty hp";
         }
-        .container > div {
-          padding: 2px;
+        section.pics.ou {
+          grid-template-areas:
+            "un away ul empty ol home"
+            "un ap under empty over hp";
         }
-        .matches {
-          font-weight: bold;
-          grid-area: match;
+        .pics .un {
+          grid-area: un;
         }
-        .points {
-          grid-area:points;
+        .away {
+          grid-area: away;
+        }
+        .ul {
+          grid-area: ul;
+          font-size: 0.8rem;
+        }
+        .ol {
+          grid-area: ol;
+          font-size: 0.8rem;
+        }
+        .home {
+          grid-area: home;
+        }
+        .ap {
+          grid-area: ap;
+        }
+        .under {
+          grid-area: under
+        }
+        .empty {
+          grid-area: empty;
         }
         .over {
           grid-area: over;
-          font-weight: bold;
         }
-        .comment {
-          grid-area: comment;
+        .hp {
+          grid-area: hp;
         }
-        .bonus {
-          grid-area:bonus;
-          display: flex;
-          flex-direction: column;
+        .options .un material-icon {
+          color: var(--create-item-color);
+          cursor: pointer;
         }
-        .userhead {
-          grid-area: user;
-          background-color: var(--accent-color);
-          border-top: 2px solid var(--accent-color);
-          display: grid;
-          grid-gap: 2px;
-          grid-template-columns: 2fr repeat(4, 1fr);
-
-        }
-        .userhead>* {
-          background-color: var(--background-color);
-          text-align: center
-        }
-        .userhead>.mh span {
-          color: red;
-        }
-        .userhead>.tl span {
-          color: green;
-        }
-        .bonus ul {
-          list-style-type: none;
-          padding: 0;
-          margin: 0; 
-          font-size: 10px;
-        }
-        .picks {
-          display: grid;
-          grid-gap: 2px;
-          grid-template-columns: 75px 1fr 1fr;
-          grid-template-areas:
-            "user pa ph"
-            "user oua ouh";
-        }
-
       </style>
       <football-page heading="Round Data">
         <round-header .round=${this.round} .next=${this.next} .previous=${this.previous}></round-header>
@@ -240,15 +221,22 @@ class RoundsHome extends LitElement {
                     </div>
                   `: ''} 
                   <div class="opheader">
-                    <div>&nbsp;</div>
+                    <div>Points ${this.round.bvalue}</div>
                     ${this.options.map(option => html`<material-icon class="C${option.opid % 6}">stop</material-icon>`)}
                   </div>
                 </header>
                 ${cache(this.users.map(user => html`
                   <section class="options ${classMap({me: user.uid === global.user.uid})}">
-                    <div class="un">${user.name} ${user.comment !== null && user.comment.length > 0 ? html`
-                      <comment-button .comment=${user.comment}></comment-button>`:''}</div>
-                      ${this.options.map(option => option.opid === user.opid ? html`
+                    <div class="un">${user.name} ${user.uid === global.user.uid && this.round.deadline > cutoff ? html`
+                      <material-icon @click=${this._makeOptionPicks}>create</material-icon>
+                    `:''}</div>
+                      ${this.options.map(option => {
+                        let shouldRenderComment = false;
+                        if (!renderedComment && user.comment !== null && user.comment.length > 0) {
+                          renderedComment = true;
+                          shouldRenderComment = true;
+                        }
+                        return option.opid === user.opid ? html`
                         <user-pick
                           ?result=${this.round.answer !== 0}
                           ?correct=${this.round.answer === user.opid}
@@ -256,7 +244,7 @@ class RoundsHome extends LitElement {
                           .deadline=${this.round.deadline}
                           .made=${user.submit_time}
                         ></user-pick>`
-                      :html`<div>&nbsp;</div>`)}
+                          : html`<div>${shouldRenderComment ? html`<comment-button .comment=${user.comment}></comment-button>`:'&nbsp;'}</div>`})}
                   </section>
                 `))}
             </section>
@@ -266,16 +254,42 @@ class RoundsHome extends LitElement {
             ${cache(this.users.map(user => {
               const pick = user.picks.find(p => p.aid === match.aid);        
               return html`
-              <section class="pics">
+              <section class="pics ${classMap({ 
+                  me: user.uid === global.user.uid,
+                  ou: this.round.ou_round === 1 
+                })}">
                 <div class="un">${user.name} ${pick.comment !== null && pick.comment.length > 0 ? html`
                       <comment-button .comment=${pick.comment}></comment-button>` : ''}</div>
+                <div class="away">${match.aid}</div>
+                ${this.round.ou_round === 1 ? html`<div class="ul">Under</div><div class="ol">Over</div>`:''}
+                <div class="home">${match.hid}</div>
                 ${pick !== undefined && pick.pid === match.aid ? html`<user-pick clss="ap"
                   ?result=${match.match_time < cutoff}
                   ?correct=${match.ascore > match.hscore}
                   ?admin=${pick.admin_made === 1}
                   .made=${pick.submit_time}
                   .deadline=${match.deadline}></user-pick>`: html`<div class="ap"></div>`}
-                
+                ${cache(this.round.ou_round === 1 ? html`
+                  ${pick !== undefined && pick.over_selected === 0? html`<user-pick
+                    ?result=${match.match_time < cutoff}
+                    ?correct=${(match.ascore + match.hscore) < (match.combined_score + 0.5)}
+                    ?admin=${pick.admin_made === 1}
+                    .made=${pick.submit_time}
+                    .deadline=${match.deadline}></user-pick>`:html`<div class="under"></div>`}
+                  <div class="empty"></div>
+                  ${pick !== undefined && pick.over_selected === 1 ? html`<user-pick
+                    ?result=${match.match_time < cutoff}
+                    ?correct=${(match.ascore + match.hscore) > (match.combined_score + 0.5)}
+                    ?admin=${pick.admin_made === 1}
+                    .made=${pick.submit_time}
+                    .deadline=${match.deadline}></user-pick>` : html`<div class="over"></div>`}
+                `: html`<div class="empty"></div>`)}
+                ${pick !== undefined && pick.pid === match.hid ? html`<user-pick clss="hp"
+                  ?result=${match.match_time < cutoff}
+                  ?correct=${match.ascore < match.hscore}
+                  ?admin=${pick.admin_made === 1}
+                  .made=${pick.submit_time}
+                  .deadline=${match.deadline}></user-pick>` : html`<div class="hp"></div>`}
               </section>
             `}))}
           `))}     
@@ -283,8 +297,13 @@ class RoundsHome extends LitElement {
     </football-page>
     `;
   }
-  _makePicks() {
-    switchPath(`/${global.cid}/rounds/${this.round.rid}/user/${global.uid}`)
+  _makeOptionPicks(e) {
+    e.stopPropagation()
+    switchPath(`/${global.cid}/rounds/${this.round.rid}/bonus`)
+  }
+  _makePicks(e) {
+    e.stopPropagation()
+    switchPath(`/${global.cid}/rounds/${this.round.rid}/match`)
   }
 }
 customElements.define('rounds-home', RoundsHome);

@@ -214,7 +214,7 @@ class FmMatch extends LitElement {
           `:'')}
         </div>
         <div class="mt">
-          ${this.edit ? html`
+          ${cache(this.edit ? html`
             <calendar-input .value=${this.match.match_time} withTime @value-changed=${this._newMatchTime}></calendar-input>
             <div class="misc">
               <fm-checkbox .value=${this.match.open} @value-changed=${this._setOpen}>Open</fm-checkbox>
@@ -222,7 +222,10 @@ class FmMatch extends LitElement {
             </div>
           `: html`
             <date-format .date=${this.match.match_time} withTime></date-format>
-          `} 
+            ${this.round.ou_round === 1 ? html`
+              <div>${(this.match.ascore + this.match.hscore) > (this.match.combined_score + 0.5) ? 'Over' : 'Under'}</div>
+            `:''}
+          `)} 
         </div>
       </section>
     `;
