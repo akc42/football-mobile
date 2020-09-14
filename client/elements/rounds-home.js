@@ -136,6 +136,7 @@ class RoundsHome extends LitElement {
           border: 1px solid var(--secondary-color);
           background-color: var(--secondary-color);
           padding: 1px;
+          margin: 3px;
         }
         section.options.me, section.pics.me {
           border: 1px solid var(--accent-color);
@@ -145,8 +146,9 @@ class RoundsHome extends LitElement {
         section.pics {
           margin-top: 2px;
           display: grid;
-          grid-gap: 1px;
-          grid-template-columns: 85px repeat(5, 1fr);
+          grid-gap: 2px;
+          margin: 2px;
+          grid-template-columns: 1fr repeat(5, 50px);
           grid-template-areas:
             "un away empty empty empty home"
             "un ap empty empty empty hp";
@@ -249,7 +251,7 @@ class RoundsHome extends LitElement {
                           .deadline=${this.round.deadline}
                           .made=${user.submit_time}
                         ></user-pick>`
-                          : html`<div data-opid=${option.opid} data-uid=${user.uid} class=${classMap({pt: this.admin})} @click=${this._adminOptionPick}>${shouldRenderComment ? html`<comment-button .comment=${user.comment}></comment-button>`:'&nbsp;'}</div>`})}
+                          : html`<div data-opid=${option.opid} data-uid=${user.uid} class=${classMap({pt: this.admin})} @click=${this._adminOptionPick}>${shouldRenderComment ? html`<comment-button .comment=${user.comment}></comment-button>`:html`&nbsp;`}</div>`})}
                   </section>
                 `))}
             </section>
