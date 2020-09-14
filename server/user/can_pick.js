@@ -26,8 +26,8 @@
 
   module.exports = async function(user, cid, params, responder) {
     debug('new request from user', user.uid, 'with cid', cid );
-    const getGap = db.prepare('SELECT gap FROM compeition WHERE cid = ?');
-    const round = db.prepare('SELECT rid FROM rounds WHERE open = 1 AND cid = ? ORDER BY rid DESC LIMIT 1').pluck();
+    const getGap = db.prepare('SELECT gap FROM competition WHERE cid = ?').pluck();
+    const round = db.prepare('SELECT rid FROM round WHERE open = 1 AND cid = ? ORDER BY rid DESC LIMIT 1').pluck();
     const poffs = db.prepare(`SELECT count(*) FROM competition c WHERE c.open = 1 AND c.cid = ? 
       AND strftime('%s','now') < c.pp_deadline`).pluck()
     const bonus = db.prepare(`SELECT valid_question FROM round WHERE cid = ? AND rid = ? AND strftime('%s','now') < deadline `).pluck();
@@ -46,7 +46,7 @@
         responder.addSection('bonus', valid !== undefined && valid === 1);
         const gap = getGap.get(cid);
         const matches = picks.get(cid, rid, gap)
-        responder.AddSection('matches', );
+        responder.addSection('matches', matches);
         debug('bonus', valid !== undefined && valid === 1,'matches', matches)
       }
     })();
