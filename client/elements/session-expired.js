@@ -80,7 +80,7 @@ class SessionExpired extends LitElement {
   }
   _retry(e) {
     e.stopPropagation();
-    this.dispatchEvent(new SessionStatus({ status: 'email'}));
+    this.dispatchEvent(new SessionStatus({ state: 'email'}));
   }
 
 }

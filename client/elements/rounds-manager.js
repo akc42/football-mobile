@@ -112,7 +112,7 @@ class RoundsManager extends RouteManager {
           .previous=${this.previous}
           .options=${this.options}
           .matches=${this.matches}
-          @round-changed=${this._gotoRound}></rounds-home>`,
+          @rid-change=${this._gotoRound}></rounds-home>`,
         user: html`<rounds-user
           managed-page
           .user=${this.user}
@@ -142,7 +142,7 @@ class RoundsManager extends RouteManager {
   _gotoRound(e) {
     e.stopPropagation();
     this.rRouter.
-    this.rRouter.params = e.changed;
+    this.rRouter.params = {rid:e.rid};
   }
   async _newRoute() {
     if (this.lastRid !== this.route.params.rid || this.lastcid !== global.cid) {
@@ -178,28 +178,41 @@ class RoundsManager extends RouteManager {
       this.users = response.cache.users;
       this.users.sort((a,b) => b.score - a.score);  //order users by desc score.
       for (const user of this.users) {
-        user.validQuestion = this.round.valid_question; //helps for <fm-round-user> to know what to display
-        user.ouRound = this.round.ou_round === 1; //helps for <fm-round-user> to know what to display
-        user.hadAdminSupport = false;
-        user.wasLatePick = false
-        user.wasLateBonus = (this.round.valid_question === 1  && user.submit_time !== null && user.submit_time > this.round.deadline);
-        user.picks = response.cache.picks.filter(p => p.uid === user.uid);
-        for (const pick of user.picks) {
-          if (pick.submit_time !== null) {
-            const match = this.matches.find(m => m.aid === pick.aid);
-            if (match !==undefined && match.deadline < pick.submit_time) user.wasLatePick = true;
-          }
-          if (pick.admin_made === 1) user.hadAdminSupport = true;
-        }
+        this._processUserPicks(user, response.cache.picks.filter(p => p.uid === user.uid) );
         if (user.uid === global.user.uid) this.user = user;
-       }
+      }
     }
   }
+
   async _matchPick(e) {
     e.stopPropagation();
-    //todo add into existing data, but also update database.
     const pick = e.pick;
+    this.dispatchEvent(new WaitRequest(true));
     const response = await api(`user/${global.cid}/update_pick`,pick);
+    this.dispatchEvent(new WaitRequest(false));
+    this.users = this.users.slice(0); //refresh 
+    const user = this.user.find(u => u.uid === pick.uid);
+    this._processUserPicks(user, response.picks)
+  }
+  async _optionPick(e) {
+    e.stopPropagation();
+
+
+  }
+  _processUserPicks(user, picks) {
+    user.validQuestion = this.round.valid_question; //helps for <fm-round-user> to know what to display
+    user.ouRound = this.round.ou_round === 1; //helps for <fm-round-user> to know what to display
+    user.hadAdminSupport = false;
+    user.wasLatePick = false
+    user.wasLateBonus = (this.round.valid_question === 1 && user.submit_time !== null && user.submit_time > this.round.deadline);
+    user.picks = picks;
+    for (const pick of user.picks) {
+      if (pick.submit_time !== null) {
+        const match = this.matches.find(m => m.aid === pick.aid);
+        if (match !== undefined && match.deadline < pick.submit_time) user.wasLatePick = true;
+      }
+      if (pick.admin_made === 1) user.hadAdminSupport = true;
+    }
   }
 }
 customElements.define('rounds-manager', RoundsManager);

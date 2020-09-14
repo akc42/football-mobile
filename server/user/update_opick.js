@@ -21,21 +21,19 @@
 (function() {
   'use strict';
 
-  const debug = require('debug')('football:api:matchpick');
+  const debug = require('debug')('football:api:optionpick');
   const db = require('../utils/database');
 
-  module.exports = async function(user, cid, params, responder) {
+  module.exports = async function(user, cid, params) {
     debug('new request from user', user.uid, 'with cid', cid, 'on behalf or user', params.uid, 'for team', params.pid );
-    const setPick = db.prepare(`REPLACE INTO pick (cid, uid, rid, aid,  comment, pid, over_selected, admin_made, submit_time) 
-      VALUES (?,?,?,?,?,?,?, ?, strftime('%s','now'))`);
+    const setPick = db.prepare(`REPLACE INTO option_pick (cid, uid, rid, opid, comment, admin_made, submit_time) 
+      VALUES (?,?,?,?,?,?, strftime('%s','now'))`);
     const invalidateRoundCache = db.prepare('UPDATE round SET results_cache = NULL WHERE cid = ? and rid = ?');
     const invalidateCompetitionCache = db.prepare('UPDATE competition SET results_cache = null WHERE cid = ?');
-    const getPicks = db.prepare('SELECT * FROM pick WHERE cid = ? AND uid = ? AND rid = ?');
     db.transaction(() => {
-      setPick.run(cid, params.uid, params.rid, params.aid, params.comment, params.pid, params.over_selected, params.uid === user.uid? 0:1);  
+      setPick.run(cid, params.uid, params.rid, params.opid, params.comment, params.uid === user.uid? 0:1);  
       invalidateRoundCache.run(cid, params.rid);
       invalidateCompetitionCache.run(cid);
-      responder.addSection('picks',getPicks.all(cid, params.uid, params.rid));
     })();
  };
 })();

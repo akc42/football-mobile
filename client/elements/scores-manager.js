@@ -171,7 +171,7 @@ class ScoresManager extends LitElement {
                 .round=${round}
                 .previous=${idx < this.rounds.length - 1 ? this.rounds[idx + 1].rid : 0}
                 .next=${idx === 0 ? 0: this.rounds[idx-1].rid}
-                @round-changed=${this._gotoRoundOnPage}></round-header>
+                @rid-change=${this._gotoRoundOnPage}></round-header>
               <header class="round">
                 <div class="un">User Name</div>
                 <div class="mp">Match Picks</div>
@@ -207,7 +207,7 @@ class ScoresManager extends LitElement {
   }
   async _gotoRoundOnPage(e) {
     e.stopPropagation(e);
-    const link = `#round${e.changed.rid}`;
+    const link = `#round${e.rid}`;
     const element = this.shadowRoot.querySelector(link);
 
     element.scrollIntoView({behaviour: 'smooth', block: 'start'});

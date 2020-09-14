@@ -124,7 +124,7 @@ class AdminRoundHome extends LitElement {
           width: 100%;
         }
       </style>
-      <football-page id="page" heading="Round Selection">
+      <football-page id="page" heading="Round Selection" nohead>
         
           <div class="container">
             <fm-input

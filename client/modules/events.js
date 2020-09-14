@@ -778,6 +778,18 @@ export class PromoteList extends Event {
   }
 };
 
+export class RidChange extends Event {
+  /*
+     The following are the fields provided by this event
+
+     rid: rid that we are changing to (in current competition)
+
+  */
+  constructor(rid) {
+    super('rid-change',{composed: true, bubbles: true});
+    this.rid = rid;
+  }
+};
 export class RoundChanged extends Event {
   
 

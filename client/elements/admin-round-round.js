@@ -116,6 +116,7 @@ class AdminRoundRound extends RouteManager {
           .options=${this.options}
           .next=${this.next}
           .previous=${this.previous}
+          @rid-change=${this._gotoRound}
           @option-create=${this._optionCreate}
           @option-delete=${this._optionDelete}></admin-round-round-home>`,
         match: html`<admin-round-round-match
@@ -138,6 +139,10 @@ class AdminRoundRound extends RouteManager {
     debug(`loading ${page}`);
     this.dispatchEvent(new WaitRequest(true));
     import(`./admin-round-round-${page}.js`).then(() => this.dispatchEvent(new WaitRequest(false)));
+  }
+  _gotoRound(e) {
+    e.stopPropagation();
+    this.rrouter.params = {rid:e.rid};
   }
   async _matchChanged(e) {
     e.stopPropagation();
@@ -183,7 +188,9 @@ class AdminRoundRound extends RouteManager {
       const response = await api(`admin/${global.cid}/fetch_matches_options`,{rid: this.rid});
       this.dispatchEvent(new WaitRequest(false));
       this.matches = response.matches;
-      this.options = response.options
+      this.options = response.options;
+      this.next = response.next;
+      this.previous = response.previous;
     }
   }
   async _optionCreate(e) {

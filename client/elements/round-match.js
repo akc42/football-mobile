@@ -34,9 +34,9 @@ import { switchPath } from '../modules/utils.js';
 
 
 /*
-     <fm-match>
+     <round-match>
 */
-class FmMatch extends LitElement {
+class RoundMatch extends LitElement {
   static get styles() {
     return [emoji,css``];
   }
@@ -205,4 +205,4 @@ class FmMatch extends LitElement {
   }
 
 }
-customElements.define('fm-match', FmMatch);
+customElements.define('round-match', RoundMatch);

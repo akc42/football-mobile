@@ -20,7 +20,7 @@
 import { LitElement, html, css } from '../libs/lit-element.js';
 
 import './material-icon.js';
-import {RoundChanged} from '../modules/events.js';
+import {RidChange} from '../modules/events.js';
 
 /*
      <round-header>
@@ -92,17 +92,17 @@ class RoundHeader extends LitElement {
             ${this.round.valid_question ? html`<material-icon>question_answer</material-icon>` : ''}
           </div>
         `: ''}
-        ${this.next === 0 ? html`<div @click=${this._surpress}>&nbsp;</div>`:html`<material-icon class="pt" @click=${this._goNext} >arrow_forward</material-icon>`}
+        ${this.next === 0 ? html`<div @click=${this._supress}>&nbsp;</div>`:html`<material-icon class="pt" @click=${this._goNext} >arrow_forward</material-icon>`}
       </header>
     `;
   }
   _goNext(e) {
     e.stopPropagation();
-    this.dispatchEvent(new RoundChanged({rid: this.next}));
+    this.dispatchEvent(new RidChange(this.next));
   }
   _goPrevious(e) {
     e.stopPropagation();
-    this.dispatchEvent(new RoundChanged({rid: this.previous}));
+    this.dispatchEvent(new RidChange(this.previous));
   }
   _supress(e) {
     if (e.target !== this.roundName && e.target !== this.roundNo) e.stopPropagation();

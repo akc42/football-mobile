@@ -35,6 +35,7 @@ import './comment-button.js';
 
 import { switchPath } from '../modules/utils.js';
 import global from '../modules/globals.js';
+import { MatchPick } from '../modules/events.js';
 
 
 /*
@@ -191,8 +192,11 @@ class RoundsHome extends LitElement {
           color: var(--create-item-color);
           cursor: pointer;
         }
+        .pt {
+          cursor: pointer;
+        }
       </style>
-      <football-page heading="Round Data">
+      <football-page heading="Round Data" ?nohead=${this.admin}>
         <round-header .round=${this.round} .next=${this.next} .previous=${this.previous}></round-header>
         <header class="rs" @click=${this._gotoRound}>
           <div class="points">Points ${this.round.value}</div>
@@ -233,7 +237,7 @@ class RoundsHome extends LitElement {
                     `:''}</div>
                       ${this.options.map(option => {
                         let shouldRenderComment = false;
-                        if (!renderedComment && user.comment !== null && user.comment.length > 0) {
+                        if (!this.admin && !renderedComment && user.comment !== null && user.comment.length > 0) {
                           renderedComment = true;
                           shouldRenderComment = true;
                         }
@@ -245,7 +249,7 @@ class RoundsHome extends LitElement {
                           .deadline=${this.round.deadline}
                           .made=${user.submit_time}
                         ></user-pick>`
-                          : html`<div>${shouldRenderComment ? html`<comment-button .comment=${user.comment}></comment-button>`:'&nbsp;'}</div>`})}
+                          : html`<div data-opid=${option.opid} data-uid=${user.uid} class=${classMap({pt: this.admin})} @click=${this._adminOptionPick}>${shouldRenderComment ? html`<comment-button .comment=${user.comment}></comment-button>`:'&nbsp;'}</div>`})}
                   </section>
                 `))}
             </section>
@@ -264,39 +268,91 @@ class RoundsHome extends LitElement {
                 <div class="away">${match.aid}</div>
                 ${this.round.ou_round === 1 ? html`<div class="ul">Under</div><div class="ol">Over</div>`:''}
                 <div class="home">${match.hid}</div>
-                ${pick !== undefined && pick.pid === match.aid ? html`<user-pick clss="ap"
+                ${pick !== undefined && pick.pid === match.aid ? html`<user-pick class="ap"
                   ?result=${match.match_time < cutoff}
                   ?correct=${match.ascore > match.hscore}
                   ?admin=${pick.admin_made === 1}
                   .made=${pick.submit_time}
-                  .deadline=${match.deadline}></user-pick>`: html`<div class="ap"></div>`}
+                  .deadline=${match.deadline}></user-pick>`: html`<div 
+                    class="ap ${classMap({pt: this.admin})}" 
+                    data-aid=${match.aid}
+                    data.pid=${match.aid}
+                    data.uid=${user.uid}
+                    @click=${this._adminMatchResultPick}></div>`}
                 ${cache(this.round.ou_round === 1 ? html`
                   ${pick !== undefined && pick.over_selected === 0? html`<user-pick
                     ?result=${match.match_time < cutoff}
                     ?correct=${(match.ascore + match.hscore) < (match.combined_score + 0.5)}
                     ?admin=${pick.admin_made === 1}
                     .made=${pick.submit_time}
-                    .deadline=${match.deadline}></user-pick>`:html`<div class="under"></div>`}
+                    .deadline=${match.deadline}></user-pick>`:html`<div
+                    class="under ${classMap({pt: this.admin})}"
+                    data-aid=${match.aid}
+                    data.ou="0"
+                    data.uid=${user.uid}
+                    @click=${this._adminMatchOUPick}></div>`}
                   <div class="empty"></div>
                   ${pick !== undefined && pick.over_selected === 1 ? html`<user-pick
                     ?result=${match.match_time < cutoff}
                     ?correct=${(match.ascore + match.hscore) > (match.combined_score + 0.5)}
                     ?admin=${pick.admin_made === 1}
                     .made=${pick.submit_time}
-                    .deadline=${match.deadline}></user-pick>` : html`<div class="over"></div>`}
+                    .deadline=${match.deadline}></user-pick>` : html`<div 
+                    class="over ${classMap({pt: this.admin})}"
+                    data-aid=${match.aid}
+                    data.ou="1"
+                    data.uid=${user.uid}
+                    @click=${this._adminMatchOUPick}></div>`}
                 `: html`<div class="empty"></div>`)}
                 ${pick !== undefined && pick.pid === match.hid ? html`<user-pick clss="hp"
                   ?result=${match.match_time < cutoff}
                   ?correct=${match.ascore < match.hscore}
                   ?admin=${pick.admin_made === 1}
                   .made=${pick.submit_time}
-                  .deadline=${match.deadline}></user-pick>` : html`<div class="hp"></div>`}
+                  .deadline=${match.deadline}></user-pick>` : html`<div class="hp ${classMap({pt: this.admin})}" 
+                    data-aid=${match.aid}
+                    data.pid=${match.hid}
+                    data.uid=${user.uid}
+                    @click=${this._adminMatchResultPick}></div>`}
               </section>
             `}))}
           `))}
         </section>
     </football-page>
     `;
+  }
+  _adminMatchResultPick(e) {
+    e.stopPropagation();
+    if (this.admin) {
+      const uid = parseInt(e.currentTarget.dataset.uid, 10);
+      const aid = parseInt(e.currentTarget.dataset.aid, 10);
+      const pid = parseInt(e.currentTarget.dataset.pid, 10)
+      const user = this.users.find(user => user.uid === uid);
+      if (user !== undefined) {
+        let pick = user.picks.find(p => p.aid === match.aid);
+        if (pick === undefined) {
+          pick = {uid: uid, aid: aid, rid: this.round.rid, comment: null, over_selected: 0 };
+        }
+        pick.pid = pid;
+        this.dispatchEvent(new MatchPick(pick))
+      } 
+    }
+  }
+  _adminMatchOUPick(e) {
+    if (this.admin) {
+      const uid = parseInt(e.currentTarget.dataset.uid, 10);
+      const aid = parseInt(e.currentTarget.dataset.aid, 10);
+      const ou = parseInt(e.currentTarget.dataset.ou, 10)
+      const user = this.users.find(user => user.uid === uid);
+      if (user !== undefined) {
+        let pick = user.picks.find(p => p.aid === match.aid);
+        if (pick === undefined) {
+          pick = { uid: uid, aid: aid, rid: this.round.rid, comment: null, pid: aid};
+        }
+        pick.over_selected = ou;
+        this.dispatchEvent(new MatchPick(pick));
+      }
+    }
   }
   _gotoRound(e) {
     e.stopPropagation();

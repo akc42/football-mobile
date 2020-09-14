@@ -226,21 +226,14 @@ class RoundsUser extends LitElement {
 
                   <section class="options me">
                     <div class="un">${this.user.name}</div>
-                      ${this.options.map(option => {
-                        let shouldRenderComment = false;
-                        if (!renderedComment && this.user.comment !== null && this.user.comment.length > 0) {
-                          renderedComment = true;
-                          shouldRenderComment = true;
-                        }
-                        return option.opid === this.user.opid ? html`
+                      ${this.options.map(option => option.opid === this.user.opid ? html`
                         <user-pick
-                          ?result=${this.round.answer !== 0}
-                          ?correct=${this.round.answer === this.user.opid}
                           ?admin=${this.user.admin_made === 1}
                           .deadline=${this.round.deadline}
                           .made=${this.user.submit_time}
                         ></user-pick>`
-                          : html`<div>${shouldRenderComment ? html`<comment-button .comment=${this.user.comment}></comment-button>`:'&nbsp;'}</div>`})}
+                          : html`<div class="pt" data.opid=${option.opid} @click=${this._optionPick}>&nbsp;</div>`)}
+                    <fm-input label="Comment" textarea id="comment" .value=${this.user.comment} @value-changed=${this._inputChanged} ></fm-input>
                   </section>
 
             </section>
@@ -290,13 +283,9 @@ class RoundsUser extends LitElement {
     </football-page>
     `;
   }
-  _makeOptionPicks(e) {
-    e.stopPropagation()
-    switchPath(`/${global.cid}/rounds/${this.round.rid}/bonus`)
-  }
-  _makePicks(e) {
-    e.stopPropagation()
-    switchPath(`/${global.cid}/rounds/${this.round.rid}/match`)
+  _makeOptionPick(e) {
+    e.stopPropagation();
+    
   }
 }
 customElements.define('rounds-home', RoundsHome);

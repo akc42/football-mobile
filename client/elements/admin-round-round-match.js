@@ -126,7 +126,7 @@ class AdminRoundRoundMatch extends LitElement {
           .value=${this.value}
           @value-changed=${this._valueChanged}></fm-input>
       </dialog-box>
-      <football-page id="page" heading="Match Management">
+      <football-page id="page" heading="Match Management" nohead>
         <div slot="heading">${this.round.name}</div>
         ${this.round.ou_round === 1 || this.round.valid_question === 1 ? html`
           <div slot="heading" class="icons">${this.round.ou_round ?

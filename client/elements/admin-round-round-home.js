@@ -32,6 +32,7 @@ import global from '../modules/globals.js';
 import './fm-checkbox.js';
 import './fm-input.js';
 import './calendar-input.js';
+import './round-header.js';
 import { DeleteRequest,RoundChanged, OptionCreate , OptionDelete} from '../modules/events.js';
 
 
@@ -187,7 +188,7 @@ class AdminRoundRoundHome extends LitElement {
   render() {
     return html`
 
-      <football-page id="page" heading="Round Details">
+      <football-page id="page" heading="Round Details" nohead>
         <round-header slot="heading" .round=${this.round} .previous=${this.previous} .next=${this.next}></round-header>
         <section class="scrollable">
           <div id="rid">${this.round.rid}</div>
@@ -285,7 +286,6 @@ class AdminRoundRoundHome extends LitElement {
                   <div class="optionitem">
                     <input type="radio" id="o${o.opid}" .value=${o.opid} name="options" ?checked=${o.opid === this.round.answer}>
                     <label for="o${o.opid}"><span></span> <material-icon class="C${o.opid%6}">stop</material-icon> ${o.label}</label>
-                    <material-icon>
                     <material-icon class="del" @click=${this._maybeDelete} data-opid="${o.opid}">close</material-icon>
                   </div>
                 `))}
@@ -295,6 +295,7 @@ class AdminRoundRoundHome extends LitElement {
               
         </section>
         <button slot="action" @click=${this._matches}>Matches</button>
+        <button slot="action" @click=${this._userPicks}>Do User Picks</button>
       </football-page>
     `;
   }
@@ -394,6 +395,10 @@ class AdminRoundRoundHome extends LitElement {
     e.stopPropagation();
     this.round.answer = e.target.value;
     this.dispatchEvent(new RoundChanged({rid:this.round.rid, answer: this.round.answer}));
+  }
+  _userPicks(e) {
+    e.stopPropagation();
+    switchPath(`/${global.cid}/rounds/${this.round.rid}`,{admin: 1});
   }
   _validqChanged(e) {
     this.round.valid_question = e.changed ? 1 : 0;

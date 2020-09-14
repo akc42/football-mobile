@@ -85,6 +85,7 @@ class FootballPage extends LitElement {
     this.next = 0;
     this.previous = 0;
     this.canPick = false;
+    this.nohead = false;
   }
   connectedCallback() {
     super.connectedCallback();

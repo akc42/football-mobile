@@ -91,7 +91,7 @@ class AdminTeams extends LitElement {
         }
 
       </style>
-      <football-page id="page" heading="Teams">
+      <football-page id="page" heading="Teams" nohead>
         <div id="toprow">
           ${cache(this.lock ? '' : html`<div @click=${this._reset}><material-icon>autorenew</material-icon>Reset Points</div>`)}
           <fm-checkbox ?value=${this.lock} @value-changed=${this._lockChanged}>Teams In Competition Locked</fm-checkbox>
