@@ -17,45 +17,16 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html } from '../libs/lit-element.js';
 
-import './app-page.js';
-import page from '../styles/page.js';
+(function() {
+  'use strict';
 
-/*
-     <fm-pick>
-*/
-class FmPick extends LitElement {
-  static get styles() {
-    return [page];
-  }
-  static get properties() {
-    return {
-    
-    };
-  }
-  constructor() {
-    super();
-  }
-  connectedCallback() {
-    super.connectedCallback();
-  }
-  disconnectedCallback() {
-    super.disconnectedCallback();
-  }
-  update(changed) {
-    super.update(changed);
-  }
-  firstUpdated() {
-  }
-  updated(changed) {
-    super.updated(changed);
-  }
-  render() {
-    return html`
-        <app-page id="page" heading="Make Your Picks">
-        </app-page>
-    `;
-  }
-}
-customElements.define('fm-pick', FmPick);
+  const debug = require('debug')('football:api:memberswait');
+  const db = require('../utils/database');
+
+  module.exports = async function(user, cid, params, responder) {
+    debug('new request from user', user.uid, 'with cid', cid );
+    responder.addSection('members', db.prepare('SELECT * FROM participant WHERE waiting_approval = 1').all());
+    debug('all done');
+  };
+})();

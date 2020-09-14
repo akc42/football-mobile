@@ -30,7 +30,7 @@ import './date-format.js';
 import './material-icon.js';
 import './round-header.js';
 import './user-pick.js';
-import './fm-match.js';
+import './round-match.js';
 import './comment-button.js';
 
 import { switchPath } from '../modules/utils.js';
@@ -47,6 +47,7 @@ class RoundsHome extends LitElement {
   static get properties() {
     return {
       users: {type: Array},
+      admin: {type:Boolean}, //if set, this is admin able to make picks after cutoff time.
       round: {type: Object},
       matches: {type: Array},
       options: {type: Array},
@@ -193,7 +194,7 @@ class RoundsHome extends LitElement {
       </style>
       <football-page heading="Round Data">
         <round-header .round=${this.round} .next=${this.next} .previous=${this.previous}></round-header>
-        <header class="rs">
+        <header class="rs" @click=${this._gotoRound}>
           <div class="points">Points ${this.round.value}</div>
           <div class="excl">(excluding underdog points)</div>
            ${this.round.comment && this.round.comment.length > 0 ? html`
@@ -210,7 +211,7 @@ class RoundsHome extends LitElement {
                     ${this.options.map(option => html`
                       <li>
                         <span>${!this.round.optionOpen && option.opid === this.round.answer ? html`
-                          <material-icon class="C${option.opid%6}">check</material-icon>`: 
+                          <material-icon class="C${option.opid%6}">check</material-icon>`:
                       html`<material-icon class="C${option.opid % 6}">stop</material-icon>`}
                         </span> ${option.label}</li>
                     `)}
@@ -219,7 +220,7 @@ class RoundsHome extends LitElement {
                     <div class="deadline">
                       <material-icon>question_answer</material-icon> Deadline <date-format withTime .date=${this.round.deadline}></date-format>
                     </div>
-                  `: ''} 
+                  `: ''}
                   <div class="opheader">
                     <div>Points ${this.round.bvalue}</div>
                     ${this.options.map(option => html`<material-icon class="C${option.opid % 6}">stop</material-icon>`)}
@@ -228,7 +229,7 @@ class RoundsHome extends LitElement {
                 ${cache(this.users.map(user => html`
                   <section class="options ${classMap({me: user.uid === global.user.uid})}">
                     <div class="un">${user.name} ${user.uid === global.user.uid && this.round.deadline > cutoff ? html`
-                      <material-icon @click=${this._makeOptionPicks}>create</material-icon>
+                      <material-icon @click=${this._makePicks}>create</material-icon>
                     `:''}</div>
                       ${this.options.map(option => {
                         let shouldRenderComment = false;
@@ -250,13 +251,13 @@ class RoundsHome extends LitElement {
             </section>
           `:'')}
           ${cache(this.matches.map(match => html`
-            <fm-match .round=${this.round} .match=${match}></fm-match>
+            <round-match .round=${this.round} .match=${match}></round-match>
             ${cache(this.users.map(user => {
-              const pick = user.picks.find(p => p.aid === match.aid);        
+              const pick = user.picks.find(p => p.aid === match.aid);
               return html`
-              <section class="pics ${classMap({ 
+              <section class="pics ${classMap({
                   me: user.uid === global.user.uid,
-                  ou: this.round.ou_round === 1 
+                  ou: this.round.ou_round === 1
                 })}">
                 <div class="un">${user.name} ${pick.comment !== null && pick.comment.length > 0 ? html`
                       <comment-button .comment=${pick.comment}></comment-button>` : ''}</div>
@@ -292,18 +293,18 @@ class RoundsHome extends LitElement {
                   .deadline=${match.deadline}></user-pick>` : html`<div class="hp"></div>`}
               </section>
             `}))}
-          `))}     
+          `))}
         </section>
     </football-page>
     `;
   }
-  _makeOptionPicks(e) {
-    e.stopPropagation()
-    switchPath(`/${global.cid}/rounds/${this.round.rid}/bonus`)
+  _gotoRound(e) {
+    e.stopPropagation();
+    switchPath(`/${global.cid}/scores`, {round: this.round.rid});
   }
   _makePicks(e) {
     e.stopPropagation()
-    switchPath(`/${global.cid}/rounds/${this.round.rid}/match`)
+    switchPath(`/${global.cid}/rounds/${this.round.rid}/user`)
   }
 }
 customElements.define('rounds-home', RoundsHome);

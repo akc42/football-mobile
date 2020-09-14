@@ -37,22 +37,20 @@ import { switchPath } from '../modules/utils.js';
 /*
      <fm-match>
 */
-class FmMatch extends LitElement {
+class AdminMatch extends LitElement {
   static get styles() {
     return [emoji,css``];
   }
   static get properties() {
     return {
       round: {type: Object},
-      match: {type: Object},
-      edit: {type: Boolean} //set if editable (by admin)
+      match: {type: Object}
     };
   }
   constructor() {
     super();
     this.round = {rid:0}
     this.match = {cid: global.cid, rid:this.round.rid, aid:''}
-    this.edit = false;
     this._inputReply = this._inputReply.bind(this);
   }
   connectedCallback() {
@@ -137,7 +135,7 @@ class FmMatch extends LitElement {
         .hunder {
           grid-area: hunder;
         }
-        .mt { 
+        .mt {
           grid-area: mt;
           display: flex;
           flex-direction: row;
@@ -162,33 +160,28 @@ class FmMatch extends LitElement {
         .under material-icon {
           color: var(--fm-win-color);
         }
-  
+
       </style>
       <section>
         <div class="emoji">${this.match.comment !== null && this.match.comment.length > 0 ? this.match.comment:''}</div>
         <div class="team aid">
           <img src="/appimages/teams/${this.match.aid}.png" alt="${this.match.aname} team logo"/>
           <div class="sname">${this.match.aid}</div>
-          <material-icon class="${classMap({ pt: this.edit})}" @click=${this._deselectAid}>close</material-icon>
+          <material-icon class="pt" @click=${this._deselectAid}>close</material-icon>
         </div>
-        <div class="score ascore ${classMap({ pt: this.edit })}" @click=${this._setAscore}>
+        <div class="score ascore pt" @click=${this._setAscore}>
           <div class="title">Score</div>
           <div class="num">${this.match.ascore}</div>
         </div>
-        <div class="under aunder ${classMap({ pt: this.edit })}"  @click=${this._makeUnderAid}>
+        <div class="under aunder pt"  @click=${this._makeUnderAid}>
           ${this.match.underdog < 0 ? html`
             <div class="dog">Underdog</div>
             <div class="score">${-this.match.underdog} </div>`: ''}
-          ${!this.edit && this.match.hscore < this.match.ascore ? html`<material-icon>emoji_events</material-icon>` : ''}
         </div>
-        <div class="at ${classMap({pt: (this.edit && this.match.hid !== null && this.match.hid.length > 0) ||
+        <div class="at ${classMap({pt: (this.match.hid !== null && this.match.hid.length > 0) ||
           this.match.deadline > cutoff })}" @click=${this._swapTeams}>
-          ${cache(this.edit ? html`
             <div class="title">Swap</div>
-          `: this.match.deadline > cutoff ? html`
-            <div class="title"><material-icon>create</material-icon> Pick</div>
-          ` : '')}
-          <div class="num">@</div>          
+          <div class="num">@</div>
         </div>
         <div class="score cscore ${classMap({ou: this.round.ou_round === 1})}" @click=${this._setCombinedScore}>
           ${cache(this.round.ou_round === 1 ? html`
@@ -196,36 +189,32 @@ class FmMatch extends LitElement {
             <div class="num">${this.match.combined_score === null ? '' : this.match.combined_score + .5}</div>
           `:'')}
         </div>
-        <div class="score hscore ${classMap({ pt: this.edit })}" @click=${this._setHscore}>
+        <div class="score hscore pt" @click=${this._setHscore}>
           <div class="title">Score</div>
           <div class="num">${this.match.hscore}</div>
         </div>
-        <div class="under hunder ${classMap({ pt: this.edit })}"  @click=${this._makeUnderHid}>
+        <div class="under hunder pt"  @click=${this._makeUnderHid}>
           ${this.match.underdog > 0 ? html`
             <div class="dog">Underdog</div>
             <div class="score">${this.match.underdog}</div>`: ''}
-          ${!this.edit && this.match.hscore > this.match.ascore ? html`<material-icon>emoji_events</material-icon>`:''}
         </div>
         <div class="team hid">
           ${cache(this.match.hid !==null && this.match.hid.length > 0 ? html`
             <img src="/appimages/teams/${this.match.hid}.png" alt="${this.match.hname} team logo"/>
             <div class="sname">${this.match.hid}</div>
-            <material-icon class="${classMap({ pt: this.edit })}" @click=${this._deselectHid}>close</material-icon>    
+            <material-icon class="pt" @click=${this._deselectHid}>close</material-icon>
           `:'')}
         </div>
         <div class="mt">
-          ${cache(this.edit ? html`
-            <calendar-input .value=${this.match.match_time} withTime @value-changed=${this._newMatchTime}></calendar-input>
-            <div class="misc">
-              <fm-checkbox .value=${this.match.open} @value-changed=${this._setOpen}>Open</fm-checkbox>
-              <comment-button edit class="match" .comment=${this.match.comment} @comment-changed=${this._commentChanged}></comment-button> 
-            </div>
-          `: html`
-            <date-format .date=${this.match.match_time} withTime></date-format>
-            ${this.round.ou_round === 1 ? html`
-              <div>${(this.match.ascore + this.match.hscore) > (this.match.combined_score + 0.5) ? 'Over' : 'Under'}</div>
-            `:''}
-          `)} 
+          <calendar-input .value=${this.match.match_time} withTime @value-changed=${this._newMatchTime}></calendar-input>
+          <div class="misc">
+            <fm-checkbox .value=${this.match.open} @value-changed=${this._setOpen}>Open</fm-checkbox>
+            <comment-button
+              edit
+              class="match"
+              .comment=${this.match.comment}
+              @comment-changed=${this._commentChanged}></comment-button>
+          </div>
         </div>
       </section>
     `;
@@ -234,84 +223,77 @@ class FmMatch extends LitElement {
     e.stopPropagation();
     if(this.match.comment != e.changed) {
       this.match.comment = e.changed;
-      if (this.edit) this.dispatchEvent(new MatchChanged({rid: this.round.rid, aid: this.match.aid, comment:this.match.comment}));
+      this.dispatchEvent(new MatchChanged({rid: this.round.rid, aid: this.match.aid, comment:this.match.comment}));
     }
   }
   _deselectAid(e) {
     e.stopPropagation();
-    if (this.edit) this.dispatchEvent(new TeamDeselected(this.match.aid));
+    this.dispatchEvent(new TeamDeselected(this.match.aid));
   }
   _deselectHid(e) {
     e.stopPropagation();
-    if (this.edit) this.dispatchEvent(new TeamDeselected(this.match.hid));
+    this.dispatchEvent(new TeamDeselected(this.match.hid));
   }
   _inputReply(e) {
     e.stopPropagation();
-    if (this.edit) {
-      if (e.reply.field === 'underdog' && this.match.underdog < 0) {
-        this.match.underdog = -e.reply.value;
-      } else {
-        this.match[e.reply.field] = e.reply.value;
-      }
-      const params = { rid: this.round.rid, aid: this.match.aid };
-      params[e.reply.field] = this.match[e.reply.field];
-      this.dispatchEvent(new MatchChanged(params));
+    if (e.reply.field === 'underdog' && this.match.underdog < 0) {
+      this.match.underdog = -e.reply.value;
+    } else {
+      this.match[e.reply.field] = e.reply.value;
     }
+    const params = { rid: this.round.rid, aid: this.match.aid };
+    params[e.reply.field] = this.match[e.reply.field];
+    this.dispatchEvent(new MatchChanged(params));
   }
   async _makeUnderAid(e) {
     e.stopPropagation();
-    if (this.edit) {
-      this.match.underdog = -Math.max(1, this.match.underdog);
-      await this.requestUpdate();
-      const dog = this.shadowRoot.querySelector('.dog');
-      dog.dispatchEvent(new InputRequest({field: 'underdog', value: -this.match.underdog}))
-    }
+    this.match.underdog = -Math.max(1, this.match.underdog);
+    await this.requestUpdate();
+    const dog = this.shadowRoot.querySelector('.dog');
+    dog.dispatchEvent(new InputRequest({field: 'underdog', value: -this.match.underdog}))
   }
   async _makeUnderHid(e) {
     e.stopPropagation();
-    if (this.edit) {
-      this.match.underdog = -Math.min(-1, this.match.underdog);
-      await this.requestUpdate();
-      const dog = this.shadowRoot.querySelector('.dog');
-      dog.dispatchEvent(new InputRequest({ field: 'underdog', value: this.match.underdog }))
-    }
+    this.match.underdog = -Math.min(-1, this.match.underdog);
+    await this.requestUpdate();
+    const dog = this.shadowRoot.querySelector('.dog');
+    dog.dispatchEvent(new InputRequest({ field: 'underdog', value: this.match.underdog }));
   }
   async _newMatchTime(e) {
     e.stopPropagation();
-    if (this.edit) {
-      this.match.match_time = e.changed;
-      this.dispatchEvent(new MatchChanged({rid: this.round.rid, aid: this.match.aid, match_time: this.match.match_time}));
-    }
+
+    this.match.match_time = e.changed;
+    this.dispatchEvent(new MatchChanged({rid: this.round.rid, aid: this.match.aid, match_time: this.match.match_time}));
+
   }
   _setAscore(e) {
     e.stopPropagation();
-    if (this.edit) e.currentTarget.dispatchEvent(new InputRequest({ field: 'ascore', value: this.match.ascore }));
+    e.currentTarget.dispatchEvent(new InputRequest({ field: 'ascore', value: this.match.ascore }));
   }
   _setCombinedScore(e) {
     e.stopPropagation();
-    if (this.edit && this.round.ou_round === 1) {
+    if (this.round.ou_round === 1) {
       e.currentTarget.dispatchEvent(new InputRequest({ field: 'combined_score', value: this.match.combined_score}));
     }
   }
   _setHscore(e) {
     e.stopPropagation();
-    if (this.edit) e.currentTarget.dispatchEvent(new InputRequest({ field: 'hscore', value: this.match.hscore }));
+    e.currentTarget.dispatchEvent(new InputRequest({ field: 'hscore', value: this.match.hscore }));
   }
   async _setOpen(e) {
     e.stopPropagation();
-    if (this.edit) {
-      this.match.open = e.changed? 1:0;
-      this.dispatchEvent(new MatchChanged({ rid: this.round.rid, aid: this.match.aid, open: this.match.match_time }));
-    }
+    this.match.open = e.changed? 1:0;
+    this.dispatchEvent(new MatchChanged({
+      rid: this.round.rid,
+      aid: this.match.aid,
+      open: this.match.match_time
+    }));
   }
   _swapTeams(e) {
     e.stopPropagation();
-    if (this.edit && this.match.hid !== null && this.match.hid.length > 0) {
+    if (this.match.hid !== null && this.match.hid.length > 0) {
       this.dispatchEvent(new MatchSwap({rid: this.round.rid, aid: this.match.aid}))
-    } else {
-      const cutoff = Math.floor(new Date().getTime() / 1000);
-      if (this.match.deadline > cutoff) switchPath(`/${global.cid}/rounds/${this.round.rid}/match`);
     }
   }
 }
-customElements.define('fm-match', FmMatch);
+customElements.define('admin-match', AdminMatch);

@@ -34,7 +34,7 @@ const debug = new Debug('rounds');
 */
 class RoundsManager extends RouteManager {
   static get styles () {
-    return css`      
+    return css`
       :host {
         height: 100%;
       }
@@ -44,6 +44,7 @@ class RoundsManager extends RouteManager {
     return {
       roundRoute: {type: Object}, //the route that got used here
       users: {type: Array}, //to hold full competitions cache result
+      admin: {type: Boolean}, //if set this is admin able to make picks on behalf og users
       user: {type: Object}, //to hold selected user (including their picks)
       round: {type: Object},
       options: {type: Array},
@@ -78,7 +79,7 @@ class RoundsManager extends RouteManager {
   }
   update(changed) {
     if (changed.has('route') && this.route.active) {
-      if (typeof this.route.params.rid === 'number') {  
+      if (typeof this.route.params.rid === 'number') {
         this._newRoute();
       }
     }
@@ -99,30 +100,27 @@ class RoundsManager extends RouteManager {
   render() {
     return html`
       <style>
-  
+
       </style>
       ${cache({
-        home: html`<rounds-home 
+        home: html`<rounds-home
           managed-page
-          .users=${this.users} 
+          .users=${this.users}
+          ?admin=${this.admin}
           .round=${this.round}
           .next=${this.next}
           .previous=${this.previous}
           .options=${this.options}
           .matches=${this.matches}
           @round-changed=${this._gotoRound}></rounds-home>`,
-        bonus: html`<rounds-bonus 
-          managed-page 
-          .user=${this.user} 
+        user: html`<rounds-user
+          managed-page
+          .user=${this.user}
           .round=${this.round}
           .options=${this.options}
-          @option-pick=${this._optionPick}></rounds-bonus>`,
-        match: html`<rounds-match 
-          managed-page 
-          .user=${this.user} 
-          .round=${this.round}
           .matches=${this.matches}
-          @match-pick=${this._matchPick}k></rounds-match>`
+          @match-pick=${this._matchPick}
+          @option-pick=${this._optionPick}></rounds-user>`
       }[this.page])}
     `;
   }
@@ -143,6 +141,7 @@ class RoundsManager extends RouteManager {
   }
   _gotoRound(e) {
     e.stopPropagation();
+    this.rRouter.
     this.rRouter.params = e.changed;
   }
   async _newRoute() {
@@ -153,9 +152,17 @@ class RoundsManager extends RouteManager {
       this.dispatchEvent(new WaitRequest(true));
       const response = await api(`user/${global.cid}/round_data`,{rid: this.route.params.rid});
       this.dispatchEvent(new WaitRequest(false));
+      if (this.roundRoute.query.admin !== undefined &&
+        (global.user.uid === global.luid || global.user.global_admin == 1)) {
+        this.next = 0;
+        this.previous == 0;
+        this.admin = true;
+      } else {
+        this.admin = false;
+        this.next = response.next;
+        this.previous = response.previous;
+      }
       this.round = response.round;
-      this.next = response.next;
-      this.previous = response.previous;
       this.matches = response.cache.matches;
       this.round.match_deadline = 0; //very latest match deadline we can use to control if link to make picks
       for (const match of this.matches) {

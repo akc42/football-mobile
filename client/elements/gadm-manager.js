@@ -23,6 +23,7 @@ import {MenuAdd, MenuReset,WaitRequest, CompetitionsReread} from '../modules/eve
 import RouteManager from './route-manager.js';
 import api from '../modules/api.js';
 import global from '../modules/globals.js';
+import { switchPath } from '../modules/utils.js';
 
 
 /*
@@ -58,8 +59,12 @@ class GadmManager extends RouteManager {
   }
   update(changed) {
     if (changed.has('route') && this.route.active) {
-      this._newRoute();
-    } 
+      if (global.user.global_admin) {
+        this._newRoute();
+      } else {
+        switchPath(`/${global.cid}`);
+      }
+    }
     super.update(changed);
   }
   firstUpdated() {
@@ -72,10 +77,10 @@ class GadmManager extends RouteManager {
       <style >
       </style >
       ${cache({
-          home: html`<gadm-home 
-            managed-page 
-            .users=${this.users} 
-            .competitions=${this.competitions} 
+          home: html`<gadm-home
+            managed-page
+            .users=${this.users}
+            .competitions=${this.competitions}
             @competition-changed=${this._competitionChanged}
             @competition-create=${this._newCompetition}
             @competition-delete=${this._deleteCompetition}></gadm-home>`,
@@ -103,7 +108,7 @@ class GadmManager extends RouteManager {
       this.competitions = this.competitions.slice(0);
       this.dispatchEvent(new CompetitionsReread());
     }
-  } 
+  }
   async _deleteCompetition(e) {
     e.stopPropagation();
     const cid = parseInt(e.cid,10);
@@ -115,10 +120,10 @@ class GadmManager extends RouteManager {
         this.competitions.splice(index);
         this.competitions = this.competitions.slice(0);  //update competitions so it causes and update.
       }
-      if (global.cid === cid) global.cid = 0;  //if we deleted the competition we are connected to 
+      if (global.cid === cid) global.cid = 0;  //if we deleted the competition we are connected to
       this.dispatchEvent(new CompetitionsReread());
     }
-  } 
+  }
   async _newCompetition(e) {
     e.stopPropagation();
     const competition = e.competition;

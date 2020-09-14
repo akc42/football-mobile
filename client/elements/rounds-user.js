@@ -30,7 +30,7 @@ import './date-format.js';
 import './material-icon.js';
 import './round-header.js';
 import './user-pick.js';
-import './fm-match.js';
+import './user-match.js';
 import './comment-button.js';
 
 import { switchPath } from '../modules/utils.js';
@@ -248,7 +248,7 @@ class RoundsUser extends LitElement {
           ${cache(this.matches.map(match => {
             const pick = this.user.picks.find(p => p.aid === match.aid);
             return html`
-              <fm-match .round=${this.round} .match=${match}></fm-match>
+              <user-match .round=${this.round} .match=${match}></user-match>
               <section class="pics me ${classMap({ou: this.round.ou_round === 1})}">
                 <div class="un">${this.user.name}
                   <comment-button edit .comment=${pick.comment}></comment-button>

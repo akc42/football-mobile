@@ -22,6 +22,9 @@ import { LitElement, html, css } from '../libs/lit-element.js';
 import './fm-page.js';
 import page from '../styles/page.js';
 import './list-manager.js';
+import { switchPath } from '../modules/utils.js';
+import { WaitRequest } from '../modules/events.js';
+import api from '../modules/api.js';
 
 
 /*
@@ -33,12 +36,14 @@ class ApproveManager extends LitElement{
   }
   static get properties() {
     return {
-      members: {type: Array}
+      members: {type: Array},
+      route: {type: Object}
     };
   }
   constructor() {
     super();
     this.members = [];
+    this.route = {active: false};
   }
   connectedCallback() {
     super.connectedCallback();
@@ -47,6 +52,13 @@ class ApproveManager extends LitElement{
     super.disconnectedCallback();
   }
   update(changed) {
+    if (changed.has('route') && this.route.active) {
+      if (global.user.global_admin === 1 || global.user.member_approve === 1) {
+        this._newRoute();
+      } else {
+        switchPath(`/${global.cid}`)
+      }
+    }
     super.update(changed);
   }
   firstUpdated() {
@@ -59,11 +71,20 @@ class ApproveManager extends LitElement{
       <style>
       </style>
       <fm-page id="page" heading="New Member Approval">
-        <list-manager custom="approve-item" .items=${this.members}>
-          <div>Not Implemented Yet</div>
-        </list-manager>
+        <section class="scrollable">
+          ${cache(this.members.map(member => html`
+            
+          `))}
+        </section>
       </fm-page>
     `;
+  }
+  async _newRoute() {
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api('approve/members_waiting');
+    this.dispatchEvent(new WaitRequest(false));
+    this.members = response.members;
+
   }
 }
 customElements.define('approve-manager', ApproveManager);

@@ -35,7 +35,7 @@ import './calendar-dialog.js';
 */
 class AdminManager extends RouteManager {
   static get styles() {
-    return css`        
+    return css`
       :host {
         height: 100%;
       }
@@ -72,7 +72,12 @@ class AdminManager extends RouteManager {
   }
   update(changed) {
     if (changed.has('route') && this.route.active) {
-      this._newRoute();
+      if (global.user.global_admin === 1 ||
+        (global.lcid === global.cid && global.user.uid === global.luid )) {
+        this._newRoute();
+      } else {
+        switchPath(`/${global.cid}/`);  //can't allow non admin
+      }
     }
     super.update(changed);
   }
@@ -85,14 +90,14 @@ class AdminManager extends RouteManager {
       </style>
       <calendar-dialog></calendar-dialog>
       ${cache({
-        home: html`<admin-home 
-          .competition=${this.competition} 
+        home: html`<admin-home
+          .competition=${this.competition}
           managed-page
-          .maxtic=${this.maxtic} 
+          .maxtic=${this.maxtic}
           .rid=${this.rid}
           @teams-set=${this._teamsSet}
           @competition-changed=${this._competitionChanged}></admin-home>`,
-        teams: html`<admin-teams 
+        teams: html`<admin-teams
           managed-page
           .confs=${this.confs}
           .divs=${this.divs}
@@ -104,12 +109,12 @@ class AdminManager extends RouteManager {
           @team-eliminated=${this._teamEliminate}
           @team-lock=${this._teamLocked}
           @team-point=${this._teamPoint}></admin-teams>`,
-        rounds: html`<admin-rounds 
+        rounds: html`<admin-rounds
           managed-page
           .confs=${this.confs}
           .divs=${this.divs}
-          .rounds=${this.rounds} 
-          .teams=${this.tics} 
+          .rounds=${this.rounds}
+          .teams=${this.tics}
           .route=${this.subRoute}
           @round-changed=${this._roundChanged}
           @round-create=${this._roundCreate}
@@ -158,7 +163,7 @@ class AdminManager extends RouteManager {
         this.teams = response.teams;
         this.tics = this.teams.filter(t => t.points !== null);
       }
-      this.users = response.users; 
+      this.users = response.users;
       this.confs = response.confs;
       this.divs = response.divs;
       if (this.rounds.length > 0) {
@@ -180,8 +185,8 @@ class AdminManager extends RouteManager {
     this.dispatchEvent(new WaitRequest(false));
     this.rounds = this.rounds.map( r => {
       if (r.rid === response.round.rid) return response.round
-      return {...r}; 
-    });   
+      return {...r};
+    });
   }
   async _roundCreate(e) {
     e.stopPropagation();

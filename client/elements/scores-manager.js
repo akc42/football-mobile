@@ -19,7 +19,7 @@
 */
 import { LitElement, html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
-import {classMap} from '../libs/class-map.js'; 
+import {classMap} from '../libs/class-map.js';
 
 
 import { WaitRequest } from '../modules/events.js';
@@ -36,7 +36,7 @@ import page from '../styles/page.js'
 class ScoresManager extends LitElement {
 
   static get styles() {
-    return [page,css`        
+    return [page,css`
       header.total, section.usertotal {
         grid-template-columns: 1fr 1fr 1fr;
         grid-template-areas:
@@ -139,11 +139,18 @@ class ScoresManager extends LitElement {
     }
     super.update(changed);
   }
+  updated(changed) {
+    if (changed.has('route') && this.route.active && this.route.query.round !== undefined) {
+      const link = `#round${this.route.query.round}`;
+      const element = this.shadowRoot.querySelector(link);
+      element.scrollIntoView({behaviour: 'smooth', block: 'start'});
+    }
+  }
   render() {
     return html`
       <football-page heading="Summary">
-        <section class="scrollable"> 
-          <header class="ts">Total Scores</header>      
+        <section class="scrollable">
+          <header class="ts">Total Scores</header>
           <header class="total">
             <div class="un">Name</div>
             <div class="rs">Round Score</div>
@@ -151,7 +158,7 @@ class ScoresManager extends LitElement {
             <div class="ts">Total Score</div>
           </header>
           ${cache(this.users.map(user => html`
-            <section class="usertotal ${classMap({me: global.user.uid === user.uid})}">    
+            <section class="usertotal ${classMap({me: global.user.uid === user.uid})}">
               <div class="un" >${user.name}</div>
               <div class="rs" >${user.rscore}</div>
               <div class="ps" >${user.lscore}</div>
@@ -160,9 +167,9 @@ class ScoresManager extends LitElement {
           `))}
           ${cache(this.rounds.map((round,idx) => html`
             <section id="round${round.rid}" class="round" data-rid=${round.rid} @click=${this._gotoRound}>
-              <round-header 
-                .round=${round} 
-                .previous=${idx < this.rounds.length - 1 ? this.rounds[idx + 1].rid : 0} 
+              <round-header
+                .round=${round}
+                .previous=${idx < this.rounds.length - 1 ? this.rounds[idx + 1].rid : 0}
                 .next=${idx === 0 ? 0: this.rounds[idx-1].rid}
                 @round-changed=${this._gotoRoundOnPage}></round-header>
               <header class="round">
@@ -181,8 +188,8 @@ class ScoresManager extends LitElement {
                   <div class="ou">${round.ou_round === 1 ? user.oscore: ''}</div>
                   <div class="mt">${user.mscore}</div>
                   <div class="bs">${round.valid_question === 1 ? user.bscore: ''}</div>
-                  <div class="rs">${user.score}</div> 
-                </section>           
+                  <div class="rs">${user.score}</div>
+                </section>
               `))}
             </section>
           `))}
@@ -191,7 +198,7 @@ class ScoresManager extends LitElement {
 
       </football-page>
     `;
-  
+
   }
   _gotoRound(e) {
     e.stopPropagation();
@@ -216,7 +223,7 @@ class ScoresManager extends LitElement {
       response.cache.users.forEach(user => map.set(user.uid, user)); //user ordered ones first
       response.users.forEach(user => map.set(user.uid, {...map.get(user.uid), ...user}));
       this.users = Array.from(map.values());
-      
+
       this.rounds = response.rounds;
       for(const round of this.rounds) {
         round.users = response.cache.rounds.filter(r => r.rid === round.rid).sort((a,b) => b.score - a.score)

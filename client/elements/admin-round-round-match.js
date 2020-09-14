@@ -21,7 +21,7 @@ import { LitElement, html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
 import './football-page.js';
-import './fm-match.js';
+import './admin-match.js';
 import './match-conf-div.js';
 import './dialog-box.js';
 import './fm-input.js';
@@ -122,8 +122,8 @@ class AdminRoundRoundMatch extends LitElement {
           message="Number Required"
           type="number"
           step="1"
-          min="1" 
-          .value=${this.value} 
+          min="1"
+          .value=${this.value}
           @value-changed=${this._valueChanged}></fm-input>
       </dialog-box>
       <football-page id="page" heading="Match Management">
@@ -136,20 +136,19 @@ class AdminRoundRoundMatch extends LitElement {
         <section class="scrollable">
           <section class="matches">
             ${cache(this.matches.map(match => html`
-              <fm-match
+              <admin-match
                 id="M${match.aid}"
-                edit
-                .round=${this.round} 
-                .match=${match} 
+                .round=${this.round}
+                .match=${match}
                 @team-deselected=${this._teamDeselected}
-                @input-request=${this._inputRequest}></fm-match>
+                @input-request=${this._inputRequest}></admin-match>
             `))}
           </section>
           <hr/>
           <section class="teams">
-          ${cache(this.confs.map(conf => this.divs.map(div => 
+          ${cache(this.confs.map(conf => this.divs.map(div =>
           html`
-            <match-conf-div id="${conf.confid+div.divid}" .conf=${conf} .div=${div} .teams=${this.unmatched} @team-selected=${this._teamSelected}></match-conf-div> 
+            <match-conf-div id="${conf.confid+div.divid}" .conf=${conf} .div=${div} .teams=${this.unmatched} @team-selected=${this._teamSelected}></match-conf-div>
           `)))}
           </section>
 
@@ -197,7 +196,7 @@ class AdminRoundRoundMatch extends LitElement {
         const mcd = this.shadowRoot.querySelector(`#${team.confid + team.divid}`);
         if (mcd !== undefined) mcd.dispatchEvent(new TeamDeselected(tid)); //tell just the correct match-conf-div they have a team back
       }
-    }  
+    }
   }
   _teamSelected(e) {
     e.stopPropagation();
@@ -214,7 +213,7 @@ class AdminRoundRoundMatch extends LitElement {
         if (idx >= 0) this.unmatched.splice(idx,1);  //silently remove from teams (no need to trigger update yet);
         this.dispatchEvent(new MatchChanged({rid: this.round.rid, aid: match.aid, hid: tid}));
       }
-    } 
+    }
   }
   _valueChanged(e) {
     e.stopPropagation();
