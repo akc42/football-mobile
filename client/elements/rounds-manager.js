@@ -141,7 +141,6 @@ class RoundsManager extends RouteManager {
   }
   _gotoRound(e) {
     e.stopPropagation();
-    this.rRouter.
     this.rRouter.params = {rid:e.rid};
   }
   async _newRoute() {
