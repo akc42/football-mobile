@@ -310,7 +310,7 @@ class UserMatch extends LitElement {
   async _makeUnderAid(e) {
     e.stopPropagation();
     const cutoff = Math.floor(new Date().getTime() / 1000);
-    if (cutoff < this.match.deadline && tmatchou_round === 1) {
+    if (cutoff < this.match.deadline && this.round.ou_round === 1) {
       this.pick.over_selected = 0;  
       this.dispatchEvent(new MatchPick(this.pick));
     }

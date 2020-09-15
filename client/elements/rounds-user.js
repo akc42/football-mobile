@@ -43,90 +43,7 @@ import { OptionPick } from '../modules/events.js';
 */
 class RoundsUser extends LitElement {
   static get styles() {
-    return [page,emoji,opids,css``];
-  }
-  static get properties() {
-    return {
-      user: {type: Array},
-      round: {type: Object},
-      matches: {type: Array},
-      options: {type: Array},
-      timeLeft: {type: String} //timeLeft to make option Picks
-    };
-  }
-  constructor() {
-    super();
-    this.users = [];
-    this.round = {rid:0, name:'', valid_question: 0};
-    this.matches = [];
-    this.options = [];
-    this.next = 0;
-    this.previous = 0;
-    this.timeLeft = '';
-    this.timer = 0;
-
-  }
-  connectedCallback() {
-    super.connectedCallback();
-    if (this.round.valid_question === 1) {
-      const cutoff = Math.floor(new Date().getTime() / 1000);
-      this.seconds = this.round.deadline - cutoff;
-      this.timeLeft = '';
-      if (this.seconds > 0) {
-        this.timeLeft = this.toHHMMSS(this.seconds);
-        this.timer = setInterval(() => {
-          this.seconds--;
-          if (this.seconds >= 0) {
-            this.timeLeft = this.toHHMMSS(this.seconds);
-          } else {
-            clearInterval(this.timer);
-          }
-        }, 1000);
-      }
-    }
- }
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    if (this.timer !== 0) {
-      clearInterval(this.timer);
-      this.timer = 0;
-      this.timeLeft = '';
-    }
-  }
-  update(changed) {
-    if (changed.has('round') && this.round.valid_question === 1 && 
-      (changed.get('round') === undefined || changed.get('round').deadline !== this.round.deadline)) {
-      if (this.timer !== 0) {
-        clearInterval(this.timer);
-      }
-      //start a new count down as the deadline has changed.
-      const cutoff = Math.floor(new Date().getTime() / 1000);
-      this.seconds = this.round.deadline - cutoff;
-      this.timeLeft = '';
-      if (this.seconds > 0) {
-        this.timeLeft = this.toHHMMSS(this.seconds);
-        this.timer = setInterval(() => {
-          this.seconds--;
-          if (this.seconds >= 0) {
-            this.timeLeft = this.toHHMMSS(this.seconds);
-          } else {
-            clearInterval(this.timer);
-          }
-        }, 1000);
-      }
-    }
-    super.update(changed);
-
-  }
-
-  firstUpdated() {
-  }
-  updated(changed) {
-    super.updated(changed);
-  }
-  render() {
-    return html`
-      <style>
+    return [page,emoji,opids,css`
         :host {
           --icon-size: 20px;
         }
@@ -222,7 +139,89 @@ class RoundsUser extends LitElement {
         .deadline material-icon {
           color: var(--item-present);
         }
-      </style>
+      `];
+  }
+  static get properties() {
+    return {
+      user: {type: Array},
+      round: {type: Object},
+      matches: {type: Array},
+      options: {type: Array},
+      timeLeft: {type: String} //timeLeft to make option Picks
+    };
+  }
+  constructor() {
+    super();
+    this.users = [];
+    this.round = {rid:0, name:'', valid_question: 0};
+    this.matches = [];
+    this.options = [];
+    this.next = 0;
+    this.previous = 0;
+    this.timeLeft = '';
+    this.timer = 0;
+
+  }
+  connectedCallback() {
+    super.connectedCallback();
+    if (this.round.valid_question === 1) {
+      const cutoff = Math.floor(new Date().getTime() / 1000);
+      this.seconds = this.round.deadline - cutoff;
+      this.timeLeft = '';
+      if (this.seconds > 0) {
+        this.timeLeft = this.toHHMMSS(this.seconds);
+        this.timer = setInterval(() => {
+          this.seconds--;
+          if (this.seconds >= 0) {
+            this.timeLeft = this.toHHMMSS(this.seconds);
+          } else {
+            clearInterval(this.timer);
+          }
+        }, 1000);
+      }
+    }
+ }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this.timer !== 0) {
+      clearInterval(this.timer);
+      this.timer = 0;
+      this.timeLeft = '';
+    }
+  }
+  update(changed) {
+    if (changed.has('round') && this.round.valid_question === 1 && 
+      (changed.get('round') === undefined || changed.get('round').deadline !== this.round.deadline)) {
+      if (this.timer !== 0) {
+        clearInterval(this.timer);
+      }
+      //start a new count down as the deadline has changed.
+      const cutoff = Math.floor(new Date().getTime() / 1000);
+      this.seconds = this.round.deadline - cutoff;
+      this.timeLeft = '';
+      if (this.seconds > 0) {
+        this.timeLeft = this.toHHMMSS(this.seconds);
+        this.timer = setInterval(() => {
+          this.seconds--;
+          if (this.seconds >= 0) {
+            this.timeLeft = this.toHHMMSS(this.seconds);
+          } else {
+            clearInterval(this.timer);
+          }
+        }, 1000);
+      }
+    }
+    super.update(changed);
+
+  }
+
+  firstUpdated() {
+  }
+  updated(changed) {
+    super.updated(changed);
+  }
+  render() {
+    return html`
       <football-page heading="Make Picks">
         <round-header .round=${this.round} .next=${0} .previous=${0}></round-header>
         <header class="rs">
