@@ -22,6 +22,7 @@ import { LitElement, html } from '../libs/lit-element.js';
 import global from '../modules/globals.js';
 import {switchPath} from '../modules/utils.js';
 import api from '../modules/api.js';
+import { WaitRequest } from '../modules/events.js';
 
 
 
@@ -49,10 +50,13 @@ class HomeManager extends LitElement {
     if (global.cid !== global.lcid) {
       switchPath(`/${global.cid}/scores`);
     } else {
+      this.dispatchEvent(new WaitRequest(true));
       const response = await api(`/user/${global.lcid}/can_register`);
+
       if (response.isOpen) {
         if (response.isRegistered) {
           const response = await api(`/user/${global.lcid}/can_pick`);
+          this.dispatchEvent(new WaitRequest(false));
           if (response.rid === 0) {
             if(response.poffs > 0) {
               switchPath(`/${global.cid}/teams/user`)
@@ -64,20 +68,23 @@ class HomeManager extends LitElement {
               }
             }
           } else {
-            if (response.bonus) {
-              switchPath(`/${global.cid}/rounds/${response.rid}/bonus`);
-            } else if (response.matches > 0) {
-              switchPath(`/${global.cid}/rounds/${response.rid}/match`);
+            if (response.bonus || response.matches > 0) {
+              switchPath(`/${global.cid}/rounds/${response.rid}/user`);
+
             } else {
               switchPath(`/${global.cid}/rounds/${response.rid}`);
             }
           }
-        } else if (response.canRegister) {
-          switchPath(`/${global.cid}/register`);
         } else {
-          switchPath(`/${global.cid}/scores`);
+          this.dispatchEvent(new WaitRequest(false));
+          if (response.canRegister) {
+            switchPath(`/${global.cid}/register`);
+          } else {
+            switchPath(`/${global.cid}/scores`);
+          }
         }
       } else {
+        this.dispatchEvent(new WaitRequest(false));
         if (global.user.uid === global.luid) {
           switchPath(`/${global.cid}/admin`);
         } else {

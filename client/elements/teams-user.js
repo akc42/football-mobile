@@ -84,7 +84,7 @@ class TeamsUser extends LitElement {
         }
 
       </style>
-      <football-page id="page" heading="Make Picks" nohead>
+      <football-page id="page" heading="Make Playoff Picks" nohead>
         <div slot="heading">${this.user.name}</div>
         <section id="list" class="scrollable">
           ${cache(this.confs.map(conf => this.divs.map(div => html`

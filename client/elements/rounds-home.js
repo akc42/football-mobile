@@ -101,11 +101,18 @@ class RoundsHome extends LitElement {
           background-color: var(--background-color);
         }
         .points {
-          text-align: center;
+          text-align: left;
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
           font-weight: bold;
         }
+        .points material-icon {
+          cursor: pointer;
+          color: var(--create-item-color);
+        }
         .excl {
-          text-align: center;
+          text-align: left;
         }
         .rcom {
           margin-top: 1px;
@@ -201,7 +208,12 @@ class RoundsHome extends LitElement {
       <football-page heading="Round Data" ?nohead=${this.admin}>
         <round-header .round=${this.round} .next=${this.next} .previous=${this.previous}></round-header>
         <header class="rs" @click=${this._gotoRound}>
-          <div class="points">Points ${this.round.value}</div>
+          <div class="points">
+            <div>Points ${this.round.value}</div>
+            ${(cutoff < this.round.match_deadline || cutoff < this.round.deadline) ? html`
+              <material-icon @click=${this._makePicks}>create</material-icon>
+            `:html`<div>&nbsp;</div>`}
+          </div>
           <div class="excl">(excluding underdog points)</div>
            ${this.round.comment && this.round.comment.length > 0 ? html`
             <div class="emoji rcom">${this.round.comment}</div>
@@ -234,9 +246,7 @@ class RoundsHome extends LitElement {
                 </header>
                 ${cache(this.users.map(user => html`
                   <section class="options ${classMap({me: user.uid === global.user.uid})}">
-                    <div class="un">${user.name} ${user.uid === global.user.uid && this.round.deadline > cutoff ? html`
-                      <material-icon @click=${this._makePicks}>create</material-icon>
-                    `:''}</div>
+                    <div class="un">${user.name}</div>
                       ${this.options.map(option => {
                         let shouldRenderComment = false;
                         if (!this.admin && !renderedComment && user.comment !== null && user.comment.length > 0) {
@@ -272,7 +282,7 @@ class RoundsHome extends LitElement {
                 <div class="home">${match.hid}</div>
                 ${pick !== undefined && pick.pid === match.aid ? html`<user-pick class="ap"
                   ?result=${match.match_time < cutoff}
-                  ?correct=${match.ascore > match.hscore}
+                  ?correct=${match.ascore >= match.hscore}
                   ?admin=${pick.admin_made === 1}
                   .made=${pick.submit_time}
                   .deadline=${match.deadline}></user-pick>`: html`<div 
@@ -308,7 +318,7 @@ class RoundsHome extends LitElement {
                 `: html`<div class="empty"></div>`)}
                 ${pick !== undefined && pick.pid === match.hid ? html`<user-pick clss="hp"
                   ?result=${match.match_time < cutoff}
-                  ?correct=${match.ascore < match.hscore}
+                  ?correct=${match.ascore <= match.hscore}
                   ?admin=${pick.admin_made === 1}
                   .made=${pick.submit_time}
                   .deadline=${match.deadline}></user-pick>` : html`<div class="hp ${classMap({pt: this.admin})}" 

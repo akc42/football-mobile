@@ -26,6 +26,7 @@ import './match-conf-div.js';
 import './dialog-box.js';
 import './fm-input.js';
 import './material-icon.js';
+import './round-header.js';
 
 import page from '../styles/page.js';
 import { InputReply, MatchCreate, MatchChanged, TeamDeselected, MatchSwap, MatchDelete } from '../modules/events.js';
@@ -107,7 +108,7 @@ class AdminRoundRoundMatch extends LitElement {
           --dialog-color: var(--background-color);
         }
         #input {
-          --input-width: 35px;
+          --input-width: 40px;
           margin: 20px;
         }
         .icons {
@@ -127,12 +128,7 @@ class AdminRoundRoundMatch extends LitElement {
           @value-changed=${this._valueChanged}></fm-input>
       </dialog-box>
       <football-page id="page" heading="Match Management" nohead>
-        <div slot="heading">${this.round.name}</div>
-        ${this.round.ou_round === 1 || this.round.valid_question === 1 ? html`
-          <div slot="heading" class="icons">${this.round.ou_round ?
-            html`<material-icon>thumbs_up_down</material-icon>` : ''}${this.round.valid_question ?
-            html`<material-icon>question_answer</material-icon>` : ''}</div>
-        `: ''}
+        <round-header .round=${this.round}> .next=${0} .previous=${0}</round-header>
         <section class="scrollable">
           <section class="matches">
             ${cache(this.matches.map(match => html`

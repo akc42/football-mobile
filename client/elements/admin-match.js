@@ -286,7 +286,7 @@ class AdminMatch extends LitElement {
     this.dispatchEvent(new MatchChanged({
       rid: this.round.rid,
       aid: this.match.aid,
-      open: this.match.match_time
+      open: this.match.open
     }));
   }
   _swapTeams(e) {

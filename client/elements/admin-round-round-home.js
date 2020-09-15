@@ -179,10 +179,13 @@ class AdminRoundRoundHome extends LitElement {
     }
     super.update(changed);
   }
-  firstUpdated() {
+/*  firstUpdated() {
     this.newOption = this.shadowRoot.querySelector('#newoption');
-  }
+  } */
   updated(changed) {
+    if(changed.has('round') && this.round.valid_question === 1) {
+      this.newOption = this.shadowRoot.querySelector('#newoption');
+    }
     super.updated(changed);
   }
   render() {

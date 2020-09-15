@@ -483,7 +483,7 @@ export class MatchPick extends Event {
   /*
      The following are the fields provided by this event
 
-     pick: {aid: xxx, pid: xxx, over: true/false} (cid, rid and uid already known, pid and over only present if relevant)
+     pick: {cid: xxx, rid: xxx,uid: xxx, aid: xxx, pid: xxx, over: true/false} (pid and over only present if relevant)
 
   */
 

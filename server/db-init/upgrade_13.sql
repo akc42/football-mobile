@@ -197,6 +197,42 @@ REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
 ':har','🙄'),':help', '🥺'),':hug','👐'),':innocent','😉'),':mad','😠'),':out','🤯'),':pickle','🥒'),':prrr','😾'),':rofl','🤣'),':slap','😈'),
 ':sympa','😮'),':thanks','🙏'),':thumbsup','👍'),':wub','❤️'),':yikes','😱'),':zzz','🛌');
 
+CREATE TABLE old_pick (
+    cid integer NOT NULL, -- Competition ID
+    uid integer NOT NULL, --User ID.scha
+    rid integer NOT NULL, --Round ID
+    aid varchar(3) NOT NULL, -- Away Team ID
+    comment text, --Comment on the pick and why it was chosen
+    pid varchar(3), --ID of Team Picked to Win (NULL for Draw)
+    over_selected boolean, --true (=1) if over score is selected
+    submit_time bigint DEFAULT (strftime('%s','now')) NOT NULL, --Time of submission
+    admin_made boolean DEFAULT 0 NOT NULL, --set if admin made pick on behalf of user
+    PRIMARY KEY (cid,uid,rid,aid)
+)
+
+INSERT INTO old_pick (cid, uid, rid, aid, comment, pid, over_selected, submit_time, admin_made)
+    SELECT cid, uid, rid, aid, comment, pid, over_selected, submit_time, admin_made FROM pick;
+
+DROP TABLE pick;
+
+CREATE TABLE pick (
+    cid integer NOT NULL, -- Competition ID
+    uid integer NOT NULL, --User ID.scha
+    rid integer NOT NULL, --Round ID
+    aid varchar(3) NOT NULL, -- Away Team ID
+    comment text, --Comment on the pick and why it was chosen
+    pid varchar(3), --ID of Team Picked to Win (NULL for Draw) zero length string for no selection yet
+    over_selected smallint, --> 0 if over score is selected < 0 if under score is selected 0 = no selection yet
+    submit_time bigint DEFAULT (strftime('%s','now')) NOT NULL, --Time of submission
+    admin_made boolean DEFAULT 0 NOT NULL, --set if admin made pick on behalf of user
+    PRIMARY KEY (cid,uid,rid,aid),
+    FOREIGN KEY (cid,rid,aid) REFERENCES match(cid,rid,aid) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (cid,uid) REFERENCES registration(cid,uid) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (cid,pid) REFERENCES team_in_competition(cid,tid) ON UPDATE CASCADE ON DELETE CASCADE    
+)
+
+INSERT INTO pick (cid, uid, rid, aid, comment, pid, over_selected, submit_time, admin_made)
+    SELECT cid, uid, rid, aid, comment, pid, CASE WHEN over_selected = 0 , submit_time, admin_made FROM old_pick;
 
 
 CREATE TABLE old_team (

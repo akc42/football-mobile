@@ -190,13 +190,21 @@ class RoundsManager extends RouteManager {
     const response = await api(`user/${global.cid}/update_pick`,pick);
     this.dispatchEvent(new WaitRequest(false));
     this.users = this.users.slice(0); //refresh 
-    const user = this.user.find(u => u.uid === pick.uid);
-    this._processUserPicks(user, response.picks)
+    const user = this.users.find(u => u.uid === pick.uid);
+    this._processUserPicks(user, response.picks);
+    this.user = {...user}; //clone it to cause an update.
   }
   async _optionPick(e) {
     e.stopPropagation();
-
-
+    const pick = e.pick;
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api(`user/${global.cid}/update_opick`, pick);
+    this.dispatchEvent(new WaitRequest(false));
+    this.users = this.users.slice(0); //refresh 
+    const user = this.users.find(u => u.uid === pick.uid);
+    user.comment = pick.comment;
+    user.opid = pick.opid;
+    this.user = {...user}; //clone to cause update
   }
   _processUserPicks(user, picks) {
     user.validQuestion = this.round.valid_question; //helps for <fm-round-user> to know what to display
@@ -211,6 +219,8 @@ class RoundsManager extends RouteManager {
         if (match !== undefined && match.deadline < pick.submit_time) user.wasLatePick = true;
       }
       if (pick.admin_made === 1) user.hadAdminSupport = true;
+      pick.rid = this.round.rid;  //add these in as they are part of the key - we just don't store in the cache.
+      pick.cid = global.cid;
     }
   }
 }

@@ -161,9 +161,6 @@ class RoundMatch extends LitElement {
           ${this.match.hscore < this.match.ascore ? html`<material-icon>emoji_events</material-icon>` : ''}
         </div>
         <div class="at ${classMap({pt: this.match.deadline > cutoff })}" @click=${this._makePicks}>
-          ${cache(this.match.deadline > cutoff ? html`
-            <div class="title"><material-icon>create</material-icon> Pick</div>
-          ` : '')}
           <div class="num">@</div>
         </div>
         <div class="score cscore ${classMap({ou: this.round.ou_round === 1})}" @click=${this._setCombinedScore}>

@@ -80,8 +80,7 @@ class FootballPage extends LitElement {
   }
   constructor() {
     super();
-    this.name = '<!--NO NAME-->'; //we need to fetch it but a comment will do in the meantime
-    this.heading = '';
+    this.name = ''; 
     this.next = 0;
     this.previous = 0;
     this.canPick = false;
@@ -102,7 +101,7 @@ class FootballPage extends LitElement {
   }
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.name = '<!--NO NAME-->';
+    this.name = '';
   }
   update(changed) {
     super.update(changed);

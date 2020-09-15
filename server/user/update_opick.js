@@ -25,7 +25,7 @@
   const db = require('../utils/database');
 
   module.exports = async function(user, cid, params) {
-    debug('new request from user', user.uid, 'with cid', cid, 'on behalf or user', params.uid, 'for team', params.pid );
+    debug('new request from user', user.uid, 'with cid', cid, 'on behalf or user', params.uid, 'for option', params.opid );
     const setPick = db.prepare(`REPLACE INTO option_pick (cid, uid, rid, opid, comment, admin_made, submit_time) 
       VALUES (?,?,?,?,?,?, strftime('%s','now'))`);
     const invalidateRoundCache = db.prepare('UPDATE round SET results_cache = NULL WHERE cid = ? and rid = ?');

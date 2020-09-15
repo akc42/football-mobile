@@ -145,8 +145,8 @@ CREATE TABLE pick (
     rid integer NOT NULL, --Round ID
     aid varchar(3) NOT NULL, -- Away Team ID
     comment text, --Comment on the pick and why it was chosen
-    pid varchar(3), --ID of Team Picked to Win (NULL for Draw)
-    over_selected boolean, --true (=1) if over score is selected
+    pid varchar(3), --ID of Team Picked to Win (Null for no pick)
+    over_selected boolean, --true (=1) if over score is selected NULL if no selection YET
     submit_time bigint DEFAULT (strftime('%s','now')) NOT NULL, --Time of submission
     admin_made boolean DEFAULT 0 NOT NULL, --set if admin made pick on behalf of user
     PRIMARY KEY (cid,uid,rid,aid),
