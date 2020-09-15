@@ -26,7 +26,7 @@
 
   const db = require('../utils/database');
 
-  module.exports = function(params) {
+  module.exports = function(user,params, headers, responder) {
     debug('request received for ', params.email);
     let result;
     const checkParticipant = db.prepare('SELECT uid, waiting_approval FROM participant WHERE email = ? ;');

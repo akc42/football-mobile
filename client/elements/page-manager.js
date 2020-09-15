@@ -84,7 +84,7 @@ export class PageManager extends RouteManager {
       <emoji-dialog></emoji-dialog>
 
       ${cache({
-        approve: html`<approve-manager managed-page></approve-manager>`,
+        approve: html`<approve-manager managed-page .route=${this.subRoute}></approve-manager>`,
         admin: html`<admin-manager managed-page .route=${this.subRoute}></admin-manager>`,
         gadm: html`<gadm-manager managed-page .route=${this.subRoute}></gadm-manager>`,
         home:html`<home-manager managed-page></home-manager>`,

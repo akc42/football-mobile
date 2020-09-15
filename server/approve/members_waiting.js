@@ -24,8 +24,8 @@
   const debug = require('debug')('football:api:memberswait');
   const db = require('../utils/database');
 
-  module.exports = async function(user, cid, params, responder) {
-    debug('new request from user', user.uid, 'with cid', cid );
+  module.exports = async function(user,  params, headers, responder) {
+    debug('new request from user', user.uid);
     responder.addSection('members', db.prepare('SELECT * FROM participant WHERE waiting_approval = 1').all());
     debug('all done');
   };

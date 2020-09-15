@@ -86,8 +86,6 @@ class AdminManager extends RouteManager {
   }
   render() {
     return html`
-      <style>
-      </style>
       <calendar-dialog></calendar-dialog>
       ${cache({
         home: html`<admin-home

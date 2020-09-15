@@ -17,22 +17,29 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { LitElement, html, css } from '../libs/lit-element.js';
+import { html, css } from '../libs/lit-element.js';
+import { cache } from '../libs/cache.js';
 
-import './fm-page.js';
-import page from '../styles/page.js';
-import './list-manager.js';
-import { switchPath } from '../modules/utils.js';
-import { WaitRequest } from '../modules/events.js';
+import RouteManager from './route-manager.js';
+import { MenuAdd, MenuReset, WaitRequest, CompetitionsReread } from '../modules/events.js';
 import api from '../modules/api.js';
+import global from '../modules/globals.js';
+import { switchPath } from '../modules/utils.js';
+import Debug from '../modules/debug.js';
+const debug = new Debug('approve');
+import './calendar-dialog.js';
 
 
 /*
      <approve-manager>: Competition Approval of Membership Requests
 */
-class ApproveManager extends LitElement{
+class ApproveManager extends RouteManager{
   static get styles() {
-    return [page, css``];
+    return css`
+      :host {
+        height: 100%;
+      }
+    `;
   }
   static get properties() {
     return {
@@ -70,14 +77,26 @@ class ApproveManager extends LitElement{
     return html`
       <style>
       </style>
-      <fm-page id="page" heading="New Member Approval">
-        <section class="scrollable">
-          ${cache(this.members.map(member => html`
-            
-          `))}
-        </section>
-      </fm-page>
+      ${cache({
+        home: html`<approve-home
+          .members=${this.members}
+          managed-page
+          ></approve-home>`,
+        email: html`<approve-email
+          managed-page
+          ></approve-email>`,
+      }[this.page])}
     `;
+  }
+  loadPage(page) {
+    debug(`loading ${page}`);
+    this.dispatchEvent(new WaitRequest(true));
+    import(`./approve-${page}.js`).then(() => this.dispatchEvent(new WaitRequest(false)));
+    if (page === this.homePage()) {
+      this.dispatchEvent(new MenuReset());
+    } else {
+      this.dispatchEvent(new MenuAdd());
+    }
   }
   async _newRoute() {
     this.dispatchEvent(new WaitRequest(true));

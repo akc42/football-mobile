@@ -303,7 +303,7 @@ INSERT INTO settings (name,value) VALUES('server_port', 2040); --port the api se
 INSERT INTO settings (name,value) VALUES('cookie_name', 'MBBall'); --name used for our main cookie
 INSERT INTO settings (name,value) VALUES('cookie_key', 'newCookieKey'); --key used to encrypt/decrypt cookie token
 INSERT INTO settings (name,value) VALUES('cookie_expires', 720); --hours until expire for standard logged on token
-INSERT INTO settings (name,value) VALUES('recaptch_secret','');  -- secret key or verification of recaptcha.
+INSERT INTO settings (name,value) VALUES('recaptch_secreta','');  -- secret key or verification of recaptcha.
 INSERT INTO settings (name,value) VALUES('verify_expires', 24); --hours until expire for verification tokens.
 INSERT INTO settings (name,value) VALUES('rate_limit', 30); --minutes that must elapse by verification emails
 INSERT INTO settings (name,value) VALUES('membership_rate', 60); --minutes that must elapse between membership requests
