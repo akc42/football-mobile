@@ -420,11 +420,11 @@
       const maps = loadServers(__dirname, 'approve');
       for (const m in maps) {
         debugapi(`setting up /api/approve/${m} route`);
-        approv.post(`/${m}`, (req,res) => {
+        approv.post(`/${m}`, async (req,res) => {
           debugapi(`received /api/approve/${m} request`);
           try {
             const responder = new Responder(res);
-            maps[m](req.user,req.body, req.headers,responder);
+            await maps[m](req.user,req.body, req.headers,responder);
             responder.end();
           } catch(e) {
             errored(req, res, e.toString());
@@ -449,11 +449,11 @@
       const gadms = loadServers(__dirname, 'gadm');
       for (const g in gadms) {
         debugapi(`setting up /api/gadm/${g} route`);
-        gadm.post(`/${g}`, (req, res) => {
+        gadm.post(`/${g}`, async (req, res) => {
           debugapi(`received /api/gadm/${g} request`);
           try {
             const responder = new Responder(res);
-            gadms[g](req.user, req.body, responder);
+            await gadms[g](req.user, req.body, responder);
             responder.end();
           } catch (e) {
             errored(req, res, e.toString());
@@ -486,11 +486,11 @@
       const admins = loadServers(__dirname, 'admin');
       for (const a in admins) {
         debugapi(`setting up /api/admin/:cid/${a} route`);
-        admin.post(`/${a}`, (req, res) => {
+        admin.post(`/${a}`, async (req, res) => {
           debugapi(`received /api/admin/${req.params.cid}/${a}`);
           try {
             const responder = new Responder(res);
-            admins[a](req.user,parseInt(req.params.cid,10),req.body, responder);
+            await admins[a](req.user,parseInt(req.params.cid,10),req.body, responder);
             responder.end();
           } catch (e) {
             errored(req, res, e.toString());
@@ -505,11 +505,11 @@
       const users = loadServers(__dirname, 'user');      
       for (const u in users) {
         debugapi(`Setting up /api/user/:cid/${u} route`);
-        usr.post(`/${u}`, (req, res) => {
+        usr.post(`/${u}`, async (req, res) => {
           debugapi(`Received /api/user/${req.params.cid}/${u}`);
           try {
             const responder = new Responder(res);
-            users[u](req.user, parseInt(req.params.cid,10), req.body, responder);
+            await users[u](req.user, parseInt(req.params.cid,10), req.body, responder);
             responder.end(); 
           } catch (e) {
             errored(req,res,e.toString());

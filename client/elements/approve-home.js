@@ -25,6 +25,8 @@ import emoji from '../styles/emoji.js';
 import page from '../styles/page.js';
 import button from '../styles/button.js';
 import api from '../modules/api.js';
+import { DeleteRequest, MemberApprove, MemberReject } from '../modules/events.js';
+import { switchPath } from '../modules/utils.js';
 
 /*
      <approve-home>
@@ -107,20 +109,35 @@ class ApproveHome extends LitElement {
   }
   async _accept(e) {
     e.stopPropagation();
-    const response = await api('approve/member_approved', {uid: this.selectedMember}); 
-    this.members = response.members;
+    if (this.selectedMember !== 0) {
+      this.dispatchEvent(new MemberApprove(this.selectedMember));
+      this.selectedMember = 0;
+    }
   }
   _deleteReply(e) {
     e.stopPropagation();
     //just receeving this means go ahead
-    if (this.deleteUid!== 0) {
+    if (this.deleteUid !== 0) {
       this.selectedMember = 0;
-      this.dispatchEvent(new CompetitionDelete(this.deleteCid));
+      this.dispatchEvent(new MemberReject(this.deleteUid));
+    }
+  }
+  _query(e) {
+    e.stopPropagation();
+    if (this.selectedMember !== 0) {
+      switchPath('/approve/email/' + this.selectedMember.toString());
     }
   }
   _reject(e) {
     e.stopPropagation();
-
+    if (this.selectedMember !== 0) {
+      this.deleteUid = this.selectedMember;
+      const member = this.members.find(m => m.uid === this.selectedMember)
+      if (member !== undefined) {
+        const named = `the Member with email ${member.email}`;
+        this.dispatchEvent(new DeleteRequest(named));
+      }
+    }
   }
   _toggleSelected(e) {
     e.stopPropagation();

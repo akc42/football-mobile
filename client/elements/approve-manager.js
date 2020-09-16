@@ -81,10 +81,13 @@ class ApproveManager extends RouteManager{
         home: html`<approve-home
           .members=${this.members}
           managed-page
-          ></approve-home>`,
+          @member-approve=${this._approve}
+          @member-reject=${this._reject}></approve-home>`,
         email: html`<approve-email
           managed-page
-          ></approve-email>`,
+          .route=${this.subRoute}
+          .members=${this.members}
+          @member-email=${this._email}></approve-email>`,
       }[this.page])}
     `;
   }
@@ -98,9 +101,27 @@ class ApproveManager extends RouteManager{
       this.dispatchEvent(new MenuAdd());
     }
   }
+  async _approve(e) {
+    e.stopPropagation();
+    const uid = e.uid;
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api('approve/member_approved', { uid: uid});
+    this.dispatchEvent(new WaitRequest(false));
+    this.members = response.members;
+
+  }
   async _newRoute() {
     this.dispatchEvent(new WaitRequest(true));
     const response = await api('approve/members_waiting');
+    this.dispatchEvent(new WaitRequest(false));
+    this.members = response.members;
+
+  }
+  async _reject(e) {
+    e.stopPropagation();
+    const uid = e.uid;
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api('approve/member_rejected', { uid: uid });
     this.dispatchEvent(new WaitRequest(false));
     this.members = response.members;
 

@@ -510,6 +510,34 @@ export class MatchSwap extends Event {
     this.match = match;
   }
 };
+
+export class MemberApprove extends Event {
+  /*
+     The following are the fields provided by this event
+
+     uid: Uid of member approved
+
+  */
+  constructor(uid) {
+    super('member-approve',{composed: true, bubbles: true});
+    this.uid = uid;
+  }
+};
+
+
+export class MemberReject extends Event {
+  /*
+     The following are the fields provided by this event
+
+     uid: uid of member rejected (after confirmation)
+
+  */
+  constructor(uid) {
+    super('member-reject',{composed: true, bubbles: true});
+    this.uid = uid;
+  }
+};
+
 export class MenuAdd extends Event {
   
 

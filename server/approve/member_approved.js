@@ -32,31 +32,31 @@
     const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
 
     const updateParticipant = db.prepare(`UPDATE participant SET waiting_approval = 0 WHERE uid = ?`);
+    const refreshMembers = db.prepare('SELECT * FROM participant WHERE waiting_approval = 1');
     let memberemail;
     db.transaction(()=>{
       const {email, waiting_approval} = checkParticipant.get(params.uid);
       if (waiting_approval === 1) {
         memberemail = email;
         const siteBaseref = 'https://' + headers['host']; //no longer from database, but from the request
-        debug('found user as uid = ', result.uid);
         const webmaster = s.get('webmaster');
         debug('read the config values');
 
         const html = `<h3>Good News</h3><p>Your membership request to join <a href="${siteBaseref}">${siteBaseref}</a> has been approved.</p> 
         <p>If it was not you, you can safely ignore this email but might like to inform <a href="mailto:${webmaster}">${webmaster}</a> that 
         you were not expecting it.</p>
-        <p>Click on the link <a href="${siteBaseref}</a> to log on.</p>
+        <p>Click on the link above to log on.</p>
     
         <p>Regards</p>`;
         mail.setHtmlBody(siteBaseref,'Membership Approval', html);
         debug('built the e-mail');
-        updateParticipant.run(params.uid); //update user with new hashed pin we just sent
-        debug('upated user ', result.uid, 'with new pin we just made')
+        updateParticipant.run(params.uid); //update user as approved
+        debug('upated user ', params.uid);
 
+        responder.addSection('members', refreshMembers.all());
       } 
     })();
     //outside of the transaction, which needs to remain synchronous.
-    if (membermail !== undefined) await mail.send('Membership Approval', membermail);
-    return membermail !== undefined;
+    if (memberemail !== undefined) await mail.send('Membership Approval', memberemail);
   };
 })();
