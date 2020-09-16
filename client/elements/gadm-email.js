@@ -119,12 +119,10 @@ class GadmEmail extends LitElement {
       </style>
       <fm-page id="page" heading="Global Admin">
         <div slot="subheading">Email Users</div>
-        <div id="container">
-          <section id="explain">
-            <div class="button" @click=${this._doSelect}><material-icon>group</material-icon><div>Select All</div></div>
-            <div class="button" @click=${this._doClear}><material-icon>people_outline</material-icon><div>Clear All</div></div>
-            <div class="button" @click=${this._doCompose}><material-icon>email</material-icon><div>Compose Email for Selected Users</div></div>
-          </section>
+        <header id="explain">
+        </header>
+        <section class="scrollable">
+
           <section id=staff>  
             <div id="userlist">
               ${cache(this.users.map(user => html`
@@ -140,7 +138,11 @@ class GadmEmail extends LitElement {
             </div>
 
           </section>
-        </div>
+        </section>
+          <button slot="action" @click=${this._doSelect}><material-icon>group</material-icon><div>Select All</div></button>
+          <button slot="action" @click=${this._doClear}><material-icon>people_outline</material-icon><div>Clear All</div></button>
+          <button slot="action" @click=${this._doCompose}><material-icon>email</material-icon><div>Email Selected Users</div></button>
+
       </fm-page>
     `;
   }
