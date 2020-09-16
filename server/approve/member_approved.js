@@ -40,9 +40,10 @@
         memberemail = email;
         const siteBaseref = 'https://' + headers['host']; //no longer from database, but from the request
         const webmaster = s.get('webmaster');
+        const orgname = s.get('organisation_name')
         debug('read the config values');
 
-        const html = `<h3>Good News</h3><p>Your membership request to join <a href="${siteBaseref}">${siteBaseref}</a> has been approved.</p> 
+        const html = `<h3>Good News</h3><p>Your membership request to join <a href="${siteBaseref}">${orgname}</a> has been approved.</p> 
         <p>If it was not you, you can safely ignore this email but might like to inform <a href="mailto:${webmaster}">${webmaster}</a> that 
         you were not expecting it.</p>
         <p>Click on the link above to log on.</p>
