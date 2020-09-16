@@ -119,25 +119,17 @@ class GadmEmail extends LitElement {
       </style>
       <fm-page id="page" heading="Global Admin">
         <div slot="subheading">Email Users</div>
-        <header id="explain">
-        </header>
         <section class="scrollable">
-
-          <section id=staff>  
-            <div id="userlist">
-              ${cache(this.users.map(user => html`
-                <div class="row u" data-uid="${user.uid}" @click=${this._toggleSelected}>
-                  <div class="name">${user.name}</div>
-                  <div class="email">${user.email}</div>
-                  ${user.previous_admin !== 0 ? html`<material-icon class="pa">font_download</material-icon>`: html`<div class="iconreplace"></div>`}
-                  ${user.global_admin !== 0 ? html`<material-icon class="ga">public</material-icon>` : html`<div class="iconreplace"></div>`}
-                  ${user.member_approve !== 0 ? html`<material-icon class="ma">grading</material-icon>` : html`<div class="iconreplace"></div>`}
-                  <material-icon class="us">${user.selected ? 'check_box' : 'check_box_outline_blank'}</material-icon>
-                </div>
-              `))}
+          ${cache(this.users.map(user => html`
+            <div class="row u" data-uid="${user.uid}" @click=${this._toggleSelected}>
+              <div class="name">${user.name}</div>
+              <div class="email">${user.email}</div>
+              ${user.previous_admin !== 0 ? html`<material-icon class="pa">font_download</material-icon>`: html`<div class="iconreplace"></div>`}
+              ${user.global_admin !== 0 ? html`<material-icon class="ga">public</material-icon>` : html`<div class="iconreplace"></div>`}
+              ${user.member_approve !== 0 ? html`<material-icon class="ma">grading</material-icon>` : html`<div class="iconreplace"></div>`}
+              <material-icon class="us">${user.selected ? 'check_box' : 'check_box_outline_blank'}</material-icon>
             </div>
-
-          </section>
+          `))}
         </section>
           <button slot="action" @click=${this._doSelect}><material-icon>group</material-icon><div>Select All</div></button>
           <button slot="action" @click=${this._doClear}><material-icon>people_outline</material-icon><div>Clear All</div></button>
