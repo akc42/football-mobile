@@ -22,13 +22,16 @@
 import { ApiError } from "./events.js";
 
 export default async function api(url, params, signal) {
+  const token = sessionStorage.getItem('token');
+  const body = params || {};
+  if (token !== null) body.token = token;
   const options = {
     credentials: 'same-origin',
     method: 'post',
     headers: new Headers({
       'content-type': 'application/json'
     }),
-    body: JSON.stringify(params)
+    body: JSON.stringify(body)
   };
   if (signal) options.signal = signal;
   let text;

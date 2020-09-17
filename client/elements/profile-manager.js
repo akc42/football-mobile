@@ -301,9 +301,8 @@ class ProfileManager extends LitElement {
         this.dinput.focus();
         break;
       case 'f3':
-        if (global.scope = 'authorised') {
-          this.einput.focus();
-        }
+        
+      this.einput.focus();
         break;
       case 'f4':
         this._toggleVisibility();

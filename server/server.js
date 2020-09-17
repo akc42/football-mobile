@@ -72,18 +72,6 @@
     logger('error', `Final Error at url ${req.originalUrl} with error ${err.stack}`);
   }
 
-  function generateCookie(user) {
-    const date = new Date();
-    const expiry = user.remember !== 0;
-    date.setTime(date.getTime() + (serverConfig.cookieExpires * 60 * 60 * 1000));
-    const payload = {
-      exp: Math.round(date.getTime()/1000),
-      user: user
-    };
-    debug('generated cookie', serverConfig.cookieName ,'for uid ', user.uid, ' expires ', expiry ? date.toGMTString() : 0);
-    return `${serverConfig.cookieName}=${jwt.encode(payload, serverConfig.cookieKey)}; expires=${expiry ? date.toGMTString(): 0}; Path=/`;
-  }
-
   let server;
 
   function startUp (http, serverDestroy,Router, finalhandler, Responder, logger, db, bcrypt) {
@@ -138,7 +126,7 @@
         serverConfig.cookieName = s.get('cookie_name');
         serverConfig.cookieKey = s.get('cookie_key');
         serverConfig.cookieExpires = s.get('cookie_expires');
-        serverConfig.cookieVisitName = s.get('cookie_visit_name');
+
         serverConfig.membershipKey = s.get('membership_key');
       })();
 
@@ -340,9 +328,6 @@
         ses.post(`/${session}`, async (req, res) => {
           try {
             const data = await sessions[session](req.body, req.headers);
-            if(data.user !== undefined && data.state === 'authorised') { //only for a user who is authorised
-              res.setHeader('Set-Cookie', generateCookie(data.user)); //get ourselves a cookie
-            }
             res.end(JSON.stringify(data));
           } catch (e) {
             errored(req, res, e.toString());
@@ -354,31 +339,23 @@
           and return an unauthorised response if someone attempts to use it.
       */
 
-      debug('Setting up to Check Cookies from further in');
+      debug('Setting up to Check Token In URL from further in');
+      
       api.use((req, res, next) => {
-        debugapi('checking cookie');
-        const cookies = req.headers.cookie;
-        if (!cookies) {
-          forbidden(req, res, 'No Cookie');
+        debugapi('checking token');
+        const token = req.body.token;
+        if (!token) {
+          forbidden(req, res, 'No Token');
           return;
         }
-        const mbball = new RegExp(`^(.*; +)?${serverConfig.cookieName}=([^;]+)(.*)?$`);
-        const matches = cookies.match(mbball);
-        if (matches) {
-          debugapi('Cookie found')
-          const token = matches[2];
-          try {
-            const payload = jwt.decode(token, serverConfig.cookieKey);  //this will throw if the cookie is expired
-            req.user = payload.user;
-            req.usage = payload.usage
-            res.setHeader('Set-Cookie', generateCookie(payload.user,payload.usage)); //refresh cookie to the new value 
-            next();
-          } catch (error) {
-            forbidden(req,res, 'Invalid Auth Token');
+        debugapi('Token found');
+        try {
+          const payload = jwt.decode(token, serverConfig.cookieKey);  //this will throw if the cookie is expired
+          req.user = payload.user;
+          next();
+        } catch (error) {
+          forbidden(req,res, 'Invalid Auth Token');
           }
-        } else {
-          forbidden(req, res, 'Invalid Cookie');
-        }
       });
 
       /*
@@ -393,9 +370,6 @@
           debugapi(`Received /api/profile/${p} request`);
           try {
             const data = await profs[p](req.user,req.body,req.headers);
-            if (data.user !== undefined) {
-              res.setHeader('Set-Cookie', generateCookie(data.user)); //get ourselves a cookie
-            }
             res.end(JSON.stringify(data));
           } catch(e) {
             errored(req,res,e.toString());

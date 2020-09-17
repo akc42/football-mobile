@@ -158,7 +158,7 @@ class SessionPassword extends LitElement {
   _formResponse(e) {
     e.stopPropagation();
     this.dispatchEvent(new WaitRequest(false));
-    this.dispatchEvent(new SessionStatus({ state: e.response.state, user: e.response.user }));
+    this.dispatchEvent(new SessionStatus({ state: e.response.state, user: e.response.user, token: e.response.token }));
   }
   _keyPressed(e) {
     if (e.key === 'Enter') {

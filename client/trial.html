@@ -20,155 +20,58 @@
 -->
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport"
-      content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes, shrink-to-fit=no">
-
-    <title>Test CSS</title>
-    <!-- because this can be served from anywhere base allows us to use relative urls -->
-    <base href="/">
-<link rel="shortcut icon" sizes="32x32" href="appimages/football-logo-32x32.png">
-<link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-<meta name="theme-color" content="#42d9ff">
-
-    <style>
-      html {
-        background: #ffffff;
-      }
-
-      body {
-        margin: 0;
-        height:100vh;
-        width:100vw;
-        font-family: sans-serif;
-        line-height: 1.5;
-        letter-spacing: 0.1em;
-        background-color: #fafafa;
-        color: #333;
-        font-family: 'Roboto', sans-serif;
-      }
-      .custom {
-        height:100%;
-        display:flex;
-        flex-direction: column;
-        
-      }
-      .main-app {
-        flex-direction: column-reverse ;
-      }
-      header {
-        background-color: #42d9ff;
-        flex: 0 0 64px;
-      }
-      section {
-        flex: 1 0 0;
-      }
-      .scrollable {
-        overflow-y: auto; 
-        scroll-snap-type: y mandatory;
-      }
-      .item {
-        height: 60px;
-        display: flex;
-        flex-direction: row;
-        font-family:'NotoColorEmoji', 'Roboto Mono', Helvetica, sans-serif;
-        scroll-snap-align:start;
-        border-radius: 5px;
-        box-shadow: 1px 1px 3px 0px rgba(0,0,0,0.31);
-        margin:0 5px 5px 3px;
-      }
-      .page-template {
-        margin: 40px auto 40px auto;
-        max-height: 100%;
-        border-radius: 10px;
-        box-shadow: 0px 0px 38px -2px rgba(0, 0, 0, 0.5);
-        padding: 20px;
-        min-width: 500px;
-        box-sizing:border-box;
-      }
-      @font-face {
-        font-family: 'NotoColorEmoji';
-        src: url('/fonts/NotoColorEmoji.ttf') format('truetype');
-        font-weight: normal;
-        font-style: normal;
-        font-display: swap;
-      }
-      </style>
 
   </head>
   <body>
-    <div class="main-app custom">
-      <header class="main-header">Main Header Bar</header>
-      <section class="main-section">
-        <div class="page-manager custom">
-          <div class="managed-page custom">
-            <div class="page-template custom">
-              <header class="secondary-header">Secondary Header</header>
-              <section class="container">
-                <div class="list-manager custom">
-                  <header class="list-header">List Header</header>
-                  <section id="teamlist" class="list scrollable">
-                  <div class="item">🍌 :banana
-                  🙇 :bow
-                  😖 :brickwall
-                  👋 :bye
-                  🐒 :cheeky
-                  🥂 :cheer
-                  😢 :cry
-                  🤔 :dunno
-                  😠 :enraged
-                  🤩 :excited
-                  🙄 :har
-                  
-                  🥺 :help
-                  👐 :hug
-                  😉 :innocent
-                  😠 :mad
-                  
-                  🤯 :out
-                  🥒 :pickle
-                  
-                  😾 :prrr
-                  
-                  🤣 :rofl
-                  
-                  😈 :slap
-                  
-                  😮 :sympa
-                  
-                  🙏 :thanks
-                  👍 :thumbsup
-                  ❤️ :wub
-                  😱 :yikes
-                  
-                  🛌 :zzz</div>  
-                  </section>
-                </div>
-              </section>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-    <script type="module">
-          window.fetch('/api/config/team_logos', { method: 'get' }).then(response => {
-              if (response.status === 200) return response.json();
-              return [];
-            }).then(teams => {
-              const s = document.querySelector('#teamlist');
-              for (const team of teams) {
-                const div = document.createElement('div');
-                div.classList.add('item');
-                const div2 = document.createElement('div');
-                div2.textContent = team.tid;
-                div.appendChild(div2);
-                const img = document.createElement('img')
-                img.setAttribute('src', `data:image/png;base64,${team.logo}`);
-                div.appendChild(img);
-                s.appendChild(div);
-              }
-            });
+    <div id="log">
 
-    </script>
+    </div>
+<script type="text/javascript">
+  // Broadcast that you're opening a page.
+  let content;
+  const logger = document.getElementById('log');
+  const answerPromise = new Promise(resolve => {
+    const myTab = Date.now();
+    content = `<div><span>${myTab}</span>: Opening Tab ${myTab}</div>`;
+    const timer = setTimeout(() => {
+      content = `<div><span>${Date.now()}</span>: I am the only open tab id = ${myTab}</div>`;
+      logger.innerHTML += content; 
+      resolve(true); 
+    },20)
+    logger.innerHTML += content;
+    console.log('Opening tab id', myTab)
+    localStorage.setItem('openpages',myTab);
+    var onLocalStorageEvent = function (e) {
+      if (e.key == "openpages") {
+        console.log('OpenPages received from ', e.newValue, 'sending them as page_available', myTab);
+        // Listen if anybody else is opening the same page!
+        localStorage.setItem('page_available', myTab);
+      }
+      if (e.key == "page_available") {
+        clearTimeout(timer);
+        content = `<div><span>${Date.now()}</span>: Another Page already Available id ${e.newValue}</div>`;
+        logger.innerHTML += content;
+        console.log('Another Page already Available id', e.newValue);
+        resolve(false);
+      }
+    };
+    content = `<div><span>${Date.now()}</span>: about to add Event Listener for ${myTab}</div>`;
+    logger.innerHTML += content;
+    console.log('about to add Event Listener for ', myTab);
+    window.addEventListener('storage', onLocalStorageEvent, false);
+    content = `<div><span>${Date.now()}</span>: Added Event Listener - now ending script for ${myTab}</div>`;
+    logger.innerHTML += content;
+    console.log('Added Event Listener - now ending script for', myTab);
+  }).then(answer => {
+    if (answer) {
+      content = 'I am the first tab and can therefore use the remembered token if it exists';
+    } else {
+      content = 'I am not the first tab and therefore must log on';
+    }
+    logger.innerHTML += Date.now() + ':' + content;
+    console.log(content);
+
+  });
+</script>
   </body>
 </html>

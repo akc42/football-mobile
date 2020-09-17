@@ -28,11 +28,7 @@
   module.exports = async function() {
       const config = {};
       const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
-      const last = db.prepare(`SELECT c.cid, c.administrator, CASE WHEN r.rid IS NULL THEN 0 ELSE r.rid END AS rid, c.gap 
-        FROM competition c LEFT JOIN round r ON  r.cid = c.cid AND r.rid = (
-          SELECT rid FROM round WHERE cid = c.cid AND r.open = 1 ORDER BY rid DESC LIMIT 1
-        ) ORDER BY c.
-        cid DESC LIMIT 1`);
+      const last = db.prepare(`SELECT c.cid, c.administrator FROM competition c ORDER BY c.cid DESC LIMIT 1`);
       db.transaction(() => {
         debug('About to Read Settings Values');      
         config.clientLog = s.get('client_log');
@@ -53,8 +49,7 @@
         const row = last.get();
         config.lcid = row.cid;
         config.luid = row.administrator;
-        config.lrid = row.rid;
-        config.lgap = row.gap;
+
       })();
 
       const { version, year } = await versionPromise;

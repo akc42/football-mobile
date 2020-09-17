@@ -31,12 +31,11 @@ export default function(t) {
   let using = false; //needs to be in close as its unique to this instance.
   global.ready.then(() => {
     if (global.clientLog.length > 0) {
-      using = (global.clientLogUid === 0 || global.user.uid === global.clientLogUid) && 
-        (global.clientLog === 'ALL' || global.clientLog.indexOf(`:${topic}:`) >= 0); //always the same
+      using = (global.clientLog === 'ALL' || global.clientLog.indexOf(`:${topic}:`) >= 0); //always the same
     }
   }); 
   return function(...args) { 
-    if (using) {
+    if (using && (global.clientLogUid === 0 || global.user.uid === global.clientLogUid)) {
       const message = args.reduce((cum, arg) => {
         return `${cum} ${arg}`.trim();
       },'');

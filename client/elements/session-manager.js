@@ -86,13 +86,19 @@ class SessionManager extends LitElement {
           this.dispatchEvent(new WaitRequest(false));
           global.user = this.user;
           this.authorised = true;
+          if (this.user.remember === 1 && sessionStorage.getItem('firstTab') === 'true') {
+            localStorage.setItem('token', sessionStorage.getItem('token')); //first tab means really remember if we request it
+          }        
           break;
         case 'error': 
           this.dispatchEvent(new WaitRequest(false));
           break;
         case 'logoff':
           this.dispatchEvent(new WaitRequest(false));
-          document.cookie = `${global.cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/`;
+          sessionStorage.removeItem('token');
+          if (sessionStorage.getItem('firstTab') === 'true') {
+            localStorage.removeItem('token'); //first tab means really log out, not just the current session
+          }
           this.authorised = false;
           this.state = 'email';
           global.user = {uid:0}
@@ -101,15 +107,15 @@ class SessionManager extends LitElement {
         case 'reset':
           this.email = '';
           global.ready.then(() => { //only using this to wait until globals has been read, since this is the first state
-            const mbball = new RegExp(`^(.*; +)?${global.cookieName}=([^;]+)(.*)?$`);
-            if (mbball.test(document.cookie)) {
+            if (sessionStorage.getItem('token') !== null) {
               performance.mark('start_user_validate');
               api('session/validate_user', {}).then(response => {
                 this.dispatchEvent(new WaitRequest(false));
                 performance.mark('end_user_validate');
                 performance.measure('user_validate','start_user_validate','end_user_validate');
-                if (response.user.uid !== 0) {
+                if (response.user !== undefined) {
                   this.user = response.user;
+                  global.token = response.token;
                   this.state = 'authorised';
                 } else {
                   this._readHash();
@@ -173,6 +179,9 @@ class SessionManager extends LitElement {
     e.stopPropagation();
     if (e.status.email !== undefined) this.email = e.status.email;
     if (e.status.user !== undefined) this.user = e.status.user;
+    if (e.status.token !== undefined) {
+      sessionStorage.setItem('token', e.status.token);
+    }
     this.state = e.status.state;
   }
 }

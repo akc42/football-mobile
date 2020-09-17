@@ -25,30 +25,27 @@
 
   const jwt = require('jwt-simple');
   const db = require('../utils/database');
-  let cookieName;
   let cookieKey;  
+  let cookieExpires
   db.transaction(() => {
     const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
     cookieKey = s.get('cookie_key');
-    cookieName = s.get('cookie_name');
+    cookieExpires = s.get('cookie_expires') * 60 * 60;
   })(); 
 
-  module.exports = function(params, headers) {
-    debug('checking cookie');
-    const cookies = headers.cookie;
-    if (cookies) {
-      const mbball = new RegExp(`^(.*; +)?${cookieName}=([^;]+)(.*)?$`);
-      const matches = cookies.match(mbball);
-      if (matches) {
-        debug('Cookie found')
-        const token = matches[2];
-        try {
-          const payload = jwt.decode(token, cookieKey);  //this will throw if the cookie is expired
-          debug('Success validate');
-          return payload;
-        } catch(e) {
-          debug('cookie expired'); //so we fall through to return a null value;
-        }
+  module.exports = function(params) {
+    debug('checking token');
+    if (params.token !== undefined) {
+      debug('token found')
+      try {
+        const payload = jwt.decode(params.token, cookieKey);  //this will throw if the token is expired
+        debug('Success validate');
+        const date = Date.now();
+        payload.exp  = Math.round(date/1000) + cookieExpires;
+        const token = jwt.encode(payload, cookieKey);  //update the token for another expiry
+        return {user:payload.user, token: token};
+      } catch(e) {
+        debug('token expired'); //so we fall through to return a null value;
       }
     }
     debug('user not found')

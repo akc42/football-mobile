@@ -25,7 +25,6 @@ let clientLog = '';
 let clientLogUid = 0;
 let version = 'v0.0.0';
 let copyrightYear = '2020';
-let cookieName = '';
 let webmaster = '';
 let siteLogo = '/appimages/site-logo.png';
 let verifyExpires = 12;
@@ -33,15 +32,48 @@ let rateLimit = 30;
 let minPassLen = 6;
 let dwellTime = 2000;
 let reCaptchaKey = '';
-let lrid = 0;
-let lcid = 0;
-let luid = 0;
-let lgap = 0;
+
+let lcid = 0; //latest competition
+let luid = 0; //administrator of latest competition;
 let cid = 0;
 let comingSoonMessage = '';
 let organisationName = '';
 let membershipRate = 60;
 let maxMembership = 3;
+let firstTab;
+let token;
+
+const firstTabPromise = new Promise(resolve => {
+  const tabId = Date.now();
+  const timer = setTimeout(() => {
+    resolve(true);
+  }, 70);
+  const storageEventHandler = (e) => {
+    if (e.key === 'pageOpen') {
+      localStorage.setItem('pageAvailable',tabId);
+    }
+    if (e.key === 'pageAvailable') {
+      clearTimeout(timer);
+      resolve(false);
+    }
+  };
+  localStorage.setItem('pageOpen', tabId);
+  window.addEventListener('storage', storageEventHandler);
+  const unloadHandler = () => {
+    window.removeEventListener('storage', storageEventHandler);
+    window.removeEventListener('unload', unloadHandler);
+  };
+  window.addEventListener('unload', unloadHandler)
+}).then(ft => {
+  sessionStorage.setItem('firstTab', ft);
+  if (ft) {
+    //lets see if we have a token with our credentials to use
+    token = localStorage.getItem('token');
+    if (token !== null ) {
+      sessionStorage.setItem('token', token);
+    }
+  }
+});
 
 
 let globalPromise;
@@ -49,137 +81,124 @@ let globalPromise;
 const global = {
   get ready() {
     if (globalPromise === undefined) {
-      globalPromise = window.fetch('/api/config/config', { method: 'get' }).then(async response => {
-        let text;
-        if (!response.ok) throw new ApiError(response.status);
-        text = await response.text();
-        try {
-          return JSON.parse(text);
-        } catch (err) {
-          //we failed to parse the json - the actual code should be in the text near the end;
-          throw new ApiError(parseInt(text.substr(-6, 3), 10));
-        }
-      });
+      if (sessionStorage.getItem('copyrightYear') === null) { //just one of the known values
+        globalPromise = window.fetch('/api/config/config', { method: 'get' }).then(async response => {
+          let text;
+          if (!response.ok) throw new ApiError(response.status);
+          text = await response.text();
+          try {
+            return JSON.parse(text);
+          } catch (err) {
+            //we failed to parse the json - the actual code should be in the text near the end;
+            throw new ApiError(parseInt(text.substr(-6, 3), 10));
+          }
+        }).then(conf => {
+          sessionStorage.setItem('clientLog', conf.clientLog);
+          sessionStorage.setItem('clientLogUid', conf.clientLogUid);
+          sessionStorage.setItem('version', conf.version);
+          sessionStorage.setItem('copyrightYear', conf.copyrightYear);
+          sessionStorage.setItem('webmaster', conf.webmaster);
+          sessionStorage.setItem('siteLogo', conf.siteLogo);
+          sessionStorage.setItem('webmaster',conf.webmaster);
+          sessionStorage.setItem('siteLogo',conf.siteLogo);
+          sessionStorage.setItem('verifyExpires',conf.verifyExpires);
+          sessionStorage.setItem('rateLimit',conf.rateLimit);
+          sessionStorage.setItem('minPassLen',conf.minPassLen);
+          sessionStorage.setItem('dwellTime',conf.dwellTime);
+          sessionStorage.setItem('reCaptchaKey',conf.reCaptchaKey);
+          sessionStorage.setItem('comingSoonMessage',conf.comingSoonMessage);
+          sessionStorage.setItem('organisationName',conf.organisationName);
+          sessionStorage.setItem('membershipRate',conf.membershipRate);
+          sessionStorage.setItem('maxMembership',conf.maxMembership);
+          sessionStorage.setItem('lcid',conf.lcid);
+          sessionStorage.setItem('luid',conf.luid);
+          sessionStorage.setItem('cid', conf.lcid); //set these up as the default starting position
+          sessionStorage.setItem('auid', conf.luid);
+        });
+      } else {
+        //We must have refreshed because alread have storage set.
+        globalPromise = Promise.resolve();
+      }
     }
-    globalPromise.then(conf => {
-      clientLog = conf.clientLog;
-      clientLogUid = conf.clientLogUid;
-      version = conf.version;
-      copyrightYear = conf.copyrightYear;
-      cookieName = conf.cookieName;
-      webmaster = conf.webmaster;
-      siteLogo = conf.siteLogo;
-      verifyExpires = conf.verifyExpires;
-      rateLimit = conf.rateLimit;
-      minPassLen = conf.minPassLen;
-      dwellTime = conf.dwellTime;
-      reCaptchaKey = conf.reCaptchaKey;
-      comingSoonMessage = conf.comingSoonMessage;
-      organisationName = conf.organisationName;
-      membershipRate = conf.membershipRate;
-      maxMembership = conf.maxMembership;
-      lrid = conf.lrid;
-      lcid = conf.lcid;
-      luid = conf.luid;
-      lgap = conf.lgap;
-    })
-    return globalPromise;
+    return Promise.all([globalPromise,firstTabPromise]);
   },
   get user() {
-    return u;
+    const u = sessionStorage.getItem('user')
+    if (u === null) return {uid:0, global_admin: 0};
+    return JSON.parse(u);
   },
   set user(v) {
-    u = v;
-  },
-  get scope() {
-    return usage;
-  },
-  set scope (v) {
-    usage = v;
-  },
-  get cookieConsent() {
-    return cookieConsent
-  },
-  set cookieConsent(v) {
-    cookieConsent = v;
+    sessionStorage.setItem('user',JSON.stringify(v));
   },
   get cid () {
-    return cid;
+    return parseInt(sessionStorage.getItem('cid'),10);
   },
   set cid(v) {
-    cid = v;
+    sessionStorage.setItem('cid',v);
   },
-  set mockGlobal(v){
-    globalPromise = v;
+  get auid() {
+    return parseInt(sessionStorage.getItem('auid'),10)
+  },
+  set auid(v) {
+    sessionStorage.setItem('auid', v);
   },
   get clientLog () {
-    return clientLog;
+    return sessionStorage.getItem('clientLog');
   },
   get clientLogUid () {
-    return clientLogUid;
+    return parseInt(sessionStorage.getItem('clientLogUid'),10);
   },
   get version () {
-    return version;
+    return sessionStorage.getItem('version');
   },
   get copyrightYear () {
-    return copyrightYear;
+    return sessionStorage.getItem('copyrightYear');
   },
-  get cookieName () {
-    return cookieName;
-  },
+
   get reCaptchaKey () {
-    return reCaptchaKey;
+    return sessionStorage.getItem('reCaptchaKey');
   },
   get webmaster () {
-    return webmaster;
+    return sessionStorage.getItem('webmaster');
   },
   get siteLogo () {
-    return siteLogo;
+    return sessionStorage.getItem('siteLogo');
   },
   get rateLimit () {
-    return rateLimit;
+    return sessionStorage.getItem('rateLimit');
   },
   get verifyExpires () {
-    return verifyExpires;
+    return sessionStorage.getItem('verifyExpires');
   },
   get minPassLen () {
-    return minPassLen;
+    return parseInt(sessionStorage.getItem('minPassLen'),10);
   },
   get dwellTime () {
-    return dwellTime;
+    return parseInt(sessionStorage.getItem('dwellTime'),10);
   },
   get comingSoonMessage () {
-    return comingSoonMessage;
+    return sessionStorage.getItem('comingSoonMessage');
   },
   get organisationName () {
-    return organisationName;
+    return sessionStorage.getItem('organisationName');
   },
   get membershipRate () {
-    return membershipRate;
+    return sessionStorage.getItem('membershipRate');
   },
   get maxMembership () {
-    return maxMembership;
-  },
-  get lrid () {
-    return lrid;
-  },
-  set lrid (v) {
-    lrid = v;
-  },
-  get luid() {
-    return luid;
-  },
-  set luid(v) {
-    luid = v;
+    return sessionStorage.getItem('maxMembership');
   },
   get lcid() {
-    return lcid;
-  },
+    return parseInt(sessionStorage.getItem('lcid'));
+  }, 
   set lcid(v) {
-    lcid = v;
+    sessionStorage.setItem('lcid',v);
   },
-  get lgap() {
-    return lgap;
+  get luid() {
+    return parseInt(sessionStorage.getItem('luid'), 10);
+  },
+  set luid (v) {
+    sessionStorage.setItem('luid',v);
   }
 }
 

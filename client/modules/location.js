@@ -51,9 +51,9 @@ function urlChanged() {
   const query = decodeParams(window.location.search.substring(1));
   if (route && route.path ===  path && route.query === query) return;
   lastChangedAt = window.performance.now();
-  const mbball = new RegExp(`^(.*; +)?${global.cookieName}=([^;]+)(.*)?$`);
+
   route = {
-    path: mbball.test(document.cookie) ? path : '/',
+    path: sessionStorage.getItem('token') !== null ? path : '/',
     segment: 0,
     params: {},
     query: query,
@@ -61,7 +61,7 @@ function urlChanged() {
   };
 
   if (routeCallback) routeCallback(route); 
-  if (!mbball.test(document.cookie)) window.dispatchEvent(new AuthChanged(false));
+  if (sessionStorage.getItem('token') === null) window.dispatchEvent(new AuthChanged(false));
 }
 function routeChanged(e) {
   let newPath = route.path;

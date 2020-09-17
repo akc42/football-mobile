@@ -46,7 +46,10 @@ class HomeManager extends LitElement {
     `;
   }
   async _reroute() {
-    if (global.cid === 0) global.cid = global.lcid;
+    if (global.cid === 0) {
+      global.cid = global.lcid;
+      global.auid = global.luid;
+    }
     if (global.cid !== global.lcid) {
       switchPath(`/${global.cid}/scores`);
     } else {

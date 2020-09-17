@@ -22,7 +22,7 @@
   'use strict';
 
   const debug = require('debug')('football:api:logon');
-
+  const jwt = require('jwt-simple');
   const bcrypt = require('bcrypt');
   const db = require('../utils/database');
 
@@ -32,16 +32,29 @@
     const result = db.prepare('SELECT * FROM participant WHERE uid = ?').get(params.uid);
     if (result !== undefined) {
       debug('found the user')
-      const user = { ...result, password: !!result.password, verification_key: !!result.verification_key}
+      const user = { ...result, password: !!result.password, verification_key: !!result.verification_key, remember: params.remember ? 1 : 0}
+      debug('updated user with remember = ', params.remember);
+      let token;
       const correct = await bcrypt.compare(params.password,result.password);
       if (correct) {
         debug('user password correct for user ', user.uid);
-        user.remember = params.remember? 1:0;
-        db.prepare(`UPDATE participant SET last_logon = (strftime('%s','now')), verification_key = NULL, remember = ? WHERE uid = ?`)
-        .run(user.remember,user.uid);
-        debug('updated user with remember = ', params.remember);
+        const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
+        const updateParticipant = db.prepare(`UPDATE participant SET last_logon = (strftime('%s','now')), verification_key = NULL, 
+          remember = ? WHERE uid = ?`);
+        db.transaction(() => {
+          const cookieKey = s.get('cookie_key');
+          const cookieExpires = s.get('cookie_expires') * 60 * 60 * 1000;
+          const date = Date.now();
+          const payload = {
+            user: user,
+            exp: Math.round(date/ 1000) + cookieExpires
+          };
+          token = jwt.encode(payload, cookieKey);
+          updateParticipant.run(user.remember,user.uid);
+        })();
+        
         debug('success');
-        return { user: user, state: user.waiting_approval === 0? 'authorised': 'approve' };
+        return { user: user, token: token, state: user.waiting_approval === 0? 'authorised': 'approve' };
       } else {
         debug('password error by user ', user.uid);
         //just fall through to end
