@@ -19,7 +19,7 @@
 */
 import { LitElement, html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
-import {SessionStatus, AuthChanged, LocationAltered } from "../modules/events.js";
+import {SessionStatus, AuthChanged, LocationAltered, WaitRequest } from "../modules/events.js";
 import './fm-page.js';
 import button from '../styles/button.js';
 import page from '../styles/page.js';
@@ -132,6 +132,7 @@ has occured`;
     }
     this.dispatchEvent(new SessionStatus({state: 'error'}));
     this.anError = true;
+    this.dispatchEvent(new WaitRequest(false));//some ip request failed, leaving waiting running, so stop it now
   }
 
 

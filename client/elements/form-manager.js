@@ -28,7 +28,7 @@
 import { LitElement, html , css} from '../libs/lit-element.js';
 import api from '../modules/api.js';
 import walk from '../modules/walk.js';
-import {FormResponse } from '../modules/events.js';
+import {ApiError, FormResponse } from '../modules/events.js';
 
 class FormManager extends LitElement  {
   static get styles () {
@@ -101,6 +101,9 @@ class FormManager extends LitElement  {
         api(this.action, this.params).then(response => {
           this.inProgress = false;
           this.dispatchEvent(new FormResponse(response))
+        }).catch(e => {
+          this.inProgress = false;
+          throw new ApiError(e.reason);
         });
       } else {
         return false;

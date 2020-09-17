@@ -132,7 +132,7 @@ class MainApp extends LitElement {
 
   render() {
     
-    const admin = (global.user.global_admin === 1 || global.user.uid === global.luid && global.cid === global.lcid) ;
+    const admin = (global.user.global_admin === 1 || global.user.uid === global.auid) ;
     return html`  
       <style>
 
@@ -284,12 +284,12 @@ class MainApp extends LitElement {
             <hr class="sep"/>
             <div id="navref" role="menuitem" @click=${this._selectPage}><material-icon>support</material-icon><span>Navigation Help</span><span>F1</span></div>
             <div id="icon" role="menuitem" @click=${this._selectPage}><material-icon>image_search</material-icon><span>Icon Meanings</span></div>
-            ${cache((admin || global.user.approve) ? html`
+            ${cache((admin || global.user.member_approve === 1) ? html`
               <hr class="sep"/>
               <div id="approve" role="menuitem" @click=${this._selectPage}>
                 <material-icon>grading</material-icon>Approve Members</div>         
               ${cache(admin ? html`
-                ${cache(global.user.global_admin ? html`
+                ${cache(global.user.global_admin === 1? html`
                   <div id="gadm" role="menuitem" @click=${this._selectPage}><material-icon>public</material-icon>Global Admin</div>
                 `: '')}
                 <div id="admin" role="menuitem" @click=${this._selectPage}>
@@ -328,7 +328,10 @@ class MainApp extends LitElement {
         </div>
       </header>
       <section>
-        <error-manager ?hidden=${!this.serverError} @session-status=${this._errorChanged} ></error-manager>    
+        <error-manager 
+          ?hidden=${!this.serverError} 
+          @session-status=${this._errorChanged} 
+          @auth-changed=${this._authChanged}></error-manager>    
         <session-manager 
           ?hidden=${this.authorised || this.serverError} 
           id="session" 
@@ -377,11 +380,12 @@ class MainApp extends LitElement {
     }
   }
   _errorChanged(e) {
-    if (e.status.type === 'error') {
+    e.stopPropagation();
+    if (e.status.state === 'error') {
       this.serverError = true;
-      this.authorised = false;
-    } else if (e.status.type === 'reset') {
+    } else if (e.status.state === 'reset') {
       this.serverError = false;
+      this.sessionMgr.dispatchEvent(new SessionStatus({state: 'reset'}));
     }
   }
   async _fetchCompetitons() {
@@ -389,9 +393,11 @@ class MainApp extends LitElement {
     if (this.competitions.length > 0) {
       global.lcid = this.competitions[0].cid;
       global.luid = this.competitions[0].administrator;
-      global.lrid = this.competitions[0].rid;
     }
-    if (global.cid === 0) global.cid = global.lcid;
+    if (global.cid === 0) {
+      global.cid = global.lcid;
+      global.auid = global.luid;
+    }
 
     this.compversion = 0;
   }
@@ -401,6 +407,7 @@ class MainApp extends LitElement {
 
   _goHome() {
     global.cid = global.lcid;
+    global.auid = global.luid;
     switchPath(`/${global.cid}`);
   }
   _keyPressed(e) {
@@ -422,7 +429,7 @@ class MainApp extends LitElement {
   }
   _logoff() {
     debug('logoff request about to be sent to session manager');
-    //the difference between the following and just changing authorised, is that we clear the cookie
+    //the difference between the following and just changing authorised, is that we clear the local/session storage token(s)
     this.sessionMgr.dispatchEvent(new SessionStatus({state: 'logoff'}));
   }
   _menu(e) {
