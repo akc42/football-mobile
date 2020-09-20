@@ -250,7 +250,7 @@ class IconManager extends LitElement {
           <span @click=${this._getChar}>🛌</span>
                   
         </div>
-        <p>Click on an icon and it will be automatically added into the text area just were the cursor was last positioned.</p>
+        <p>Click on an icon and it will be automatically added into the text area just where the cursor was last positioned.</p>
         </section>
       </fm-page>
     `;
