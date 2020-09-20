@@ -30,34 +30,8 @@ import './fm-input.js';
 */
 class IconManager extends LitElement {
   static get styles() {
-    return [page, css``];
-  }
-  static get properties() {
-    return {
-    
-    };
-  }
-  constructor() {
-    super();
-  }
-  connectedCallback() {
-    super.connectedCallback();
-  }
-  disconnectedCallback() {
-    super.disconnectedCallback();
-  }
-  update(changed) {
-    super.update(changed);
-  }
-  firstUpdated() {
-  }
-  updated(changed) {
-    super.updated(changed);
-  }
-  render() {
-    return html`
-      <style>
-        :host {
+    return [page, css`
+            :host {
           --icon-size: 20px;
         }
         .item {
@@ -123,9 +97,10 @@ class IconManager extends LitElement {
         }
         .panel {
           width: 12rem;
-          font-family:'NotoColorEmoji', 'Roboto Mono', monospace;
+          font-family:'Roboto Mono', monospace;
           background-color: var(--background-color);
-          color: var(--color);
+          color: var(--emoji-color);
+          font-weight: bold;
           border: none;
           border-radius: 5px;
           box-shadow: 0 0 40px var(--shadow-color), 0 0 10px var(--shadow-color);
@@ -137,9 +112,35 @@ class IconManager extends LitElement {
         .picks {
           color: var(--picks-available-color);
         }
+  `];
+  }
+  static get properties() {
+    return {
+    
+    };
+  }
+  constructor() {
+    super();
+  }
+  connectedCallback() {
+    super.connectedCallback();
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+  }
+  update(changed) {
+    super.update(changed);
+  }
+  firstUpdated() {
+  }
+  updated(changed) {
+    super.updated(changed);
+  }
+  render() {
+    return html`
 
-      </style>
       <fm-page id="page" heading="Icon Meanings">
+        <section class="scrollable">
         <p>There are a number of icons that are used throughout the application which indicate useful information in the limited space that we have available. The purpose of this page is to show these icons and explain what they mean.</p>
 
         <div class="item">
@@ -250,6 +251,7 @@ class IconManager extends LitElement {
                   
         </div>
         <p>Click on an icon and it will be automatically added into the text area just were the cursor was last positioned.</p>
+        </section>
       </fm-page>
     `;
   }

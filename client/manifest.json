@@ -11,9 +11,10 @@
       "sizes": "128x128",
       "type": "image/png"
     }, {
-      "src": "appimages/football-logo.svg",
+      "src": "appimages/football-logo-144x144.png",
       "sizes": "144x144",
-      "type": "image/svg"
+      "type": "image/png",
+      "purpose": "any maskable"
     }, {
       "src": "appimages/football-logo.svg",
       "sizes": "192x192",
@@ -23,9 +24,9 @@
       "sizes": "384x384",
       "type": "image/svg"
     },{
-      "src": "appimages/football-logo.svg",
+      "src": "appimages/football-logo-512x512.png",
       "sizes": "512x512",
-      "type": "image/svg"
+      "type": "image/png"
     }],
   "start_url": "/",
   "display": "standalone",

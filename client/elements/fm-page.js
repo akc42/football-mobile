@@ -118,7 +118,7 @@ class FmPage extends LitElement {
   render() {
     return html`
       <header>
-        <img src="${global.siteLogo}" height="64px"/>
+        <img src="${global.siteLogo}" height="64px" alt="organisations logo"/>
         <div id="hcont">
           <div class="heading">${this.heading}</div>
           <div class="subheading"><slot name="subheading"></slot></div>

@@ -23,6 +23,7 @@ import {cache} from '../libs/cache.js';
 import './fm-page.js';
 import page from '../styles/page.js';
 import button from '../styles/button.js';
+import emoji from '../styles/emoji.js';
 import {CompetitionChanged, TeamsSet} from '../modules/events.js';
 import './fm-input.js';
 import './fm-checkbox.js';
@@ -35,7 +36,7 @@ import global from '../modules/globals.js';
 */
 class AdminHome extends LitElement {
   static get styles() {
-    return [page, button, css``];
+    return [page, button,emoji, css``];
   }
   static get properties() {
     return {

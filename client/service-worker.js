@@ -28,6 +28,8 @@ self.addEventListener('install', (event) =>
     '/images/mb-logo.png',
     '/appimages/football-logo-32x32.png',
     '/appimages/football-logo-128x128.png',
+    '/appimages/football-logo-144x144.png',
+    '/appimages/football-logo-512x512.png',
     '/appimages/football-logo.svg',
     '/appimages/signature.png',
     '/appimages/site_logo.png',
@@ -144,7 +146,6 @@ self.addEventListener('install', (event) =>
     '/appimages/teams/TB.png',
     '/appimages/teams/TEN.png',
     '/appimages/teams/WAS.png',
-    '/fonts/NotoColorEmoji.ttf',
     '/libs/cache.js',
     '/libs/class-map.js',
     '/libs/guard.js',
@@ -204,15 +205,15 @@ self.addEventListener('fetch', (event) => {
       }
     } 
   } else if(event.request.url.startsWith(self.location.origin)) {
-    //This is all our static stuff, we should use the cache, but background fetch to update
+    //This is all our static stuff, we should use the cache, but background fetch to update (unless it fails). If no static, we use the network.
     event.respondWith(
-      caches.open(version).then(cache => cache.match(event.request).then(response => {
+      caches.open(version).then(cache => {
         const fetchPromise = fetch(event.request).then(networkResponse => {
           cache.put(event.request, networkResponse.clone());
           return networkResponse;
-        }).catch(() => true); //silently ignore network problems.
-        return response || fetchPromise;
-      }))
+        }).catch((e) => new Response('', { status: 500 })); //prepare a 500 response if its used (match not found in cache).       
+        return cache.match(event.request).then(response => response).catch((e) => fetchPromise);
+      })
 
     );  
   }

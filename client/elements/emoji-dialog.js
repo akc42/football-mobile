@@ -34,9 +34,10 @@ class EmojiDialog extends LitElement {
     }
     .panel {
       width: 12rem;
-      font-family:'NotoColorEmoji', 'Roboto Mono', monospace;
+      font-family:'Roboto Mono', monospace;
       background-color: var(--background-color);
-      color: var(--color);
+      color: var(--emoji-color);
+      font-weight: bold;
     }
     .panel span {
       cursor: pointer;
