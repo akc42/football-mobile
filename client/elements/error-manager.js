@@ -46,29 +46,31 @@ class ErrorManager extends LitElement {
     return {
       anError: {type: Boolean},
       forbidden: {type: Boolean},
+      uncached: {type: Boolean},
+      url: {type: String}
     };
   }
 
   constructor() {
     super();
-
     this.anError = false;
     this.forbidden = false;
+    this.uncached = false;
+    this.url = '';
     this._clientError = this._clientError.bind(this);
     this._serverError = this._serverError.bind(this);
     this._promiseRejection = this._promiseRejection.bind(this);
+    this._storageError = this._storageError.bind(this);
   }
   connectedCallback() {
     super.connectedCallback();
     window.addEventListener('error', this._clientError);
-    window.addEventListener('api-error', this._serverError);
     window.addEventListener('unhandledrejection', this._promiseRejection);
     this.forbidden = false;
   }
   disconnectedCallback() {
     super.disconnectedCallback();
     window.removeEventListener('error', this._clientError);
-    window.removeEventListener('api-error', this._serverError);
     window.removeEventListener('unhandledrejection', this._promiseRejection);
 
   }
@@ -78,11 +80,16 @@ class ErrorManager extends LitElement {
         <fm-page .heading=${this.forbidden?'Forbidden': 'Something Went Wrong'}>
           ${cache(this.forbidden ? html`
             <p class="forbidden">You have tried to access a forbidden area.</p>
-          `:html`
+          `: html`
+            ${this.uncached ? html`
+              <p>We have been running off line, but unfortunately a key resource that is needed to continue is not available.</p>
+              <p>The missing resource is ${this.url}.</p>
+            `:html`
             <p>We are sorry but something has gone wrong with the operation of the site.  The problem has been logged
             with the server and it will be dealt with soon.</p>
             <p>Nevertheless, you may wish to e-mail the web master (<a href="mailto:${global.webmaster}">${global.webmaster}</a>) to let
-            them know that there has been an issue.</p>             
+            them know that there has been an issue.</p>
+            `}             
             <button slot="action" @click=${this._reset}>Restart</button>
           `)}
         </fm-page>
@@ -105,7 +112,9 @@ has occured`;
     const possibleError = e.reason;
 
     if (possibleError.type === 'api-error') {
-      this._serverError(possibleError)
+      this._serverError(possibleError);
+    } else if ( possibleError.type === 'storage-error'){
+      this._storageError(possibleError);
     } else {
       const message = `Client Error: Uncaught Promise Rejection with reason ${e.reason} has occured`;
       logger(message, true);
@@ -116,6 +125,7 @@ has occured`;
   _reset() {
     this.anError = false;
     this.forbidden = false;
+    this.uncached = false;
     this.dispatchEvent(new SessionStatus({state:'reset'}));
   }
   _serverError(e) {
@@ -131,6 +141,14 @@ has occured`;
 
     }
     this.dispatchEvent(new SessionStatus({state: 'error'}));
+    this.anError = true;
+    this.dispatchEvent(new WaitRequest(false));//some ip request failed, leaving waiting running, so stop it now
+  }
+  _storageError(e) {
+    if (this.anError) return;
+    this.url = e.reason;
+    this.uncached = true;
+    this.dispatchEvent(new SessionStatus({ state: 'error' }));
     this.anError = true;
     this.dispatchEvent(new WaitRequest(false));//some ip request failed, leaving waiting running, so stop it now
   }

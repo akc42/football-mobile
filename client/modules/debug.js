@@ -18,7 +18,7 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import api from './api.js';
+
 import global from './globals.js';
 
 export default function(t) {
@@ -43,7 +43,10 @@ export default function(t) {
       const gap = now - timestamp;
       timestamp = now;
       console.log(`+${gap}ms`,topic, message);
-      api('session/log',{topic:topic, message: message, gap: gap}); //no interest in reply
+      const logpath = `/api/log/${encodeURIComponent(topic)}/${encodeURIComponent(message)}/${encodeURIComponent(gap)}`
+
+      window.fetch(logpath, { method: 'get' })
+        .catch(() => true);//no interest in reply, but must make sure it doesn't throw an exception.
     }
   }
 }

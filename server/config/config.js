@@ -45,6 +45,7 @@
         config.comingSoonMessage = s.get('coming_soon_message');
         config.membershipRate = s.get('membership_rate');
         config.maxMembership = s.get('max_membership');
+        config.offlineCacheAge = s.get('offline_cache_age');
 
         const row = last.get();
         config.lcid = row.cid;

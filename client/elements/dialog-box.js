@@ -21,7 +21,6 @@
 import { LitElement, html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
-import activeElement from '../modules/activeElement.js';
 import { OverlayClosing, OverlayClosed } from '../modules/events.js';
 
 
@@ -164,13 +163,21 @@ class DialogBox extends LitElement  {
   show() {
     if (this.sizingTarget !== undefined) {
       if (!this.sizingTarget.open) {
-        this.activeElement = activeElement(); //remember it so we can restore to it
+        let last = document.activeElement;
+        if (last !== null) {
+          //there is an active element so lets find it
+          while (last.shadowRoot) {
+            last = last.shadowRoot.activeElement;
+          }
+        }
+        this.activeElement = last; //remember it so we can restore to it
         if (this.activeElement === null) delete this.activeElement;
         this.sizingTarget.showModal();
         this.fit();
       }
     }
   }
+
   _cancelled(e) {
     e.preventDefault();
     this.close('cancel');

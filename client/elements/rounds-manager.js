@@ -207,8 +207,8 @@ class RoundsManager extends RouteManager {
     this.user = {...user}; //clone to cause update
   }
   _processUserPicks(user, picks) {
-    user.validQuestion = this.round.valid_question; //helps for <fm-round-user> to know what to display
-    user.ouRound = this.round.ou_round === 1; //helps for <fm-round-user> to know what to display
+    user.validQuestion = this.round.valid_question; //helps for <round-user> to know what to display
+    user.ouRound = this.round.ou_round === 1; //helps for <round-user> to know what to display
     user.hadAdminSupport = false;
     user.wasLatePick = false
     user.wasLateBonus = (this.round.valid_question === 1 && user.submit_time !== null && user.submit_time > this.round.deadline);

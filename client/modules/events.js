@@ -916,6 +916,19 @@ export class SessionStatus extends Event {
   }
 };
 
+export class StorageError extends Event {
+  /*
+     The following are the fields provided by this event
+
+     reason: 
+
+  */
+  constructor(reason) {
+    super('storage-error',{composed: true, bubbles: true});
+    this.reason = reason;
+  }
+};
+
 export class TeamAssign extends Event {
   
 

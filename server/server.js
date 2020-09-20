@@ -1,3 +1,4 @@
+const clientlogger = require('./utils/clientlogger');
 
 /**
 @licence
@@ -18,7 +19,6 @@
     You should have received a copy of the GNU General Public License
     along with football-mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 (function() {
   'use strict';
   const debug = require('debug')('football:server');
@@ -42,7 +42,7 @@
   const versionPromise = require('./utils/version');
   
   const bcrypt = require('bcrypt');
-
+  const clientLogger = require('./utils/clientlogger');
   const serverConfig = {};
   
 
@@ -134,7 +134,7 @@
       const routerOpts = {mergeParams: true};
       const router = Router(routerOpts);  //create a router
       const api = Router(routerOpts);
-      const conf = Router();
+      const conf = Router(routerOpts);
       const ses = Router(routerOpts);
       const prof = Router(routerOpts);
       const usr = Router(routerOpts);
@@ -158,17 +158,23 @@
       const confs = loadServers(__dirname, 'config');
       for (const config in confs){
         debugapi(`Set up /api/config/${config} route`);
-        conf.get(`/${config}`, async (req,res) => {
+        conf.get(`/${config}/`, async (req, res) => {
           debugapi(`Received /api/config/${config} request`);
           try {
-            const response = await confs[config]();
+            const response = await confs[config](req.headers);
             res.end(response);
           } catch (e) {
             errored(req, res, `config/${config} failed with ${e}`);
-          } 
+          }
         });
       }
- 
+      debug('setting up logging api');
+      
+      api.get('/log/:topic/:message/:gap', async (req,res) => {
+        clientlogger(req.params,req.headers);
+        res.end();
+      })
+
       /*
         the next is a single route used by the e-mail tokens that are sent users.  this will decode the token and if valid
         will generate a cookie based on the usage field.  

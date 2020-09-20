@@ -297,6 +297,7 @@ INSERT INTO settings (name,value) VALUES('dwell_time', 2000); --time to elapse b
 INSERT INTO settings (name,value) VALUES('recaptcha_key',''); --standard recaptcha key for the recapcha element
 INSERT INTO settings (name,value) VALUES('organisation_name', 'Football Mobile Organisation'); --Name of Organisation running the site.
 INSERT INTO settings (name,value) VALUES('coming_soon_message','Your new picking competition will be coming soon, get ready to register and join.'); -- First Paragraph of text for a coming soon page
+INSERT INTO settings (name,value) VALUES('offline_cache_age',168);--cache age before invalid (in hours), 0 is infinite
 --values for server config
 INSERT INTO settings (name,value) VALUES('cache_age',0);--cache age before invalid (in hours), 0 is infinite
 INSERT INTO settings (name,value) VALUES('server_port', 2040); --port the api server should listen on.

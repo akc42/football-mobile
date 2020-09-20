@@ -23,7 +23,6 @@ import {cache} from '../libs/cache.js';
 import './football-page.js';
 import page from '../styles/page.js';
 import button from '../styles/button.js';
-import radio from '../styles/radio.js';
 import opids from '../styles/opids.js';
 
 import {switchPath} from '../modules/utils.js';
@@ -41,7 +40,43 @@ import { DeleteRequest,RoundChanged, OptionCreate , OptionDelete} from '../modul
 */
 class AdminRoundRoundHome extends LitElement {
   static get styles() {
-    return [page, button, radio, opids, css`
+    return [page, button, opids, css`
+      :host {
+    position: relative;
+  }
+  input {
+    opacity: 0;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+  }
+
+  label span {
+    border-radius: 50%;
+    border: 2px solid var(--color);
+    display: inline-block;
+    margin-right: 0.5em;
+    vertical-align: bottom;
+    width: 12px;
+    height: 12px;
+    position: relative;
+  }
+  input:checked + label span {
+    border-color: var(--accent-color);
+  }
+  input:checked + label span::before {
+    content: "";
+    display: block;
+    width: inherit;
+    height: inherit;
+    border-radius: inherit;
+    position: absolute;
+    transform: scale(0.6);
+    transform-origin: center center;
+    background-color: var(--accent-color);
+  }
       section.scrollable {
         display: grid;
         grid-gap: 2px;

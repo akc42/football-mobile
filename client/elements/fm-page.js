@@ -40,7 +40,7 @@ class FmPage extends LitElement {
         height: 70px;
         display: flex;
         flex-direction: row;
-        flex:0 1 0;
+        flex:1 0 auto;
       }
       img {
         background-color: var(--color);

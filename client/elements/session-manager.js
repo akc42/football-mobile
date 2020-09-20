@@ -28,11 +28,7 @@ import Debug from '../modules/debug.js';
 
 import {switchPath} from '../modules/utils.js';
 
-
 const debug = Debug('session');
-
-
-
 
 /*
      <session-manager>

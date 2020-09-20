@@ -27,7 +27,6 @@
 
 import { LitElement, html , css} from '../libs/lit-element.js';
 import api from '../modules/api.js';
-import walk from '../modules/walk.js';
 import {ApiError, FormResponse } from '../modules/events.js';
 
 class FormManager extends LitElement  {
@@ -74,7 +73,7 @@ class FormManager extends LitElement  {
   validate() {
     let result = true;
     const slot = this.shadowRoot.querySelector('#mychildren');
-    walk(slot, node => {
+    this._walk(slot, node => {
       if (typeof node.validate === 'function') {
         const v = node.validate();
         if (!v) result = false;
@@ -90,7 +89,7 @@ class FormManager extends LitElement  {
       if (!this.inProgress) {
         this._params = {};
         const slot = this.shadowRoot.querySelector('#mychildren');
-        walk(slot, node => {
+        this._walk(slot, node => {
           if (node.value !== undefined && node.name !== undefined) {
             this._params[node.name] = node.value;
             return true;
@@ -120,6 +119,29 @@ class FormManager extends LitElement  {
     e.preventDefault();
     this.submit();
 
+  }
+  _walk(walknode, criteria) {
+    this._walkRunner(walknode, criteria, null);
+  }
+  _walkRunner(node, criteria, slot) {
+    if (node.assignedSlot === null || node.assignedSlot === slot) {
+      if (node.localName === 'slot') {
+        const assignedNodes = node.assignedNodes();
+        if (assignedNodes.length === 0) {
+          this._walkSub(node.children, criteria);
+        } else {
+         this._walkSub(assignedNodes.filter(n => n.nodeType === Node.ELEMENT_NODE), criteria, node);
+        }
+      } else if (!criteria(node)) {
+        if (customElements.get(node.localName)) this._walkSub(node.shadowRoot.children, criteria);
+        this._walkSub(node.children, criteria);
+      }
+    }
+  }
+  _walkSub(nodes, criteria, slot) {
+    for (let n of nodes) {
+      this._walkRunner(n, criteria, slot);
+    }
   }
 }
 customElements.define('form-manager', FormManager);
