@@ -42,32 +42,39 @@ export class PageManager extends RouteManager {
   static get styles() {
     return [page];
   }
+  static get properties() {
+    return {
+      authorised: {type: Boolean}
+    }
+  }
   constructor() {
     super();
+    this.authorised = false;
     this.cidRouter = new Route('/:cid');
   }
 
   connectedCallback() {
     super.connectedCallback();
     connectUrl(route => {
-      const cidR = this.cidRouter.routeChange(route);
-      if (Number.isInteger(cidR.params.cid) && cidR.params.cid > 0 && cidR.params.cid <= global.lcid) {
-        //seems like a legitimate request
-        global.cid = cidR.params.cid;
-        this.route = cidR;
-      } else {
-        /*
-          some urls, don't need a cid, they are /,  /profile, /navref and /icon plus /gadm and its sub pages
-        */
-        if (cidR.params.cid === '' || cidR.params.cid === 'profile' || 
-            cidR.params.cid === 'navref' || cidR.params.cid === 'help' || cidR.params.cid === 'gadm' ) {
-          this.route = route; //just pass straight through
+      if (this.authorised) {
+        const cidR = this.cidRouter.routeChange(route);
+        if (Number.isInteger(cidR.params.cid) && cidR.params.cid > 0 && cidR.params.cid <= global.lcid) {
+          //seems like a legitimate request
+          global.cid = cidR.params.cid;
+          this.route = cidR;
         } else {
-          if (global.cid === 0) global.cid = global.lcid;
-          switchPath(`/${global.cid}${route.path}`); //extend our path to include the cid.
+          /*
+            some urls, don't need a cid, they are /,  /profile, /navref and /icon plus /gadm and its sub pages
+          */
+          if (cidR.params.cid === '' || cidR.params.cid === 'profile' || 
+              cidR.params.cid === 'navref' || cidR.params.cid === 'help' || cidR.params.cid === 'gadm' ) {
+            this.route = route; //just pass straight through
+          } else {
+            if (global.cid === 0) global.cid = global.lcid;
+            switchPath(`/${global.cid}${route.path}`); //extend our path to include the cid.
+          }
         }
       }
-    
     });
     this.removeAttribute('unresolved');
   }
@@ -75,6 +82,7 @@ export class PageManager extends RouteManager {
     super.disconnectedCallback();
     disconnectUrl();
   }
+
 
   render() {
     return html`

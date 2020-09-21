@@ -340,6 +340,7 @@ class MainApp extends LitElement {
         ${cache(this.authorised ? html`
           <page-manager
             id="pages"
+            .authorised=${this.authorised}
             ?hidden=${this.serverError}
             @competitions-reread=${this._refreshComp}
             @menu-reset=${this._menuReset}

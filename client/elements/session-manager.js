@@ -98,7 +98,6 @@ class SessionManager extends LitElement {
           this.authorised = false;
           this.state = 'email';
           global.user = {uid:0}
-          switchPath('/'); //this makes url hidden if back in session manager
           break;
         case 'reset':
           this.email = '';
