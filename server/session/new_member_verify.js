@@ -88,10 +88,8 @@
                 //not doing this too fast since last time
                 const payload = {
                   exp: new Date().setTime(now + (verifyExpires * 60 * 60)),
-                  uid: 0,
                   email: params.email,
                   password: hashedPassword,
-                  usage: '/'
                 }
                 const token = jwt.encode(payload, cookieKey);
                 debug('made token', token);

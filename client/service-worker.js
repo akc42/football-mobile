@@ -190,7 +190,7 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const requestURL = new URL(event.request.url);
-  if (/^\/api\//i.test(requestURL.pathname)) {
+if (/^\/api\//i.test(requestURL.pathname)) {
     //We have an api call, so deal with it appropriately (mostly nothing, just service)
     if (/^\/api\/service\//i.test(requestURL.pathname)) {
       //special request to service worker. So we MUST respond, server would fail on this.
@@ -209,10 +209,10 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       caches.open(version).then(cache => {
         const fetchPromise = fetch(event.request).then(networkResponse => {
-          cache.put(event.request, networkResponse.clone());
+          cache.put(event.request.url, networkResponse.clone());
           return networkResponse;
         }).catch((e) => new Response('', { status: 500 })); //prepare a 500 response if its used (match not found in cache).       
-        return cache.match(event.request).then(response => response).catch((e) => fetchPromise);
+        return cache.match(event.request, {ignoreSearch: true}).then(response => response).catch((e) => fetchPromise);
       })
 
     );  

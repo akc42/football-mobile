@@ -32,10 +32,20 @@
     const result = db.prepare('SELECT * FROM participant WHERE uid = ?').get(params.uid);
     if (result !== undefined) {
       debug('found the user')
-      const user = { ...result, password: !!result.password, verification_key: !!result.verification_key, remember: params.remember ? 1 : 0}
+      const {verification_key, verification_sent, ...user} = { ...result, password: !!result.password, remember: params.remember ? 1 : 0};
       debug('updated user with remember = ', params.remember);
       let token;
-      const correct = await bcrypt.compare(params.password,result.password);
+      let correct = false;
+      if (!!result.password) {
+        correct = await bcrypt.compare(params.password,result.password);
+      } 
+      if (!!verification_key && !correct) {
+        user.remember = 0; //we must not remember this token if we can use it.
+        const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
+        const verifyExpires = parseInt(s.get('verify_expires'),10) * 60 * 60;
+        //password is correct if it matches the verification key and hasn't expired yet
+        correct =  params.password === result.verification_key && (result.verification_sent + verifyExpires) > Math.floor(Date.now()/1000);
+      }
       if (correct) {
         debug('user password correct for user ', user.uid);
         const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
@@ -47,7 +57,7 @@
           const date = Date.now();
           const payload = {
             user: user,
-            exp: Math.round(date/ 1000) + cookieExpires
+            exp: Math.round(date/ 1000) + cookieExpires,
           };
           token = jwt.encode(payload, cookieKey);
           updateParticipant.run(user.remember,user.uid);
@@ -55,7 +65,7 @@
         
         debug('success');
         return { user: user, token: token, state: user.waiting_approval === 0? 'authorised': 'approve' };
-      } else {
+      } else  {
         debug('password error by user ', user.uid);
         //just fall through to end
       }

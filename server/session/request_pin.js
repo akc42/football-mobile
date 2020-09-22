@@ -24,8 +24,7 @@
   const debug = require('debug')('football:api:reqpin');
   const Mailer  = require('../utils/mail');
   const mailPromise = Mailer();
-  const bcrypt = require('bcrypt');
-  const jwt = require('jwt-simple');
+ 
   const db = require('../utils/database');
 
   module.exports = async function(params, headers) {
@@ -33,8 +32,6 @@
     const mail = await mailPromise;
     const pin = ('000000' + (Math.floor(Math.random() * 999999)).toString()).slice(-6); //make a new pin 
     debug('going to use pin', pin);
-    const hashedPin = await bcrypt.hash(pin, 10);
-    debug('have a hashed pin now');
     let rateLimitExceeded = true;  //start that way until proved otherwise, so we don't send mail if user not found
     const checkParticipant = db.prepare('SELECT * FROM participant WHERE uid = ?');
     const s = db.prepare('SELECT value FROM settings WHERE name = ?').pluck();
@@ -46,7 +43,7 @@
       if (result !== undefined) {
         debug('found user from uid as email = ', result.email);
         const siteBaseref = 'https://' + headers['host']; //not from database
-        const cookieKey = s.get('cookie_key');
+
         const webmaster = s.get('webmaster');
         const verifyExpires = s.get('verify_expires');
         const rateLimit = s.get('rate_limit');
@@ -62,26 +59,23 @@
 
         if (!rateLimitExceeded) {
           //not doing this too fast since last time
-          const payload = {
-            exp: new Date().setTime(now + (verifyExpires * 60 * 60)),
-            uid: result.uid,
-            pin: pin,
-            usage: result.waiting_approval === 1 ? '/':'/profile'
-          }
+
           debug('with user', result.uid, 'so about to send pin', pin, 'with expiry in', verifyExpires, 'hours');
-          const token = jwt.encode(payload, cookieKey);
-          debug('made token', token);
+
           const html = `<h3>Hi ${result.name}</h3><p>Someone requested a short term password to log on to <a href="${siteBaseref}">${siteBaseref}</a>. They
           requested for it to be sent to this email address. If it was not you, you can safely ignore this email but might like to inform 
           <a href="mailto:${webmaster}">${webmaster}</a> that you were not expecting it.</p>
-          <p>Click on the link <a href="${siteBaseref}/api/pin/${token}">${siteBaseref}/api/pin/${token}</a> to log on
-          and access your profile. There you may reset your passwords or make other changes to your account.</p>
-          <p>This link will only work <strong>once</strong>, and it will <strong>not</strong> work after <strong>${verifyExpires} hours</strong> from
+ 
+          <p>Return to the site (using the link above) and enter the following code as your password.  This is only a short term password and it
+          can only be used once and will <strong>not</strong> work after <strong>${verifyExpires} hours</strong> from
           the time you requested it.</p>
+
+          <p>Your code: <strong>${pin}</strong></p>
+
           <p>Regards</p>`;        
-          mail.setHtmlBody(siteBaseref, 'Temporary Password', html);
+          mail.setHtmlBody(siteBaseref, 'Your Temporary Password', html);
           debug('built the e-mail');
-          updateParticipant.run(hashedPin, result.uid); //update user with new hashed pin we just sent
+          updateParticipant.run(pin, result.uid); //update user with new pin we just created and sent
           debug('upated user ', result.uid, 'with new pin we just made')
           email = result.email;
         } else {

@@ -20,9 +20,6 @@
 import { LitElement, html } from '../libs/lit-element.js';
 
 import page from '../styles/page.js';
-
-import { SessionStatus } from '../modules/events.js';
-
 import global from '../modules/globals.js';
 
 import './fm-page.js';

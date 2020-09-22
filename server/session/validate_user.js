@@ -22,7 +22,6 @@
   'use strict';
 
   const debug = require('debug')('football:api:validate');
-
   const jwt = require('jwt-simple');
   const db = require('../utils/database');
   let cookieKey;  
@@ -33,7 +32,7 @@
     cookieExpires = s.get('cookie_expires') * 60 * 60;
   })(); 
 
-  module.exports = function(params) {
+  module.exports = async function(params) {
     debug('checking token');
     if (params.token !== undefined) {
       debug('token found')
@@ -41,11 +40,11 @@
         const payload = jwt.decode(params.token, cookieKey);  //this will throw if the token is expired
         debug('Success validate');
         const date = Date.now();
-        payload.exp  = Math.round(date/1000) + cookieExpires;
+        payload.exp = Math.round(date / 1000) + cookieExpires;
         const token = jwt.encode(payload, cookieKey);  //update the token for another expiry
         return {user:payload.user, token: token};
       } catch(e) {
-        debug('token expired'); //so we fall through to return a null value;
+        debug('token expired or other issue with it'); //so we fall through to return a null value;
       }
     }
     debug('user not found')

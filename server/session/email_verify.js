@@ -38,7 +38,8 @@
       };
       if (!!result.password) return {state: 'password', user: user};
       if (result.waiting_approval === 1) return { state: 'mempass', user: user}; //means forgot pin and requested new
-      debug('full user does not have a password so this must be first visit so we will request pin');
+      if (!!result.verification_key) return {state: 'password', user: user}; //user who has had a pin sent,
+      debug('full user does not have a password or a verifcation key so this must be first visit so we will request pin');
       const requestPin = require('./request_pin');
       await requestPin(user, headers);
       return {state: 'welcome',email: params.email};

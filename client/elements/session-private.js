@@ -70,22 +70,22 @@ class SessionPrivate extends LitElement {
       <fm-page heading="Privacy Notice">      
         
         <p>${global.organisationName} privacy policy explains how we use the data collected at
-        this site.  We collect the following data:-
+        this site.  We collect the following data:-</p>
         <ul>
           <li>Your e-mail address, which will be coupled with your chosen user name
           (which does not need to be your real name).</li> 
           <li>Your entries into Competitions hosted on this site, and details of all picks made.  These will
-          be available to all approved members of this site</li>
+          be available to all approved members of this site.</li>
         </ul> 
-          This is stored in a file on the server which hosts the competitions.
-          Access is only available to the webmaster. We will only use the data for the
+        <p>This data is stored in a file on the server that hosts the competitions.
+          Access this file is only available to the webmaster. We will only use the data for the
           purpose of running the competitions.  We will not pass it to third parties or
           use it for Marketing.</p> 
-        <p>We use a single cookie stored on your computer to technically manage
-        your navigation of this site.  <strong>You</strong> can decide whether we delete
-        this cookie when you finish using the site (in which case you will have to sign
+        <p>We use a single token stored locally on your computer to record who you are and your permissions
+        to access or not certain facilities.  <strong>You</strong> can decide whether we delete
+        this token when you finish using the site (in which case you will have to sign
         in on the next visit), or whether you want us to retain it so that you are
-        automatically signed in on the next visit</p>
+        automatically signed in on the next visit.</p>
         <button slot="action" @click=${this._retry}>Return To Email</button>  
       </fm-page>
     `;

@@ -185,53 +185,16 @@ const clientlogger = require('./utils/clientlogger');
         let location = '/';
         try {
           const payload = jwt.decode(req.params.token, serverConfig.cookieKey);
-          location = payload.usage;
-          debugapi('/api/pin payload uid', payload.uid);
-          const result = db.prepare(`SELECT * FROM participant WHERE ${payload.uid === 0 ? 'email': 'uid'} = ?`)
-            .get(payload.uid === 0 ? payload.email: payload.uid);
-          if (result !== undefined) {
-            debugapi('/api/pin found the user with email ', result.email);
-            const correct = await bcrypt.compare(payload.pin, result.verification_key);
-            if (correct) {
-              debugapi('/api/pin pin is correct, so update verification_key to NULL');
-              /*
-                we got the expected result so we can reset the verification key
-                If the token included an e-mail address, we were verifing a new email, so we update
-                that also.
-              */
-              if (result.waiting_approval === 1) {
-                /*
-                  still a member awaiting approval, so can't allow log-on.  The best we can do is
-                  clear the current password and so when they enter their e-mail address, we redirect them
-                  to set up a password.
-                */
-                db.prepare('UPDATE participant SET password = NULL,  verification_key = NULL, email = ? WHERE uid = ?')
-                  .run(payload.email ? payload.email : result.email, payload.uid);
-              } else {
-                //already a full member, so we can generate a one time cookie to all them to login.
-                db.prepare('UPDATE participant SET verification_key = NULL, email = ? WHERE uid = ?')
-                  .run(payload.email? payload.email:result.email,payload.uid);
-                debugapi('/api/pin setting up cookie for user', payload.uid);
-                res.setHeader('Set-Cookie', generateCookie(
-                  {
-                    ...result,
-                    password: !!result.password,
-                    verification_key: false,
-                    remember: 0, //force a session cookie, so the cookie doesn't persist.
-                  }));
-                }
-            } else {
-              debugapi('/api/pin password incorrect, add #expired to return path');
-              location = '/#expired';
-            }
-          } else if (payload.uid === 0 ) {
+          debugapi('/api/pin payload', payload);
+          const result = db.prepare(`SELECT * FROM participant WHERE email = ?`).get(payload.email);
+          if (result === undefined) {
             /*
               We are going to try and invent a username for the user (they can change it later).  We do this by
               taking their email address and extracting the part before the @ sign
               Then we progressively try that (lets call it xxx), and then xxx_0, xxx_1 etc unitl we have a unique
               name.
             */
-            
+        
             let suffix = '';
             let suffixCount = 0;
             const parts = payload.email.split('@');
@@ -246,7 +209,7 @@ const clientlogger = require('./utils/clientlogger');
               newMember.run(`${parts[0]}${suffix}`,payload.email, payload.password); //password already hashed.
             })();
           } else {
-            debugapi('/api/pin user not found, add #expired to return path')
+            debugapi('Something strange happened - we found the e-mail address is already a member')
             location = '/#expired';
           }
       
@@ -265,6 +228,7 @@ const clientlogger = require('./utils/clientlogger');
         res.end();
         debugapi('/api/pin sent end');
       });
+   
       /*
         the next is a special route used to load a tracking id.  This call "generates" a javascript file to provide a tracking id
       */

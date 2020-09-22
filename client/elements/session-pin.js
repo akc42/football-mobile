@@ -43,10 +43,9 @@ class SessionPin extends LitElement {
 
   render() {
     return html`
-      <fm-page heading="Check Your Email">
+      <fm-page heading="Membership Request">
         <p>You have been sent an email (to <strong>${this.email}</strong>) which contains a link to enable you to proceed.  This link has to be used within ${global.verifyExpires} hours from now, and once used cannot be used again.</p>
-        <p>If you do not receive it, or are unable to use it within the alotted time, just request another one using the same
-        mechanism that you used last time, taking into account any limits on multiple requests you have already been informed of.  Be aware that in most cases only the last link sent will work.</p>
+        <p>If you do not receive it, or are unable to use it within the alotted time, you may request another one, but please be aware that there must be at least ${global.membershipRate} minutes between each request, and no more than ${global.maxMembership} requests a month.</p>
       </fm-page>
     `;
   }
