@@ -45,6 +45,7 @@ class FmInput extends LitElement {
         font-family: Roboto, sans-serif;
         width: var(--input-width, 100%);
         box-sizing: border-box;
+        grid-area: i;
       }
       input:focus, textarea:focus {
         outline: none;
@@ -54,20 +55,24 @@ class FmInput extends LitElement {
         font-family:'NotoColorEmoji', 'Roboto Mono', monospace;
       }
       .labelcontainer {
-        display: flex;
-        flex-direction: row;
+        display: grid;
+        grid-gap: 2px;
         padding: 2px;
         width: 100%;
-
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+          "l e"
+          "i i";
       }
       label {
         font-size: 10pt;
-        flex: 1 0 0;
+        grid-area: l;
       }
       .error {
         white-space: nowrap;
-        flex: 2 0 0;
+        grid-area: e
       }
+
     `];
   }
 
@@ -171,60 +176,60 @@ class FmInput extends LitElement {
           </div>
         `: this.textArea? html`<emoji-button .target=${this.input}></emoji-button>` :'')}
 
-      </div>   
-      ${this.textArea ?  html`
-        <textarea
-          class="emoji"
-          id="input"
-          aria-labelledby="label"
-          ?disabled=${this.disabled}
-          name=${this.name}
-          ?readonly=${this.readonly}
-          placeholder=${this._placeholder}
-          autocomplete=${ifDefined(this.autocomplete)}
-          ?autofocus=${this.autofocus}
-          form=${ifDefined(this.form)}
-          maxlength="${ifDefined(this.maxlength)}"
-          minlength="${ifDefined(this.minlength)}"
-          cols=${ifDefined(this.cols)}
-          rows=${ifDefined(this.rows)}
-          wrap=${ifDefined(this.wrap)}
-          .value=${value}
-          @input=${this._inputChanged}
-          @blur=${this._blur}
-          @emoji-closed=${this._closeEmoji}
-          @emoji-request=${this._request}
-          @emoji-select=${this._emoji}>${value}</textarea>
-      ` : html`
-        <input
-          id="input"
-          type=${this.type}
-          aria-labelledby="label"
-          ?disabled=${this.disabled}
-          title=${ifDefined(this.title)}
-          pattern=${ifDefined(this.pattern)}
-          placeholder=${this._placeholder}
-          autocomplete=${ifDefined(this.autocomplete)}
-          ?autofocus=${this.autofocus}
-          form=${ifDefined(this.form)}
-          list=${ifDefined(this.list)}
-          name=${this.name}
-          maxlength="${ifDefined(this.maxlength)}"
-          minlength="${ifDefined(this.minlength)}"
-          ?readonly=${this.readonly}
-          ?required=${this._required}
-          .value=${value}
-          max=${ifDefined(this.max)}
-          min=${ifDefined(this.min)}
-          step=${ifDefined(this.step)}
-          @input=${this._inputChanged}
-          @blur=${this._blur}
-        />
-        ${this.combo ? html`
-          <datalist id="dropdown">
-            ${this.items.map(item => html`<option >${typeof item === 'string' ? item : item.name}</option>`)}
-          </datalist>`:''}
-        `}
+        ${this.textArea ?  html`
+          <textarea
+            class="emoji"
+            id="input"
+            aria-labelledby="label"
+            ?disabled=${this.disabled}
+            name=${this.name}
+            ?readonly=${this.readonly}
+            placeholder=${this._placeholder}
+            autocomplete=${ifDefined(this.autocomplete)}
+            ?autofocus=${this.autofocus}
+            form=${ifDefined(this.form)}
+            maxlength="${ifDefined(this.maxlength)}"
+            minlength="${ifDefined(this.minlength)}"
+            cols=${ifDefined(this.cols)}
+            rows=${ifDefined(this.rows)}
+            wrap=${ifDefined(this.wrap)}
+            .value=${value}
+            @input=${this._inputChanged}
+            @blur=${this._blur}
+            @emoji-closed=${this._closeEmoji}
+            @emoji-request=${this._request}
+            @emoji-select=${this._emoji}>${value}</textarea>
+        ` : html`
+          <input
+            id="input"
+            type=${this.type}
+            aria-labelledby="label"
+            ?disabled=${this.disabled}
+            title=${ifDefined(this.title)}
+            pattern=${ifDefined(this.pattern)}
+            placeholder=${this._placeholder}
+            autocomplete=${ifDefined(this.autocomplete)}
+            ?autofocus=${this.autofocus}
+            form=${ifDefined(this.form)}
+            list=${ifDefined(this.list)}
+            name=${this.name}
+            maxlength="${ifDefined(this.maxlength)}"
+            minlength="${ifDefined(this.minlength)}"
+            ?readonly=${this.readonly}
+            ?required=${this._required}
+            .value=${value}
+            max=${ifDefined(this.max)}
+            min=${ifDefined(this.min)}
+            step=${ifDefined(this.step)}
+            @input=${this._inputChanged}
+            @blur=${this._blur}
+          />
+          ${this.combo ? html`
+            <datalist id="dropdown">
+              ${this.items.map(item => html`<option >${typeof item === 'string' ? item : item.name}</option>`)}
+            </datalist>`:''}
+          `}
+        </div>
     `;
   }
 
@@ -240,7 +245,7 @@ class FmInput extends LitElement {
     } else if (typeof this.validator === 'function' ) {
       this.invalid = !this.validator(this.input === undefined ? this.value : this.input.value);
     } else if (this.required && !this._required) { //if we do a validity check, the actual required flag should now take its place
-      this.invalid =  this.value.length === 0; 
+      this.invalid =  this.value.length === 0;
       this._required = this.required;
     } else {
       this.invalid = (this.input !== undefined && !this.input.validity.valid);
@@ -250,7 +255,7 @@ class FmInput extends LitElement {
   _blur(e) {
     if (this.textArea) {
       e.stopPropagation();
-      
+
       this.timer = setTimeout(() => {
         this.timer = 0;
         debug('sending blur after timeout');
@@ -259,7 +264,7 @@ class FmInput extends LitElement {
       },500); //get ready to fire a blur
       debug('stop blur propogation and set timer ' + this.timer);
     }
-  
+
     this._required = this.required;
   }
   _closeEmoji(e) {
@@ -272,7 +277,7 @@ class FmInput extends LitElement {
     if (this.input !== undefined) {
       this.input.setRangeText(e.emoji,this.input.selectionStart,this.input.selectionEnd,'end');
       this.value =this.input.value;
-   
+
     }
   }
   _inputChanged(e) {
