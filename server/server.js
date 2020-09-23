@@ -1,5 +1,3 @@
-const clientlogger = require('./utils/clientlogger');
-
 /**
 @licence
     Copyright (c) 2020 Alan Chandler, all rights reserved
@@ -33,6 +31,7 @@ const clientlogger = require('./utils/clientlogger');
   const bodyParser = require('body-parser');
   const Router = require('router');
   const jwt = require('jwt-simple');
+  const bcrypt = require('bcrypt');
   const http = require('http');
   const serverDestroy = require('server-destroy');
   const finalhandler = require('finalhandler');
@@ -41,7 +40,6 @@ const clientlogger = require('./utils/clientlogger');
   const Responder = require('./utils/responder');
   const versionPromise = require('./utils/version');
   
-  const bcrypt = require('bcrypt');
   const clientLogger = require('./utils/clientlogger');
   const serverConfig = {};
   
@@ -171,7 +169,7 @@ const clientlogger = require('./utils/clientlogger');
       debug('setting up logging api');
       
       api.get('/log/:topic/:message/:gap', async (req,res) => {
-        clientlogger(req.params,req.headers);
+        clientLogger(req.params,req.headers);
         res.end();
       })
 
@@ -201,12 +199,13 @@ const clientlogger = require('./utils/clientlogger');
             debugapi('/api/pin insert new member - make username based on', parts[0]);
             const count = db.prepare('SELECT COUNT(*) FROM participant WHERE name = ?').pluck();
             const newMember = db.prepare(`INSERT INTO participant (name, email, waiting_approval, password) VALUES( ?,?,1,?)`);
+            const hashedPassword = await bcrypt.hash(payload.password, 10);
             db.transaction(() => {
               while (count.get(`${parts[0]}${suffix}`) > 0) {
                 suffix = `_${suffixCount++}`;
                 debugapi('/api/pin/ new member, not unique name, so trying with suffix', suffix);
               }
-              newMember.run(`${parts[0]}${suffix}`,payload.email, payload.password); //password already hashed.
+              newMember.run(`${parts[0]}${suffix}`,payload.email, hashedPassword); 
             })();
           } else {
             debugapi('Something strange happened - we found the e-mail address is already a member')

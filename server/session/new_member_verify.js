@@ -32,8 +32,6 @@
     debug('got new request');
     const mail = await mailPromise;
 
-    debug('going to make a hashed version of the incoming password');
-    const hashedPassword = await bcrypt.hash(params.password, 10);
     /* 
       So the next step it to prepare the queries that check rate limits
     */
@@ -89,7 +87,7 @@
                 const payload = {
                   exp: new Date().setTime(now + (verifyExpires * 60 * 60)),
                   email: params.email,
-                  password: hashedPassword,
+                  password: params.password,
                 }
                 const token = jwt.encode(payload, cookieKey);
                 debug('made token', token);
