@@ -124,6 +124,7 @@ class SessionMember extends LitElement {
 
       </style>
       <fm-page heading="Membership">
+        <p>We will capture a password for you now which you can use to login in the next stage of the process.</p>
         <form-manager id="makereq" action="session/new_member_verify" @form-response=${this._formResponse}>
           <re-captcha></re-captcha>      
           <input type="hidden" name="email" value="${this.email}" /> 

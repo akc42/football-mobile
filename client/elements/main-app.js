@@ -27,6 +27,7 @@ import './page-manager.js';
 import './session-manager.js';
 import './material-icon.js';
 import './waiting-indicator.js';
+import './emoji-dialog.js';
 
 import tooltip from '../styles/tooltip.js';
 
@@ -261,6 +262,7 @@ class MainApp extends LitElement {
 
       </style>
       <waiting-indicator></waiting-indicator>
+      <emoji-dialog></emoji-dialog>
       ${cache(this.authorised ? html`
         <dialog-box id="mainmenu">
           <div class="menucontainer">

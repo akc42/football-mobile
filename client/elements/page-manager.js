@@ -34,7 +34,7 @@ import page from '../styles/page.js';
 import './comment-dialog.js';
 import './comment-panel.js';
 import './delete-dialog.js';
-import './emoji-dialog.js';
+
 import { MenuRemove,MenuReset, WaitRequest } from '../modules/events.js';
 import { switchPath } from '../modules/utils.js';
 
@@ -89,7 +89,7 @@ export class PageManager extends RouteManager {
       <comment-dialog></comment-dialog>
       <comment-panel></comment-panel>
       <delete-dialog ></delete-dialog>
-      <emoji-dialog></emoji-dialog>
+     
 
       ${cache({
         approve: html`<approve-manager managed-page .route=${this.subRoute}></approve-manager>`,
