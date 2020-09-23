@@ -56,6 +56,7 @@ class RoundsUser extends LitElement {
           display: flex;
           flex-direction: column;
           padding: 1px;
+          flex: 0 0 auto;
         }
 
         .points, .excl, .rcom, ul, .rq {
