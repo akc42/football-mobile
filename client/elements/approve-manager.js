@@ -17,46 +17,55 @@
     You should have received a copy of the GNU General Public License
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-import { html, css } from '../libs/lit-element.js';
+import { LitElement, html, css } from '../libs/lit-element.js';
 import { cache } from '../libs/cache.js';
 
-import RouteManager from './route-manager.js';
-import { MenuAdd, MenuReset, WaitRequest, CompetitionsReread } from '../modules/events.js';
+
+import {WaitRequest } from '../modules/events.js';
 import api from '../modules/api.js';
 import global from '../modules/globals.js';
 import { switchPath } from '../modules/utils.js';
 import Debug from '../modules/debug.js';
 const debug = new Debug('approve');
 import './calendar-dialog.js';
-
+import emoji from '../styles/emoji.js';
+import page from '../styles/page.js';
+import button from '../styles/button.js';
 
 /*
      <approve-manager>: Competition Approval of Membership Requests
 */
-class ApproveManager extends RouteManager{
+class ApproveManager extends LitElement{
   static get styles() {
-    return css`
+    return [page, button, emoji,css`
       :host {
         height: 100%;
       }
-    `;
+    `];
   }
   static get properties() {
     return {
       members: {type: Array},
+      selectedMember: { type: Number },
       route: {type: Object}
     };
   }
   constructor() {
     super();
     this.members = [];
+    this.selectedMember = 0;
     this.route = {active: false};
+    this._deleteReply = this._deleteReply.bind(this);
+    this.deleteUid = 0;
   }
   connectedCallback() {
     super.connectedCallback();
+    this.addEventListener('delete-reply', this._deleteReply);
+    this.deleteUid = 0;
   }
   disconnectedCallback() {
     super.disconnectedCallback();
+    this.removeEventListener('delete-reply', this._deleteReply);
   }
   update(changed) {
     if (changed.has('route') && this.route.active) {
@@ -64,6 +73,15 @@ class ApproveManager extends RouteManager{
         this._newRoute();
       } else {
         switchPath(`/${global.cid}`)
+      }
+    }
+    if (changed.has('selectedMember')) {
+      
+      if (this.selectedMember !== 0) {
+         const member = this.members.find(m => m.uid === this.selectedMember);
+         this.emailString = member !== undefined? member.email : '';
+      } else {
+        this.emailString = ''
       }
     }
     super.update(changed);
@@ -76,39 +94,83 @@ class ApproveManager extends RouteManager{
   render() {
     return html`
       <style>
+        .member {
+          display: flex;
+          flex-direction: column;
+          margin: 10px;
+          padding: 5px;
+          border: 2px solid var(--accent-color);
+          border-radius: 5px;
+          box-shadow: 1px 1px 3px 0px var(--shadow-color);
+
+        }
+        .member:not(:last-of-type) {
+          border-bottom: 1px dotted var(--accent-color);
+        }
+        .row1 {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+        }
+        .name {
+          grid-area: name;
+        }
+        .email {
+          grid-area: email;
+        }
+
+
+        a, a:link, a:visited, a:hover {
+          color: var(--color)!important;
+          text-decoration: none!important;
+        }
+
+
+
       </style>
-      ${cache({
-        home: html`<approve-home
-          .members=${this.members}
-          managed-page
-          @member-approve=${this._approve}
-          @member-reject=${this._reject}></approve-home>`,
-        email: html`<approve-email
-          managed-page
-          .route=${this.subRoute}
-          .members=${this.members}
-          @member-email=${this._email}></approve-email>`,
-      }[this.page])}
+      <fm-page id="page" heading="New Member Approval">
+        <section class="scrollable">
+          ${cache(this.members.map(member => html`
+            <section class="member" data-uid=${member.uid} @click=${this._toggleSelected}>
+              <div class="row1">
+                <div class="em">${member.email}</div>
+                <material-icon class="us">${member.selected ? 'check_box' : 'check_box_outline_blank'}</material-icon>
+              </div>
+              <div class="emoji reason">${member.reason}</div>
+              
+
+            </section>
+          `))}
+        </section>
+        <button slot="action" @click=${this._accept}><material-icon>how_to_reg</material-icon> Accept Selected</button>
+        <button slot="action" @click=${this._reject}><material-icon>delete_forever</material-icon> Reject Selected</button>
+      
+        <button slot="save" ><a href="mailto:${this.emailString}"><material-icon>email</material-icon> Query Selected</a></button>
+       
+        
+      </fm-page>
     `;
   }
-  loadPage(page) {
-    debug(`loading ${page}`);
-    this.dispatchEvent(new WaitRequest(true));
-    import(`./approve-${page}.js`).then(() => this.dispatchEvent(new WaitRequest(false)));
-    if (page === this.homePage()) {
-      this.dispatchEvent(new MenuReset());
-    } else {
-      this.dispatchEvent(new MenuAdd());
+  async _accept(e) {
+    e.stopPropagation();
+    if (this.selectedMember !== 0) {
+      this.dispatchEvent(new WaitRequest(true));
+      const response = await api('approve/member_approved', { uid: this.selectedMember });
+      this.dispatchEvent(new WaitRequest(false));
+      this.members = response.members;
+      this.selectedMember = 0;
     }
   }
-  async _approve(e) {
+  async _deleteReply(e) {
     e.stopPropagation();
-    const uid = e.uid;
-    this.dispatchEvent(new WaitRequest(true));
-    const response = await api('approve/member_approved', { uid: uid});
-    this.dispatchEvent(new WaitRequest(false));
-    this.members = response.members;
-
+    //just receeving this means go ahead
+    if (this.deleteUid !== 0) {
+      this.selectedMember = 0;
+      this.dispatchEvent(new WaitRequest(true));
+      const response = await api('approve/member_rejected', { uid: this.deleteUid });
+      this.dispatchEvent(new WaitRequest(false));
+      this.members = response.members;
+    }
   }
   async _newRoute() {
     this.dispatchEvent(new WaitRequest(true));
@@ -117,14 +179,35 @@ class ApproveManager extends RouteManager{
     this.members = response.members;
 
   }
-  async _reject(e) {
+  _reject(e) {
     e.stopPropagation();
-    const uid = e.uid;
-    this.dispatchEvent(new WaitRequest(true));
-    const response = await api('approve/member_rejected', { uid: uid });
-    this.dispatchEvent(new WaitRequest(false));
-    this.members = response.members;
-
+    if (this.selectedMember !== 0) {
+      this.deleteUid = this.selectedMember;
+      const member = this.members.find(m => m.uid === this.selectedMember)
+      if (member !== undefined) {
+        const named = `the Member with email ${member.email}`;
+        this.dispatchEvent(new DeleteRequest(named));
+      }
+    }
   }
+  _toggleSelected(e) {
+    e.stopPropagation();
+    const member = this.members.find(member => member.uid.toString() === e.currentTarget.dataset.uid);
+    if (member !== undefined) {
+      member.selected = !member.selected;
+      if (member.selected) {
+        this.selectedMember = member.uid;
+        //if we selected this member , we need to make sure none of the other members is selected.
+        for (const u of this.members) {
+          if (u.selected && u.uid !== member.uid) u.selected = false;
+        }
+      } else {
+        this.selectedMember = 0;
+      }
+    }
+  }
+
+
+
 }
 customElements.define('approve-manager', ApproveManager);

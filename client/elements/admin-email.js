@@ -29,7 +29,68 @@ import button from '../styles/button.js';
 */
 class AdminEmail extends LitElement {
   static get styles() {
-    return [page, button, css``];
+    return [page, button, css`
+        :host {
+          --icon-size: 20px;
+        }
+        .row {
+          display: grid;
+          grid-gap: 2px;
+          grid-template-columns: 1fr repeat(3, 20px);
+          grid-template-areas: 
+            "name . . ."
+            "email email email select";
+
+        }
+        #container {
+          display: flex;
+          flex-direction: column;
+        }
+        #explain {
+          display: flex;
+          flex-direction: row;
+          margin: 10px 0;
+        }
+        #explain .button {
+          margin: 5px;
+          border: none;
+          padding: 5px;
+          border-radius:5px;
+          box-shadow: 2px 2px 5px 4px var(--shadow-color);
+        }
+        #staff {
+          grid-area: staff;
+        }
+        #userlist {
+          height: 90%;
+          overflow-y: scroll;
+          scroll-snap-type: y mandatory;
+        }
+        .name {
+          grid-area: name;
+        }
+        .email {
+          grid-area: email;
+        }
+        .pa, .ga, .ma, .us, .iconreplace {
+          width: 20px;
+          margin: 0 2px;
+        }
+        .us {
+          grid-area: select;
+        }
+        .u {
+          cursor: pointer;
+          border-bottom: 1px dotted var(--accent-color);
+          margin-bottom: 1px;
+          scroll-snap-align: start;
+        }
+
+        a, a:link, a:visited {
+          color: var(--color)!important;
+    
+        }
+    `];
   }
   static get properties() {
     return {
@@ -39,21 +100,22 @@ class AdminEmail extends LitElement {
   constructor() {
     super();
     this.users = [];
+    this.contactableUsers = [];
+    this.emailString = '';
   }
-  connectedCallback() {
-    super.connectedCallback();
-  }
-  disconnectedCallback() {
-    super.disconnectedCallback();
-  }
+
   update(changed) {
+    this.contactableUsers = this.users.filter(u => u.unlikely === 0);
+    let emailString = '';
+    for (const user of this.contactableUsers) {
+      if (user.selected) {
+        emailString += user.email + ',';
+      }
+    }
+    this.emailString = emailString.slice(0, -1);
     super.update(changed);
   }
-  firstUpdated() {
-  }
-  updated(changed) {
-    super.updated(changed);
-  }
+
   render() {
     return html`
       <style>
@@ -113,12 +175,16 @@ class AdminEmail extends LitElement {
           scroll-snap-align: start;
         }
 
+        a, a:link, a:visited {
+          color: var(--color)!important;
+    
+        }
 
 
       </style>
       <football-page id="page" heading="Registered Members" nohead>
         <section class="scrollable">
-          ${cache(this.users.map(user => html`
+          ${cache(this.contactableUsers.map(user => html`
             <div class="row u" data-uid="${user.uid}" @click=${this._toggleSelected}>
               <div class="name">${user.name}</div>
               <div class="email">${user.email}</div>
@@ -129,9 +195,9 @@ class AdminEmail extends LitElement {
             </div>
           `))}
         </section>
-          <button slot="action" @click=${this._doSelect}><material-icon>group</material-icon><div>Select All</div></button>
-          <button slot="action" @click=${this._doClear}><material-icon>people_outline</material-icon><div>Clear All</div></button>
-          <button slot="action" @click=${this._doCompose}><material-icon>email</material-icon><div>Email Selected Users</div></button>
+          <button slot="action" @click=${this._doSelect}><material-icon>group</material-icon> Select All</button>
+          <button slot="action" @click=${this._doClear}><material-icon>people_outline</material-icon> Clear All</button>
+          <button slot="action"><a href="mailto:${this.emailString}"><material-icon>email</material-icon>Email Selected Users</a></button>
 
       </football-page>
     `;

@@ -31,37 +31,8 @@ import button from '../styles/button.js';
 */
 class GadmEmail extends LitElement {
   static get styles() {
-    return [page, button, css``];
-  }
-  static get properties() {
-    return {
-
-      users: {type: Array}
-    };
-  }
-  constructor() {
-    super();
-    this.users = [];
-  }
-  connectedCallback() {
-    super.connectedCallback();
-  }
-  disconnectedCallback() {
-    super.disconnectedCallback();
-  }
-  update(changed) {
-    super.update(changed);
-  }
-  firstUpdated() {
-
-  }
-  updated(changed) {
-    super.updated(changed);
-  }
-  render() {
-    return html`
-      <style>
-        :host {
+    return [page, button, css`
+            :host {
           --icon-size: 20px;
         }
         .row {
@@ -116,11 +87,50 @@ class GadmEmail extends LitElement {
           margin-bottom: 1px;
           scroll-snap-align: start;
         }
-      </style>
+        a, a:link, a:visited {
+          color: var(--color)!important;
+    
+        }
+    `];
+  }
+  static get properties() {
+    return {
+
+      users: {type: Array},
+      emailString: {type: String}
+    };
+  }
+  constructor() {
+    super();
+    this.users = [];
+    this.contactableUsers = [];
+
+    this.emailString = '';
+  }
+  connectedCallback() {
+    super.connectedCallback();
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+  }
+  update(changed) {
+    this.contactableUsers = this.users.filter(u => u.unlikely === 0);
+    let emailString = '';
+    for (const user of this.contactableUsers) {
+      if (user.selected) {
+        emailString += user.email + ',';
+      }
+    }
+    this.emailString = emailString.slice(0, -1);
+    super.update(changed);
+  }
+
+  render() {
+    return html`
       <fm-page id="page" heading="Global Admin">
         <div slot="subheading">Email Users</div>
         <section class="scrollable">
-          ${cache(this.users.map(user => html`
+          ${cache(this.contactableUsers.map(user => html`
             <div class="row u" data-uid="${user.uid}" @click=${this._toggleSelected}>
               <div class="name">${user.name}</div>
               <div class="email">${user.email}</div>
@@ -131,10 +141,9 @@ class GadmEmail extends LitElement {
             </div>
           `))}
         </section>
-          <button slot="action" @click=${this._doSelect}><material-icon>group</material-icon><div>Select All</div></button>
-          <button slot="action" @click=${this._doClear}><material-icon>people_outline</material-icon><div>Clear All</div></button>
-          <button slot="action" @click=${this._doCompose}><material-icon>email</material-icon><div>Email Selected Users</div></button>
-
+        <button slot="action" @click=${this._doSelect}><material-icon>group</material-icon> Select All</button>
+        <button slot="action" @click=${this._doClear}><material-icon>people_outline</material-icon> Clear All</button>
+        <button slot="action"><a href="mailto:${this.emailString}"><material-icon>email</material-icon>Email Selected Users</a></button>
       </fm-page>
     `;
   }
@@ -145,10 +154,7 @@ class GadmEmail extends LitElement {
     }
     this.requestUpdate();
   }
-  _doCompose(e) {
-    e.stopPropagation();
-    alert('Not implemented yet');
-  }
+
   _doSelect(e) {
     
     for (const user of this.users) {
