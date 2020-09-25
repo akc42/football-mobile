@@ -25,6 +25,7 @@ import domHost from '../modules/host.js';
 import { DeleteReply } from '../modules/events.js';
 import button from '../styles/button.js';
 
+import './material-icon.js';
 
 
 
@@ -92,8 +93,8 @@ class DeleteDialog extends LitElement {
         <div class="container">
           <div class="explain">Please confirm that you wish to delete ${this.item}</div>
           <div class="buttons">
-            <button cancel @click=${this._cancel}>Cancel</button>
-            <button @click=${this._replyToCaller}>Confirm</button>
+            <button @click=${this._replyToCaller}><material-icon>thumb_up_alt</material-icon> Confirm</button>
+            <button cancel @click=${this._cancel} ><material-icon>cancel</material-icon> Cancel</button>
           </div>
         </div>
       </dialog-box>
