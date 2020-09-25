@@ -164,9 +164,9 @@ class AdminHome extends LitElement {
 
 
         </div>
-        ${cache(this.competition.team_lock === 1 ? html`<button slot="action" @click=${this._rounds}>Rounds</button>`: '')}
-        <button slot="action" @click=${this._teams}>Teams</button>
-        <button slot="action" @click=${this._email}>Email Users</button>    
+        ${cache(this.competition.team_lock === 1 ? html`<button slot="action" @click=${this._rounds}><material-icon>rotate_90_degrees_ccw</material-icon> Rounds</button>`: '')}
+        <button slot="action" @click=${this._teams}><material-icon outlined>group_work</material-icon> Teams</button>
+        <button slot="action" @click=${this._email}><material-icon>email</material-icon> Email Users</button>    
       </fm-page>
     `;
   }

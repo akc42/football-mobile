@@ -89,7 +89,7 @@ class SessionEmail extends LitElement {
           ?required=${this.donefirst} 
           label="Email" 
           message="Valid Email Address Required" @blur=${this._doneFirst}></fm-input>
-        <button slot="action" @click=${this._continue}>Continue</button>
+        <button slot="action" @click=${this._continue}>Continue <material-icon>navigate_next</material-icon></button>
         <p>By continuing you agree to ${global.organisationName} <a href="#" @click=${this._privacy}>Privacy Policy</a></p>
       </fm-page>
     `;

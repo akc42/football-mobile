@@ -153,7 +153,7 @@ class AdminRoundHome extends LitElement {
             <div class="container round">
               <div class="no" @click=${this._loadRound} data-rid="${round.rid}">${round.rid}</div>
               <div class="name" @click=${this._loadRound} data-rid="${round.rid}">${round.name}</div>
-              <material-icon class="del" @click=${this._maybeDelete} data-rid="${round.rid}">close</material-icon>
+              <material-icon class="del" @click=${this._maybeDelete} data-rid="${round.rid}">delete_forever</material-icon>
             </div>    
           `))}
           </section>

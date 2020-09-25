@@ -33,6 +33,8 @@ export default css`
     border-radius:5px;
     box-shadow: 2px 2px 5px 4px var(--shadow-color);
     cursor: pointer;
+    display: inline-flex;
+    align-items: center; 
   }
   button[cancel] {
     background-color: var(--cancel-color);

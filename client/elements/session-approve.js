@@ -97,7 +97,7 @@ class SessionApprove extends LitElement {
         <p>Your application for membership is available for the senior members of ${global.organisationName} to view.</p>
         <p>You may update this application at anytime to provide a short reason as to why you want to become a member. So feel free to enter or revise the text below.</p>
         
-        <button slot="action" @click=${this._update}>Update</button>
+        <button slot="action" @click=${this._update}><material-icon>save</material-icon> Update</button>
         
       </fm-page>
     `;

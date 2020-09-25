@@ -52,7 +52,6 @@ class GadmManager extends RouteManager {
   connectedCallback() {
     super.connectedCallback();
     this.readData = false;
-    this.fetchDataInProgress = false;
   }
   disconnectedCallback() {
     super.disconnectedCallback();
@@ -84,7 +83,7 @@ class GadmManager extends RouteManager {
             @competition-changed=${this._competitionChanged}
             @competition-create=${this._newCompetition}
             @competition-delete=${this._deleteCompetition}></gadm-home>`,
-          promote: html`<gadm-promote managed-page .users=${this.users}></gadm-promote>`,
+          promote: html`<gadm-promote managed-page .users=${this.users} @promote-list=${this._promote}></gadm-promote>`,
           email: html`<gadm-email managed-page .users=${this.users} .route=${this.subroute}></gadm-email>`
       }[this.page])}
     `;
@@ -127,7 +126,9 @@ class GadmManager extends RouteManager {
   async _newCompetition(e) {
     e.stopPropagation();
     const competition = e.competition;
+    this.dispatchEvent(new WaitRequest(true));
     const response = await api('gadm/new_competition', competition);
+    this.dispatchEvent(new WaitRequest(false));
     competition.cid = response.cid;
     this.competitions.push(competition);
     this.competitions = this.competitions.slice(0);
@@ -139,14 +140,25 @@ class GadmManager extends RouteManager {
   async _newRoute() {
     if (!this.readData) {
       this.readData = true;
-      this.fetchDataInProgress = true
+      this.dispatchEvent(new WaitRequest(true));
       const response = await api('gadm/fetch_global_data');
-      this.fetchDataInProgress = false;
+      this.dispatchEvent(new WaitRequest(false));
       this.competitions = response.competitions;
       this.users = response.users;
       for (const user of this.users) {
         user.selected = false; //just add this extra field as a useful addition
       }
+    }
+
+  }
+  async _promote(e) {
+    e.stopPropagation();
+    this.dispatchEvent(new WaitRequest(true));
+    const response = await api('gadm/promote_users', e.list);
+    this.dispatchEvent(new WaitRequest(false));
+    this.users = response.users;
+    for (const user of this.users) {
+      user.selected = false; //just add this extra field as a useful addition
     }
 
   }

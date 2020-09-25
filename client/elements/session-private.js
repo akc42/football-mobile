@@ -86,7 +86,7 @@ class SessionPrivate extends LitElement {
         this token when you finish using the site (in which case you will have to sign
         in on the next visit), or whether you want us to retain it so that you are
         automatically signed in on the next visit.</p>
-        <button slot="action" @click=${this._retry}>Return To Email</button>  
+        <button slot="action" @click=${this._retry} >Return To Sign In <material-icon>login</material-icon></button>  
       </fm-page>
     `;
   }

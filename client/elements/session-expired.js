@@ -66,7 +66,7 @@ class SessionExpired extends LitElement {
       <fm-page heading="Link Expired">      
         <p>Sadly the link that we sent you that you have just tried to use has either expired or been corrupted in some way.
         We are sorry, but because of that we are unable to identify you. If you wish to try again, just click on the Retry Button below.</p>
-        <button slot="action" @click=${this._retry}>Retry</button>  
+        <button slot="action" @click=${this._retry}><material-icon>reply</material-icon> Retry</button>  
       </fm-page>
     `;
   }

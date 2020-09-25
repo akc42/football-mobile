@@ -24,7 +24,9 @@ import {cache} from '../libs/cache.js';
 import './fm-page.js';
 import page from '../styles/page.js';
 import button from '../styles/button.js';
-import { PromoteList, WaitRequest } from '../modules/events.js';
+import './material-icon.js';
+
+import { PromoteList } from '../modules/events.js';
 
 
 /*
@@ -36,7 +38,7 @@ class GadmPromote extends LitElement {
   }
   static get properties() {
     return {
-      promoteables: {type: Array}, //Can't promote global_admins so this is the list without them (although will contain promoted until until saved)
+      promotables: {type: Array}, //Can't promote global_admins so this is the list without them (although will contain promoted until until saved)
       users: {type: Array},
       selectedUser: {type: Number}
     };
@@ -58,9 +60,15 @@ class GadmPromote extends LitElement {
   }
   update(changed) {
     if (changed.has('users')) {
-      this.dispatchEvent(new WaitRequest(false));
+      //we cannot promote global admins any more, nor can we demote them (policy - manually done in database if  mistake)
       //we need to clone the user objects so that there are no references
-      this.promoteables = JSON.parse(JSON.stringify(this.users.filter(u => u.global_admin === 0))); //we cannot promote global admins any more.
+      this.promotables = JSON.parse(JSON.stringify(this.users.filter(u => u.global_admin === 0))); //we cannot promote global admins any more.
+      this.gaPromotes = new Set();
+      this.maPromotes = new Set();
+      this.maDemotes = new Set();
+      this.unPromotes = new Set();
+      this.unDemotes = new Set();
+
     }
     super.update(changed);
   }
@@ -80,21 +88,7 @@ class GadmPromote extends LitElement {
           flex-direction: row;
           align-items: center;
         }
-        #container {
-          display: flex;
-          flex-direction: column;
-        }
-        #explain {
-          grid-area: explain;
-        }
-        #staff {
-          grid-area: staff;
-        }
-        #userlist {
-          height: 90%;
-          overflow-y: scroll;
-          scroll-snap-type: y mandatory;
-        }
+
         .name {
           width: 100%;
         }
@@ -111,36 +105,41 @@ class GadmPromote extends LitElement {
       </style>
       <fm-page id="page" heading="Global Admin">
         <div slot="subheading">Promote Users</div>
-        <div id="container">
-          <section id="explain">
-            <p>TODO explain here</p>
-          </section>
-          <section id=staff>
-            <div class="button" @click=${this._doSelect}><material-icon>group</material-icon><div>Select All</div></div>
-            <div class="button" @click=${this._doClear}><material-icon>people_outline</material-icon><div>Clear All</div></div>
-            <div class="button" @click=${this._doPromote}><material-icon>person_add</material-icon><div>Premote Selected</div></div>
-            <div class="button" @click=${this._doDemote}><material-icon>person_remove</material-icon><div>Demote Selected</div></div>
-            <div class="button" @click=${this._doSave}><material-icon>save</material-icon><div>Save Changes</div></div>
-            <div id="userlist">
-              ${cache(this.promoteables.map(user => html`
-                <div class="row u" data-uid="${user.uid}" @click=${this._toggleSelected}>
-                  <div class="name">${user.name}</div>
-                  ${user.previous_admin !== 0 ? html`<material-icon class="pa">font_download</material-icon>` : html`<div class="iconreplace"></div>`}
-                  ${user.global_admin !== 0 ? html`<material-icon class="ga">public</material-icon>` : html`<div class="iconreplace"></div>`}
-                  ${user.member_approve !== 0 ? html`<material-icon class="ma">grading</material-icon>` : html`<div class="iconreplace"></div>`}
-                  <material-icon class="us">${user.selected ? 'check_box' : 'check_box_outline_blank'}</material-icon>
-                </div>
-              `))}
+        
+        <header id="explain">
+          <p>Users have levels - Promotion moves up a level, Demotion moves down. Global Admin's cannot be demoted once saved.  Temporarily set levels and then save to make permanent.
+          <ol>
+          <li value="-1"><material-icon>notifications_paused</material-icon> Not to be sent notifications</li>
+          <li>&nbsp;&nbsp;&nbsp; Normal Member</li>
+          <li><material-icon>grading</material-icon> Can approve new members</li>
+          <li><material-icon>public</material-icon> Global Administrator</li>
+          </ol> </p>   
+          <p><material-icon>font_download</material-icon> Recent Competition Administrator (not a level)</p>      
+        </header>
+        <section id="userlist" class="scrollable">
+          ${cache(this.promotables.map(user => html`
+            <div class="row u" data-uid="${user.uid}" @click=${this._toggleSelected}>
+              <div class="name">${user.name}</div>
+              ${user.previous_admin !== 0 ? html`<material-icon class="pa">font_download</material-icon>` : html`<div class="iconreplace"></div>`}
+              ${user.global_admin !== 0 ? html`<material-icon class="ga">public</material-icon>` : html`<div class="iconreplace"></div>`}
+              ${user.member_approve !== 0 ? html`<material-icon class="ma">grading</material-icon>` : html`<div class="iconreplace"></div>`}
+              ${user.unlikely !== 0 ? html`<material-icon>notifications_paused</material-icon>` : html`<div class="iconreplace"></div>`}
+              <material-icon class="us">${user.selected ? 'check_box' : 'check_box_outline_blank'}</material-icon>
             </div>
+          `))}
+        </section>
 
-          </section>
-        </div>
+
+        <button slot="action" @click=${this._doPromote}><material-icon>person_add</material-icon> Promote Selected</button>
+        <button slot="action" @click=${this._doDemote}><material-icon>person_remove</material-icon> Demote Selected</button>
+        <button slot="save" @click=${this._doSave}><material-icon>save</material-icon> Save Changes</button>
+        <button cancel slot="save" @click=${this._doClear}><material-icon>people_outline</material-icon> Clear Selections</button>
       </fm-page>
     `;
   }
   _doClear(e) {
     e.stopPropagation();
-    for (const user of this.premoteables) user.selected = false;
+    for (const user of this.promotables) user.selected = false;
     this.requestUpdate();
   }
   _doDemote(e) {
@@ -149,37 +148,63 @@ class GadmPromote extends LitElement {
       if (user.selected) {
         if (user.global_admin === 1) {
           user.global_admin = 0;
-        } else {
-          user.member_approve === 0;
+          this.gaPromotes.delete(user.uid)
+        } else if (user.member_approve === 1) {
+          user.member_approve = 0;
+          this.maPromotes.delete(user.uid);
+          this.maDemotes.add(user.uid);
+        } else if (user.unlikely === 0) {
+          user.unlikely = 1;
+          //ths following two are deliberately backwards (system promotes, user perception is demote)
+          this.unPromotes.add(user.uid);
+          this.unDemotes.delete(user.uid);
         }
       }
     }
+    this._doClear(e);
   }
   _doPromote(e) {
     e.stopPropagation();
     for (const user of this.promotables) {
       if (user.selected) {
+
+        if (user.unlikely === 1) {
+          user.unlikely = 0;
+          //the following two are deliberately backwards (system demotes, user perception is promote)
+          this.unPromotes.delete(user.uid);
+          this.unDemotes.add(user.uid);
+        } else 
         if (user.member_approve === 1) {
           user.global_admin = 1
+          this.gaPromotes.add(user.uid);
         } else {
-          user.member_approve === 1;
+          user.member_approve = 1;
+          this.maPromotes.add(user.uid);
+          this.maDemotes.delete(user.uid);
         }
       }
     }
+    this._doClear(e);
   }
   _doSave(e) {
     e.stopPropagation();
-    this.dispatchEvent(new WaitRequest(true));
-    this.dispatchEvent(new PromoteList(this.premoteables));
+    
+    this.dispatchEvent(new PromoteList({
+      ga: Array.from(this.gaPromotes.values()), 
+      map: Array.from(this.maPromotes.values()), 
+      mad: Array.from(this.maDemotes.values()),
+      unp: Array.from(this.unPromotes.values()),
+      und: Array.from(this.unDemotes.values())
+    }));
   }
   _doSelect(e) {
     e.stopPropagation();
-    for (const user of this.promoteables) user.selected = true;
+    for (const user of this.promotables) user.selected = true;
     this.requestUpdate();
   }
   _toggleSelected(e) {
     e.stopPropagation();
-    const user = this.promoteables.find(user => user.uid.toString() === e.currentTarget.dataset.uid);
+    const user = this.promotables.find(user => user.uid.toString() === e.currentTarget.dataset.uid);
     if (user !== undefined) {
       user.selected = !user.selected;
       this.requestUpdate();

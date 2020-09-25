@@ -25,6 +25,7 @@ import { LitElement, html } from '../libs/lit-element.js';
 import './fm-input.js';
 import button from '../styles/button.js';
 import page from '../styles/page.js';
+import './material-icon.js';
 
 import { SessionStatus} from '../modules/events.js';
 import global from '../modules/globals.js';
@@ -92,7 +93,7 @@ class SessionMprocess extends LitElement {
             <li>You will be sent an e-mail informing you of their decision.  If positive you will now be able to sign in. We recommend going to your profile page and reviewing and maybe updating your username.</li>
           </ol>
         <p>Please be aware that an approval may take some time and is not guarenteed.</p>
-        <button slot="action" @click=${this._retry}>Return to Membership</button>  
+        <button slot="action" @click=${this._retry}><material-icon>reply</material-icon> Return to Membership</button>  
       </fm-page>
     `;
   }

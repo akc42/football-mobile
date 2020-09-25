@@ -235,8 +235,8 @@ class ProfileManager extends LitElement {
             <fm-checkbox ?value=${this.remember} @value-changed=${this._rememberChanged} name="remember">Remember Me</fm-checkbox>
         </form-manager>
 
-        <button slot="action" @click=${this._changeProfile}>Update</button>
-        <button slot="action" cancel @click=${this._cancel}>Cancel</button>
+        <button slot="action" @click=${this._changeProfile}><material-icon>save</material-icon> Update</button>
+        <button slot="action" cancel @click=${this._cancel}><material-icon>cancel</material-icon> Cancel</button>
       
       </fm-page>
     `;

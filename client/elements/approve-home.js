@@ -101,9 +101,9 @@ class ApproveHome extends LitElement {
             </section>
           `))}
         </section>
-        <button slot="action" @click=${this._accept}>Accept Selected</button>
-        <button slot="action" @click=${this._reject}>Reject Selected</button>
-        <button slot="action" @click=${this._query}>Query Selected</button>
+        <button slot="action" @click=${this._accept}><material-icon>how_to_reg</material-icon> Accept Selected</button>
+        <button slot="action" @click=${this._reject}><material-icon>delete_forever</material-icon> Reject Selected</button>
+        <button slot="action" @click=${this._query}><material-icon>email</material-icon> Query Selected</button>
       </fm-page>
     `;
   }

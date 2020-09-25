@@ -84,10 +84,10 @@ class SessionForgotten extends LitElement {
       <fm-page heading="Forgotten">
           <re-captcha></re-captcha>
           <p>You have indicated that you have forgotton your password.  Please prove you a not a robot, and then we
-          will send an email to <strong>${this.user.email}</strong> with a link that will enable you to access your profile
+          will send an email to <strong>${this.user.email}</strong> with a one time code that will enable you to login once in order access your profile
           and reset your password.</p>
          
-          <button slot="action" @click=${this._update}>Send Link</button>
+          <button slot="action" @click=${this._update}><material-icon>send</material-icon> Send Code</button>
         
       </fm-page>
     `;

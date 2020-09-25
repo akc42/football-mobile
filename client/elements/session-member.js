@@ -156,8 +156,8 @@ class SessionMember extends LitElement {
           </div>
         </form-manager>
         <p>Click on the link to find out about the <a href="#" @click=${this._mprocess}>Membership Process</a></p>
-        <button slot="action" cancel @click=${this._cancel}>Cancel</button>
-        <button slot="action" @click=${this._proceed}>Proceed</button>  
+        <button slot="action" @click=${this._proceed}><material-icon>forward_to_inbox</material-icon> Proceed</button>  
+        <button slot="action" cancel @click=${this._cancel}><material-icon>cancel</material-icon> Cancel</button>
       </fm-page>
     `;
   }

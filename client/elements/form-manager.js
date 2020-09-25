@@ -57,13 +57,6 @@ class FormManager extends LitElement  {
 
   render() {
     return html`
-      <style>
-        :host {
-          height: 100%;
-        }
-
-
-      </style>
       <slot id="mychildren"></slot>        
     `;
   }

@@ -332,8 +332,8 @@ class AdminRoundRoundHome extends LitElement {
           </section>
               
         </section>
-        <button slot="action" @click=${this._matches}>Matches</button>
-        <button slot="action" @click=${this._userPicks}>Do User Picks</button>
+        <button slot="action" @click=${this._matches}><material-icon>sports_football</material-icon> Matches</button>
+        <button slot="action" @click=${this._userPicks}><material-icon>check_circle</material-icon> Do User Picks</button>
       </football-page>
     `;
   }

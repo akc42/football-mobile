@@ -145,7 +145,7 @@ class SessionPassword extends LitElement {
           </div>
         </form-manager>
         
-        <button slot="action" @click=${this._proceed}>Sign In</button>  
+        <button slot="action" @click=${this._proceed}>Sign In <material-icon>login</material-icon></button>  
       </fm-page>
     `;
   }

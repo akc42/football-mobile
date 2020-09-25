@@ -21,14 +21,14 @@
 (function() {
   'use strict';
 
-  const debug = require('debug')('football:api:gadmdata');
+  const debug = require('debug')('football:api:gadmpromote');
   const db = require('../utils/database');
 
   module.exports = async function(user,  params, responder) {
     debug('new request from user', user.uid);
-    const comp = db.prepare(`SELECT c.cid, c.name, c.administrator, c.open, c.closed FROM competition c 
-      WHERE NOT EXISTS (SELECT cid FROM registration WHERE cid = c.cid) OR c.administrator = 0 
-      ORDER BY c.cid;`);
+    const updateGlobalAdmin = db.prepare('UPDATE participant SET global_admin = 1 WHERE uid = ?');
+    const updateMemberApprove = db.prepare('UPDAte participant SET member_approve = ? WHERE uid = ?');
+    const updateUnlikely = db.prepare('UPDATE participant SET unlikely = ? WHERE uid = ?');
     //Note: 3 years is approx 94608000 seconds.
     const users = db.prepare(`SELECT uid, name, email, global_admin, member_approve, 
       IFNULL((SELECT cid FROM competition WHERE administrator = participant.uid AND 
@@ -37,7 +37,11 @@
       WHERE waiting_approval = 0 ORDER BY unlikely ASC, previous_admin DESC, global_admin DESC, member_approve DESC, cid DESC, last_logon DESC`);
     debug('prepared ')
     db.transaction(() => {
-      responder.addSection('competitions', comp.all());
+      for (const uid of params.ga) updateGlobalAdmin.run(uid);
+      for (const uid of params.map) updateMemberApprove.run(1,uid);
+      for (const uid of params.mad) updateMemberApprove.run(0, uid);
+      for (const uid of params.unp) updateUnlikely.run(1,uid);
+      for (const uid of params.und) updateUnlikely.run(0, uid);
       responder.addSection('users', users.all());
     })();
   };

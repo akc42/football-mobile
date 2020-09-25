@@ -75,13 +75,18 @@ class FmPage extends LitElement {
         flex-grow: 1;
       }
 
-      .action {
+
+      .action, .save {
         display: flex;
         width:100%;
         flex-direction:row;
         flex-wrap: wrap;
         justify-content: space-evenly;
         align-items: flex-end;
+        
+      }
+
+      .action ::slotted(*), .save ::slotted(*) {
         margin: 5px 0px;
       }
 
@@ -109,6 +114,7 @@ class FmPage extends LitElement {
   static get properties() {
     return {
       heading: {type: String}
+
     };
   }
   constructor() {
@@ -127,6 +133,7 @@ class FmPage extends LitElement {
       <section>
         <slot></slot>
         <div class="action"><slot name="action"></slot></div>
+        <div class="save"><slot name="save"></slot></div>
       </section>
     `;
   }

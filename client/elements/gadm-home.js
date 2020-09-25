@@ -25,6 +25,7 @@ import './fm-page.js';
 import page from '../styles/page.js';
 import button from '../styles/button.js';
 import './fm-input.js';
+import './material-icon.js';
 import { CompetitionCreate, DeleteRequest, CompetitionDelete, CompetitionChanged } from '../modules/events.js';
 import { switchPath } from '../modules/utils.js';
 
@@ -220,7 +221,7 @@ class GadmHome extends LitElement {
                     class="adm ${classMap({ ass: comp.administrator !== 0 })}" 
                     data-cid=${comp.cid} 
                     @click=${this._newAdministrator}>font_download</material-icon>
-                  <material-icon class="del" data-cid=${comp.cid} @click=${this._maybeDelete}>close</material-icon>
+                  <material-icon class="del" data-cid=${comp.cid} @click=${this._maybeDelete}>delete_forever</material-icon>
                 </div> 
               `))}
               <hr/>
@@ -242,8 +243,8 @@ class GadmHome extends LitElement {
             </div> 
           </section>
           <section id="other">
-            <button @click=${this._promote}>Promote Users</button>
-            <button @click=${this._sendEmail}>Send Email to Users</button>
+            <button @click=${this._promote}><material-icon>person_add</material-icon> Promote Users</button>
+            <button @click=${this._sendEmail}><material-icon>email</material-icon> Send Email to Users</button>
           </section>
           <section id="explain">
               <p>Click on a user to select them and then click on a grey <material-icon class="non">font_download</material-icon> icon against a competition to assign that user to be the Adminsistrator of it.  If the icon <material-icon class="ass">font_download</material-icon> is showing green an Administrator is already assigned.  However you can change the competition's Administrator to the selected user if you click on it.</p>

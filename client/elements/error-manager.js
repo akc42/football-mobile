@@ -90,7 +90,7 @@ class ErrorManager extends LitElement {
             <p>Nevertheless, you may wish to e-mail the web master (<a href="mailto:${global.webmaster}">${global.webmaster}</a>) to let
             them know that there has been an issue.</p>
             `}             
-            <button slot="action" @click=${this._reset}>Restart</button>
+            <button slot="action" @click=${this._reset}><material-icon>reply</material-icon> Restart</button>
           `)}
         </fm-page>
       `: '')}
