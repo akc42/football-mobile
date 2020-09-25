@@ -13,7 +13,8 @@ export default {
   ],
   output: {
     dir: 'client/libs',
-    format: 'esm'
+    format: 'esm',
+    chunkFileNames: '[name]-chunk.js'
   },
   plugins: [resolve()]
 };

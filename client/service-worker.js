@@ -17,10 +17,13 @@
     You should have received a copy of the GNU General Public License
     along with Football-Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
-const version = 'fm-v1'
-const api = /^\/api\/(service|config|session|profile|approve|gadm)\/(\w+)|(\d+)\/(admin|user)\/(\w+)$/i;
+
+const version = 'fm-v2';
+const routes = /^\/(\d+\/)?(admhelp|admin|approve|gadm|icon|navref|profile|register|rounds|soon|scores|teams)\/?.*$/i;
 self.addEventListener('install', (event) => 
-  event.waitUntil(caches.open(version).then( cache => cache.addAll([
+  event.waitUntil(
+    caches.open(version).then( 
+      cache => cache.addAll([
     '/',
     '/index.html',
     '/style.css',
@@ -38,7 +41,7 @@ self.addEventListener('install', (event) =>
     '/robots.txt',
     '/elements/admin-conf-div.js',
     '/elements/admin-email.js',
-    '/elements/admin-help.js',
+    '/elements/admhelp-manager.js',
     '/elements/admin-home.js',
     '/elements/admin-manager.js',
     '/elements/admin-match.js',
@@ -62,7 +65,7 @@ self.addEventListener('install', (event) =>
     '/elements/dialog-box.js',
     '/elements/dialog-polyfill.js',
     '/elements/emoji-button.js',
-    '/elements/emoji-dialogr.js',
+    '/elements/emoji-dialog.js',
     '/elements/error-manager.js',
     '/elements/fm-checkbox.js',
     '/elements/fm-input.js',
@@ -171,10 +174,9 @@ self.addEventListener('install', (event) =>
     '/styles/opids.js',
     '/styles/page.js',
     '/styles/tooltip.js'
-
-
-
-])))
+      ])
+    )
+  )
 );
 self.addEventListener('activate', (event) => {
   event.waitUntil(async function() {
@@ -190,7 +192,7 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const requestURL = new URL(event.request.url);
-if (/^\/api\//i.test(requestURL.pathname)) {
+  if (event.request.method.toLowerCase() === 'post') {
     //We have an api call, so deal with it appropriately (mostly nothing, just service)
     if (/^\/api\/service\//i.test(requestURL.pathname)) {
       //special request to service worker. So we MUST respond, server would fail on this.
@@ -205,17 +207,20 @@ if (/^\/api\//i.test(requestURL.pathname)) {
       }
     } 
   } else if(event.request.url.startsWith(self.location.origin)) {
-    //This is all our static stuff, we should use the cache, but background fetch to update (unless it fails). If no static, we use the network.
+    //This is all our static stuff, we try to fetch to and update the cache it it succeeds, otherwise use the cache.
     event.respondWith(
       caches.open(version).then(cache => {
-        const fetchPromise = fetch(event.request).then(networkResponse => {
+        const requestURL = new URL(event.request.url);
+        if (routes.test(requestURL.pathname)) {
+          //wasn't in our know app routes, so actually fetch what we asked for
+          event.request.url = '/index.html';
+        }
+        return fetch(event.request).then(networkResponse => {
           cache.put(event.request.url, networkResponse.clone());
           return networkResponse;
-        }).catch((e) => new Response('', { status: 500 })); //prepare a 500 response if its used (match not found in cache).       
-        return cache.match(event.request, {ignoreSearch: true}).then(response => response).catch((e) => fetchPromise);
+        }).catch((e) => cache.match(event.request.url).then(response => response || new Response('', { status: 500 })));
       })
-
-    );  
+    ); 
   }
 });
 

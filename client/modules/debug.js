@@ -45,7 +45,7 @@ export default function(t) {
       console.log(`+${gap}ms`,topic, message);
       const logpath = `/api/log/${encodeURIComponent(topic)}/${encodeURIComponent(message)}/${encodeURIComponent(gap)}`
 
-      window.fetch(logpath, { method: 'get' })
+      window.fetch(logpath, { method: 'post' })
         .catch(() => true);//no interest in reply, but must make sure it doesn't throw an exception.
     }
   }

@@ -24,7 +24,7 @@ const firstTabPromise = new Promise(resolve => {
   if (ft !== null) {
     resolve(ft);
   } else {
-    window.fetch('/api/service/tab', { method: 'get' })
+    window.fetch('/api/service/tab', { method: 'post', credentials: 'same-origin'})
       .then(response => response.text()).then(text => {
         if (text === '1') {
           resolve('true');

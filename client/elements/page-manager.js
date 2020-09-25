@@ -64,10 +64,11 @@ export class PageManager extends RouteManager {
           this.route = cidR;
         } else {
           /*
-            some urls, don't need a cid, they are /,  /profile, /navref and /icon plus /gadm and its sub pages
+            some urls, don't need a cid, they are /,  /profile, /navref and /icon plus /admhelp /gadm and its sub pages
           */
           if (cidR.params.cid === '' || cidR.params.cid === 'profile' || 
-              cidR.params.cid === 'navref' || cidR.params.cid === 'help' || cidR.params.cid === 'gadm' ) {
+            cidR.params.cid === 'navref' || cidR.params.cid === 'help' || cidR.params.cid === 'admhelp' || 
+              cidR.params.cid === 'gadm' ) {
             this.route = route; //just pass straight through
           } else {
             if (global.cid === 0) global.cid = global.lcid;
@@ -92,8 +93,9 @@ export class PageManager extends RouteManager {
      
 
       ${cache({
-        approve: html`<approve-manager managed-page .route=${this.subRoute}></approve-manager>`,
+        admhelp: html`<admhelp-manager managed-page></admhelp-manager>`,
         admin: html`<admin-manager managed-page .route=${this.subRoute}></admin-manager>`,
+        approve: html`<approve-manager managed-page .route=${this.subRoute}></approve-manager>`,
         gadm: html`<gadm-manager managed-page .route=${this.subRoute}></gadm-manager>`,
         home:html`<home-manager managed-page></home-manager>`,
         icon: html`<icon-manager managed-page></icon-manager>`,

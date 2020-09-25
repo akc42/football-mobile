@@ -72,8 +72,7 @@ class AdminManager extends RouteManager {
   }
   update(changed) {
     if (changed.has('route') && this.route.active) {
-      if (global.user.global_admin === 1 ||
-        (global.lcid === global.cid && global.user.uid === global.luid )) {
+      if (global.user.global_admin === 1 || global.user.uid === global.auid ) {
         this._newRoute();
       } else {
         switchPath(`/${global.cid}/`);  //can't allow non admin
@@ -117,8 +116,7 @@ class AdminManager extends RouteManager {
           @round-changed=${this._roundChanged}
           @round-create=${this._roundCreate}
           @round-delete=${this._roundDelete}></admin-rounds>`,
-        email: html`<admin-email .users=${this.users} managed-page></admin-email>`,
-        help: html`<admin-help managed-page></admin-help>`
+        email: html`<admin-email .users=${this.users} managed-page></admin-email>`
       }[this.page])}
     `;
   }

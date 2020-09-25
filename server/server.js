@@ -147,7 +147,7 @@
       /*
         Our first set of calls are almost related to the static files.  They are a few api calls to retrieve configuration items
         and as such will be get requests and will have no requirements for ony other parameters.  They are of the form
-        /api/config/xxxx
+        /api/config/xxxxget
 
       */
       debug('setting up config apis');
@@ -168,7 +168,7 @@
       }
       debug('setting up logging api');
       
-      api.get('/log/:topic/:message/:gap', async (req,res) => {
+      api.use('/log/:topic/:message/:gap', async (req,res) => {
         clientLogger(req.params,req.headers);
         res.end();
       })

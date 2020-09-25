@@ -55,26 +55,50 @@
     <link rel="manifest" href="manifest.json">
     <!-- The main stylesheet -->
     <link rel="stylesheet" href="/style.css">
-    <!-- Fonts I am going to need -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
-    <!-- put this here because its not available at google right now -->
 
-    <script>
-      if('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js', { scope: '/' });
-      }
-
-    </script>
-    <script src="/libs/webcomponents-loader.js"></script>
-    <script type="module" src="/elements/material-icon.js"></script>
-    <script type="module" src="/elements/main-app.js"></script> 
-    <script type="module" src="/modules/utils.js"></script>
-    <script type="module" src="/elements/dialog-box.js"></script>
-    <script type="module" src="/elements/error-manager.js"></script>
-    <script type="module" src="/elements/session-manager.js"></script>
-    <script type="module" src="/elements/page-manager.js"></script>
-    <script type="module" src="/modules/api.js"></script>
+    <script src="/libs/webcomponents-loader.js" defer></script>
+    <script type="module" src="/elements/material-icon.js" async></script>
+    <script type="module" src="/elements/main-app.js" async></script> 
+    <script type="module" src="/modules/utils.js" async></script>
+    <script type="module" src="/elements/dialog-box.js" async></script>
+    <script type="module" src="/elements/error-manager.js" async></script>
+    <script type="module" src="/elements/session-manager.js" async></script>
+    <script type="module" src="/elements/page-manager.js" async></script>
+    <script type="module" src="/elements/route-manager.js" async></script>
+    <script type="module" src="/elements/rounds-manager.js" async></script>
+    <script type="module" src="/elements/home-manager.js" async></script>
+    <script type="module" src="/elements/scores-manager.js" async></script>
+    <script type="module" src="/elements/teams-manager.js" async></script>
+    <script type="module" src="/elements/round-header.js" async></script>
+    <script type="module" src="/elements/rounds-home.js" async></script>
+    <script type="module" src="/elements/fm-page.js" async></script>
+    <script type="module" src="/elements/football-page.js" async></script>
+    <script type="module" src="/modules/route.js" async></script>
+    <script type="module" src="/modules/globals.js" async></script>
+    <script type="module" src="/modules/api.js" async></script>
+    <script type="module" src="/modules/events.js" async></script>
+    <script type="module" src="/modules/keys.js" async></script>
+    <script type="module" src="/modules/host.js" async></script>
+    <script type="module" src="/modules/debug.js" async></script>
+    <script type="module" src="/elements/waiting-indicator.js" async></script>
+    <script type="module" src="/elements/comment-dialog.js" async></script>
+    <script type="module" src="/elements/emoji-dialog.js" async></script>
+    <script type="module" src="/styles/tooltip.js" async></script>
+    <script type="module" src="/styles/page.js" async></script>
+    <script type="module" src="/styles/button.js" async></script>
+    <script type="module" src="/styles/emoji.js" async></script>
+    <script type="module" src="/styles/opids.js" async></script>
+    <script type="module" src="/libs/lit-element.js" async></script>
+    <script type="module" src="/libs/cache.js" async></script>
+    <script type="module" src="/libs/class-map.js" async></script>
+    <script type="module" src="/libs/lit-html-chunk.js" async></script>
+    <script type="module" src="/elements/delete-dialog.js" async></script>
+    <script type="module" src="/elements/comment-panel.js" async></script>
+    <script type="module" src="/elements/date-format.js" async></script>
+    <script type="module" src="/elements/user-pick.js" async></script>
+    <script type="module" src="/elements/comment-button.js" async></script>
+    <script type="module" src="/modules/location.js" async></script>
+    <script type="module" src="/elements/round-match.js" async></script>
     <style>
       html {
         background: #ffffff;

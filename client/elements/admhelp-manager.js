@@ -24,9 +24,9 @@ import page from '../styles/page.js';
 
 
 /*
-     <admin-help>: Help Page for Admin
+     <admhelp-manager>: Help Page for Admin
 */
-class AdminHelp extends LitElement {
+class AdmhelpManager extends LitElement {
   static get styles() {
     return [page, css``];
   }
@@ -72,6 +72,7 @@ class AdminHelp extends LitElement {
       </style>
       <fm-page id="page" heading="Admin Help">
         <section class="scrollable">
+          <h3><material-icon>font_download</material-icon> Competition Administration</h3>
           <p>Just some brief notes that should help. Also read the "Icon Meanings" help page</p>
           <ul>
             <li>Global Admin has created the competition and assigned you as Administrator</li>
@@ -107,9 +108,11 @@ class AdminHelp extends LitElement {
               </ul></li>
             <li>You can send e-mails to users.  More info when implemented.</li>
           </ul>
+          <h3><material-icon>public</material-icon> Global Administration</h3>
+          
         </section>
       </fm-page>
     `;
   }
 }
-customElements.define('admin-help', AdminHelp);
+customElements.define('admhelp-manager', AdmhelpManager);

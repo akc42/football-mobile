@@ -115,6 +115,10 @@ class MainApp extends LitElement {
 
 
   updated(changed) {
+    //delay installing service worker on first run to quite late
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js', { scope: '/' });
+    }
     if (changed.has('authorised') && this.authorised) {
       this.mainmenu = this.shadowRoot.querySelector('#mainmenu');
       this.competitionMenu = this.shadowRoot.querySelector('#competitions');
@@ -357,7 +361,7 @@ class MainApp extends LitElement {
   _adminHelp(e) {
     e.stopPropagation();
     this.mainmenu.close();
-    switchPath(`${global.cid}/admin/help`);
+    switchPath(`/admhelp`);
   }
   _authChanged(e) {
     this.authorised = e.changed;

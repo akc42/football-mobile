@@ -97,7 +97,7 @@ class IconManager extends LitElement {
         }
         .panel {
           width: 12rem;
-          font-family:'Roboto Mono', monospace;
+          font-family:monospace;
           background-color: var(--background-color);
           color: var(--emoji-color);
           font-weight: bold;
@@ -149,7 +149,7 @@ class IconManager extends LitElement {
         </div>
         <div class="item">
           <div class="icon menu"><material-icon>reply</material-icon></div>
-          <div class="description">Move one level up url hierachy </div>
+          <div class="description">Move one level up page hierachy (see <a href="/navref">Navigation Reference</a>) </div>
         </div>
         <div class="item">
           <div class="icon picks"><material-icon>create</material-icon></div>
@@ -222,32 +222,32 @@ class IconManager extends LitElement {
         <fm-input textarea label="Text Input"></fm-input>
 
         <div class="panel">
-          <span @click=${this._getChar}>🍌</span>
-          <span @click=${this._getChar}>🙇</span>
-          <span @click=${this._getChar}>😖</span>
-          <span @click=${this._getChar}>👋</span>
-          <span @click=${this._getChar}>🐒</span>
-          <span @click=${this._getChar}>🥂</span>
-          <span @click=${this._getChar}>😢</span>
-          <span @click=${this._getChar}>🤔</span>
-          <span @click=${this._getChar}>😠</span>
-          <span @click=${this._getChar}>🤩</span>
-          <span @click=${this._getChar}>🙄</span>          
-          <span @click=${this._getChar}>🥺</span>
-          <span @click=${this._getChar}>👐</span>
-          <span @click=${this._getChar}>😉</span>
-          <span @click=${this._getChar}>😠</span>
-          <span @click=${this._getChar}>🤯</span>
-          <span @click=${this._getChar}>🥒</span>
-          <span @click=${this._getChar}>😾</span>
-          <span @click=${this._getChar}>🤣</span>
-          <span @click=${this._getChar}>😈</span>
-          <span @click=${this._getChar}>😮</span>
-          <span @click=${this._getChar}>🙏</span>
-          <span @click=${this._getChar}>👍</span>
-          <span @click=${this._getChar}>❤️</span>
-          <span @click=${this._getChar}>😱</span>
-          <span @click=${this._getChar}>🛌</span>
+          <span>🍌</span>
+          <span>🙇</span>
+          <span>😖</span>
+          <span>👋</span>
+          <span>🐒</span>
+          <span>🥂</span>
+          <span>😢</span>
+          <span>🤔</span>
+          <span>😠</span>
+          <span>🤩</span>
+          <span>🙄</span>          
+          <span>🥺</span>
+          <span>👐</span>
+          <span>😉</span>
+          <span>😠</span>
+          <span>🤯</span>
+          <span>🥒</span>
+          <span>😾</span>
+          <span>🤣</span>
+          <span>😈</span>
+          <span>😮</span>
+          <span>🙏</span>
+          <span>👍</span>
+          <span>❤️</span>
+          <span>😱</span>
+          <span>🛌</span>
                   
         </div>
         <p>Click on an icon and it will be automatically added into the text area just where the cursor was last positioned.</p>

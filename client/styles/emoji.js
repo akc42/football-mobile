@@ -21,6 +21,6 @@ import { css } from '../libs/lit-element.js';
 
 export default css`
   .emoji {
-    font-family: 'Roboto Mono', monospace;
+    font-family: monospace;
   }
 `;

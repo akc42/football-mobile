@@ -248,7 +248,8 @@ class RoundsUser extends LitElement {
                     `))}
                   </ul>
                     <div class="deadline">
-                      <material-icon>question_answer</material-icon> Deadline <date-format withTime .date=${this.round.deadline}></date-format>
+                      ${cache(this.timeLeft === '' ? html`<material-icon>question_answer</material-icon>` :html`<material-icon>rule</material-icon>`)}
+                      Deadline <date-format withTime .date=${this.round.deadline}></date-format>
                     </div>
                   <div class="opheader">
                     <div>Points ${this.round.bvalue}</div>
