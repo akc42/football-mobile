@@ -72,6 +72,11 @@ class FmInput extends LitElement {
         white-space: nowrap;
         grid-area: e
       }
+      emoji-button {
+        grid-area: e;
+        align-self:flex-end;
+        justify-self:end;
+      }
 
     `];
   }
