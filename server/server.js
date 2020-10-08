@@ -27,7 +27,7 @@
   
   const fs = require('fs');
 
-  const includeAll = require('include-all');
+  const requireAll = require('require-all');
   const bodyParser = require('body-parser');
   const Router = require('router');
   const jwt = require('jwt-simple');
@@ -46,7 +46,7 @@
 
 
   function loadServers(rootdir, relPath) {
-    return includeAll({
+    return requireAll({
       dirname: path.resolve(rootdir, relPath),
       filter: /(.+)\.js$/
     }) || {};
