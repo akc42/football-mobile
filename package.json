@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@webcomponents/webcomponentsjs": "^2.4.2",
-    "bcrypt": ">=5.0.0",
+    "bcrypt": ">=6.0.0",
     "better-sqlite3": "^7.5.0",
     "body-parser": "^1.20.4",
     "chalk": "^3.0.0",
